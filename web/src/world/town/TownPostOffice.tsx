@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../components/ui/popover";
+import { t, useT } from "../../i18n";
 import { WORLD_SOURCES_SETTINGS_EVENT } from "../../workspaceResource";
 import { PullRequestCard } from "../PullRequestCard";
 import { BadgePopover } from "./DeskWorkBadge";
@@ -126,16 +127,21 @@ function spoken(office: Office) {
   if (office.status !== "open" || office.stale) return townPostSignText(office);
   return townPostCountParts(office.counts)
     .map((part) =>
-      part.state === "ready" ? `${part.count} ready to merge` : part.text,
+      part.state === "ready"
+        ? t("town.post.spokenReady", { count: part.count })
+        : part.text,
     )
     .join(", ");
 }
 
 const FOLDED_WAITING = {
-  loading: "…",
-  off: "closed",
-  closed: "closed",
+  loading: () => "…",
+  off: () => t("town.post.closed"),
+  closed: () => t("town.post.closed"),
 } as const;
+
+const foldedWaiting = (status: keyof typeof FOLDED_WAITING) =>
+  FOLDED_WAITING[status]();
 
 /**
  * Town's post office (#760): your open pull requests as parcels in its
@@ -153,6 +159,7 @@ export const TownPostOffice = memo(function TownPostOffice({
   renderer: { readonly current: TownRendererHandle | null };
 }) {
   const snapshot = useTownPostSources();
+  const t = useT();
   // Read at every render: an expiring detail re-renders it (useExpiry).
   useExpiry(snapshot);
   const office = townPostOffice(snapshot, Date.now());
@@ -198,7 +205,7 @@ export const TownPostOffice = memo(function TownPostOffice({
       ? createPortal(
           <BadgePopover
             anchor={cardAnchor}
-            label={`Pull request ${item.ref}`}
+            label={t("town.post.pullRequest", { ref: item.ref })}
             onClose={() => setCardKey(null)}
           >
             <PullRequestCard item={item} compact />
@@ -230,7 +237,7 @@ export const TownPostOffice = memo(function TownPostOffice({
         className="town-post-sign"
         data-quiet={quiet || undefined}
         style={{ left: (lot.x + lot.w / 2) * T, top: lot.y * T + 34 }}
-        aria-label={`Post office: ${spoken(office)}`}
+        aria-label={`${t("town.post.office")}: ${spoken(office)}`}
         title={quiet && office.status === "closed" ? office.detail : undefined}
         onPointerDown={(event) => event.stopPropagation()}
         onFocus={reveal}
@@ -245,7 +252,7 @@ export const TownPostOffice = memo(function TownPostOffice({
         }}
       >
         <span className="town-post-sign-title" aria-hidden="true">
-          POST OFFICE
+          {t("town.post.officeTitle")}
         </span>
         <SignCounts office={office} />
       </button>
@@ -253,7 +260,7 @@ export const TownPostOffice = memo(function TownPostOffice({
         ref={yardRef}
         className="town-post-yard"
         role="group"
-        aria-label="Post office yard"
+        aria-label={t("town.post.yard")}
         style={{
           left: lot.x * T,
           top: lot.yardY * T,
@@ -270,7 +277,7 @@ export const TownPostOffice = memo(function TownPostOffice({
               className="town-post-parcel"
               data-state={parcel.state}
               style={{ left: at.x, top: at.y }}
-              aria-label={`${townPostLabel(parcel)}. Open pull request`}
+              aria-label={`${townPostLabel(parcel)}. ${t("town.post.openPullRequest")}`}
               onPointerDown={(event) => event.stopPropagation()}
               onFocus={reveal}
               onClick={(event) => {
@@ -314,7 +321,7 @@ export const TownPostOffice = memo(function TownPostOffice({
           {leaving
             .map(
               (entry) =>
-                `${townPostName(entry.parcel)} ${entry.how === "posted" ? "merged" : "left the post office"}.`,
+                `${townPostName(entry.parcel)} ${entry.how === "posted" ? t("town.post.merged") : t("town.post.left")}.`,
             )
             .join(" ")}
         </span>
@@ -364,6 +371,7 @@ function Pile({
   onOpen(key: string, anchor: HTMLElement | null): void;
   onFocus(event: FocusEvent<HTMLElement>): void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement | null>(null);
   return (
@@ -374,7 +382,9 @@ function Pile({
           type="button"
           className="town-post-pile"
           style={{ left: at.x, top: at.y }}
-          aria-label={`${parcels.length} more pull requests`}
+          aria-label={t("town.post.morePullRequests", {
+            count: parcels.length,
+          })}
           onPointerDown={(event) => event.stopPropagation()}
           onFocus={onFocus}
         >
@@ -384,7 +394,7 @@ function Pile({
       <PopoverContent
         className="town-post-popover"
         collisionPadding={8}
-        aria-label="More pull requests"
+        aria-label={t("town.post.morePullRequestsTitle")}
       >
         <ParcelList
           parcels={parcels}
@@ -406,14 +416,15 @@ function ParcelList({
   parcels: readonly TownPostParcel[];
   onOpen(key: string): void;
 }) {
+  const t = useT();
   return (
-    <ul className="town-post-list" aria-label="Pull requests">
+    <ul className="town-post-list" aria-label={t("town.post.pullRequests")}>
       {parcels.map((parcel) => (
         <li key={parcel.key}>
           <button
             type="button"
             className="town-post-row"
-            aria-label={`${townPostLabel(parcel)}. Open pull request`}
+            aria-label={`${townPostLabel(parcel)}. ${t("town.post.openPullRequest")}`}
             onClick={() => onOpen(parcel.key)}
           >
             <span
@@ -453,6 +464,7 @@ function FoldedSign({
   onOpen(key: string, anchor: HTMLElement | null): void;
   onFocus(event: FocusEvent<HTMLElement>): void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const at = townPostFoldAt(center);
@@ -464,8 +476,8 @@ function FoldedSign({
           type="button"
           className="town-post-fold"
           style={{ left: at.x, top: at.y }}
-          aria-label={`Post office: ${spoken(office)}. Open`}
-          title="Post office"
+          aria-label={`${t("town.post.office")}: ${spoken(office)}. ${t("town.open")}`}
+          title={t("town.post.office")}
           onPointerDown={(event) => event.stopPropagation()}
           onFocus={onFocus}
         >
@@ -480,7 +492,9 @@ function FoldedSign({
             </span>
           ) : (
             <span>
-              {office.status === "open" ? "old" : FOLDED_WAITING[office.status]}
+              {office.status === "open"
+                ? t("town.signOld")
+                : foldedWaiting(office.status)}
             </span>
           )}
         </button>
@@ -488,11 +502,11 @@ function FoldedSign({
       <PopoverContent
         className="town-post-popover"
         collisionPadding={8}
-        aria-label="Post office"
+        aria-label={t("town.post.office")}
       >
         <header className="town-post-popover-title">
           <PostBox />
-          <span>POST OFFICE</span>
+          <span>{t("town.post.officeTitle")}</span>
         </header>
         <p className="town-post-popover-counts">{townPostSignText(office)}</p>
         {office.status === "open" ? (
@@ -505,7 +519,7 @@ function FoldedSign({
               }}
             />
           ) : (
-            <p className="town-post-popover-note">No open pull requests.</p>
+            <p className="town-post-popover-note">{t("town.post.noneOpen")}</p>
           )
         ) : office.status === "loading" ? null : (
           <>
@@ -520,7 +534,7 @@ function FoldedSign({
                 openSourcesSettings();
               }}
             >
-              Set up GitHub in Sources
+              {t("town.post.setUpSources")}
             </button>
           </>
         )}

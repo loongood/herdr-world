@@ -9,6 +9,8 @@ import type {
   WorkItem,
   WorldSourcesSnapshot,
 } from "../../../../shared/worldSources";
+import { t } from "../../i18n";
+import type { TranslationKey } from "../../i18n/en";
 import { TOWN_CENTER_FRIEZE_Y, type TownCenterLot } from "./townCenter";
 import { TOWN_TILE, type TownLayout } from "./townLayout";
 import { townPostLotBeside, type TownPostLot } from "./townPostLot";
@@ -90,12 +92,12 @@ export function townPostItem(item: WorkItem) {
 }
 
 /** A rule that keeps a fresh, authored pull request from ready, in words. */
-const RULE_FAILS: Record<ReadinessRuleId, string> = {
-  draft: "draft",
-  findings: "review findings open",
-  checks: "CI failing on its head",
-  mergeable: "conflicts with its base",
-  screenshots: "UI change without screenshots",
+const RULE_FAILS: Record<ReadinessRuleId, TranslationKey> = {
+  draft: "town.post.whyDraft",
+  findings: "town.post.whyFindings",
+  checks: "town.post.whyChecksFail",
+  mergeable: "town.post.whyConflicts",
+  screenshots: "town.post.whyScreenshots",
 };
 
 /** Where a pull request stands, with the merge rules' honesty. */
@@ -103,36 +105,38 @@ export function townPostState(
   item: WorkItem,
   now: number,
 ): { state: TownPostState; why: string } {
-  if (item.draft) return { state: "draft", why: "draft" };
+  if (item.draft) return { state: "draft", why: t("town.post.whyDraft") };
   if (item.checks === "fail")
-    return { state: "failing", why: "CI failing on its head" };
-  if (readyToMerge(item, now)) return { state: "ready", why: "ready to merge" };
+    return { state: "failing", why: t("town.post.whyChecksFail") };
+  if (readyToMerge(item, now))
+    return { state: "ready", why: t("town.post.whyReady") };
   if (!item.roles.includes("author"))
     return {
       state: "waiting",
       why: item.roles.includes("reviewer")
-        ? "your review requested"
-        : "assigned to you",
+        ? t("town.post.whyReviewRequested")
+        : t("town.post.whyAssigned"),
     };
   // What GitHub's list says holds whatever the detail's age.
   if (item.checks === "pending")
-    return { state: "waiting", why: "waiting for CI" };
+    return { state: "waiting", why: t("town.post.whyWaitingCi") };
   if (item.review === "changes_requested")
-    return { state: "waiting", why: "changes requested" };
+    return { state: "waiting", why: t("town.post.whyChangesRequested") };
   if (item.mergeable === "conflicting")
-    return { state: "waiting", why: "conflicts with its base" };
+    return { state: "waiting", why: t("town.post.whyConflicts") };
   if (!actionablePullRequest(item) || !freshPullRequestDetail(item, now))
-    return { state: "unknown", why: "details out of date" };
+    return { state: "unknown", why: t("town.post.whyDetailsStale") };
   const rules = pullRequestReadiness(item, now);
   const failed = rules.find((rule) => rule.state === "fail");
-  if (failed) return { state: "waiting", why: RULE_FAILS[failed.id] };
+  if (failed) return { state: "waiting", why: t(RULE_FAILS[failed.id]) };
   const open = rules.find((rule) => rule.state === "unknown");
   if (open?.id === "findings")
-    return { state: "waiting", why: "waiting for review" };
-  if (open?.id === "checks") return { state: "waiting", why: "waiting for CI" };
+    return { state: "waiting", why: t("town.post.whyWaitingReview") };
+  if (open?.id === "checks")
+    return { state: "waiting", why: t("town.post.whyWaitingCi") };
   if (open?.id === "mergeable")
-    return { state: "waiting", why: "GitHub still checking for conflicts" };
-  return { state: "unknown", why: "changed files not read" };
+    return { state: "waiting", why: t("town.post.whyGitHubChecking") };
+  return { state: "unknown", why: t("town.post.whyFilesUnread") };
 }
 
 const emptyCounts = (): TownPostCounts => ({
@@ -151,7 +155,7 @@ export function townPostOffice(
   const github = snapshot.sources.find((source) => source.id === "github");
   if (!github)
     return snapshot.sources.length
-      ? { status: "closed", detail: "World has no GitHub source." }
+      ? { status: "closed", detail: t("town.post.detailNoSource") }
       : { status: "loading" };
   if (!github.enabled || github.state === "disabled") return { status: "off" };
   if (
@@ -171,7 +175,7 @@ export function townPostOffice(
         title: item.title,
         repo: item.repo ?? item.ref,
         ...(stale
-          ? { state: "unknown" as const, why: "GitHub out of date" }
+          ? { state: "unknown" as const, why: t("town.post.whyGitHubStale") }
           : townPostState(item, now)),
       };
     });
@@ -191,13 +195,13 @@ export function townPostOffice(
   };
 }
 
-const COUNT_WORDS: Record<TownPostState, string> = {
-  ready: "ready",
-  failing: "failing",
-  waiting: "waiting",
-  unknown: "unknown",
-  draft: "draft",
-};
+const COUNT_KEYS = {
+  ready: "town.post.countReady",
+  failing: "town.post.countFailing",
+  waiting: "town.post.countWaiting",
+  unknown: "town.post.countUnknown",
+  draft: "town.post.countDraft",
+} as const satisfies Record<TownPostState, TranslationKey>;
 
 /**
  * The sign's counts: ready, failing and waiting always (a zero there is
@@ -213,7 +217,7 @@ export function townPostCountParts(counts: TownPostCounts) {
   ).map((state) => ({
     state,
     count: counts[state],
-    text: `${counts[state]} ${COUNT_WORDS[state]}`,
+    text: t(COUNT_KEYS[state], { count: counts[state] }),
   }));
 }
 
@@ -221,14 +225,14 @@ export function townPostCountParts(counts: TownPostCounts) {
 export function townPostSignText(office: TownPostOffice) {
   switch (office.status) {
     case "loading":
-      return "Opening…";
+      return t("town.post.signOpening");
     case "off":
-      return "Closed · GitHub source is off";
+      return t("town.post.signOff");
     case "closed":
-      return "Closed · connect GitHub in Sources";
+      return t("town.post.signClosed");
     case "open":
       return office.stale
-        ? `GitHub out of date · ${office.parcels.length} unknown`
+        ? t("town.post.signStale", { count: office.parcels.length })
         : townPostCountParts(office.counts)
             .map((part) => part.text)
             .join(" · ");

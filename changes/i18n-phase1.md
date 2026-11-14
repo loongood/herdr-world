@@ -9,4 +9,6 @@
   follow the selected language as well. The Town board sign (counts, economy
   and fuel limits), its expense boards, place cards, Board's window labels and
   the Add room doorway translate too, and limit reset times follow the
-  language. Remaining surfaces keep English until their phase lands.
+  language. The post office follows it as well: its sign, counts, parcels'
+  states, folded sign and pull request lists. Remaining surfaces keep English
+  until their phase lands.
