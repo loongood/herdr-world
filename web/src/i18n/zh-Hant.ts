@@ -76,6 +76,8 @@ export const zhHant: Dictionary = {
     mobileShortcuts: "行動裝置終端快速鍵",
     mobileShortcutsSummary: "{panels} 個面板 · {sides} 個側欄",
     connectionLabel: "連線:",
+    currentConnection: "目前連線",
+    backToConfiguration: "返回設定",
     automaticBranchUpdates: "自動分支更新",
     branchUpdatesHint: "管理此連線上已儲存的儲存庫同步設定",
     changesRequireConfirmation: "變更需要確認。",

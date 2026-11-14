@@ -31,6 +31,7 @@ import {
   UI_SCALE_MIN,
   UI_SCALE_STEP,
 } from "../appearance";
+import { type TranslationKey, useT } from "../i18n";
 import { setChatTextScale, useChatTextScale } from "../textScales";
 import { lazyWithReload } from "../lazyWithReload";
 import {
@@ -117,6 +118,16 @@ const tabs = [
   "Integrations",
 ] as const;
 export type ConfigurationTab = (typeof tabs)[number];
+// Tab names are data in `tabs` (used for element ids); their labels come from
+// the dictionary. TS widens `.toLowerCase()` calls to plain string, so the
+// mapping is spelled out and type-checked against the dictionary keys.
+const TAB_LABEL_KEYS = {
+  Appearance: "config.tabs.appearance",
+  Behavior: "config.tabs.behavior",
+  Instance: "config.tabs.instance",
+  Connection: "config.tabs.connection",
+  Integrations: "config.tabs.integrations",
+} as const satisfies Record<ConfigurationTab, TranslationKey>;
 type Detail = "terminal" | "layout" | "keyboard" | "mobile" | "sync";
 
 export function ConfigurationDialog({
@@ -128,6 +139,7 @@ export function ConfigurationDialog({
   initialTab?: ConfigurationTab;
 }) {
   const { theme, accentColor, uiScale } = props;
+  const tr = useT();
   const s = useStoreSelector(
     (state) => ({
       taskNotificationPermission: state.taskNotificationPermission,
@@ -138,7 +150,7 @@ export function ConfigurationDialog({
       automaticUpdateChecksEnabled: state.automaticUpdateChecksEnabled,
       connectionLabel:
         state.connections.find((c) => c.id === state.activeConnectionId)
-          ?.label ?? "Current connection",
+          ?.label ?? tr("config.currentConnection"),
       sshDestination: state.connections.find(
         (c) => c.id === state.activeConnectionId,
       )?.ssh_destination,
@@ -174,16 +186,16 @@ export function ConfigurationDialog({
       window.removeEventListener("keydown", onKey, { capture: true });
   }, [detail, onClose]);
   const notificationStatus = s.taskNotificationBusy
-    ? "Saving..."
+    ? tr("config.notification.saving")
     : s.taskNotificationPermission === "unsupported"
-      ? "Unsupported"
+      ? tr("config.notification.unsupported")
       : s.taskNotificationPermission === "denied"
-        ? "Blocked by browser permissions"
+        ? tr("config.notification.blocked")
         : s.taskNotificationsEnabled
           ? s.taskNotificationTransport === "push"
-            ? "On · Background push"
-            : "On · Active page only"
-          : "Off";
+            ? tr("config.notification.onPush")
+            : tr("config.notification.onPage")
+          : tr("config.notification.off");
 
   return (
     <>
@@ -199,7 +211,7 @@ export function ConfigurationDialog({
           className="modal configuration-modal mobile-sheet"
           role="dialog"
           aria-modal="true"
-          aria-label="Configuration"
+          aria-label={tr("config.title")}
           tabIndex={-1}
           onKeyDown={(event) => {
             event.stopPropagation();
@@ -224,20 +236,24 @@ export function ConfigurationDialog({
             }
           }}
         >
-          <MobileSheetHandle label="Dismiss Configuration" onClose={onClose} />
+          <MobileSheetHandle
+            label={tr("config.dismissConfiguration")}
+            onClose={onClose}
+          />
           <div className="modal-head">
             <div>
-              <h2>Configuration</h2>
-              <p>
-                Appearance, behavior, instance, connections, and integrations
-              </p>
+              <h2>{tr("config.title")}</h2>
+              <p>{tr("config.subtitle")}</p>
             </div>
-            <CloseButton label="Close Configuration" onClick={onClose} />
+            <CloseButton
+              label={tr("config.closeConfiguration")}
+              onClick={onClose}
+            />
           </div>
           <div
             className="configuration-tabs"
             role="tablist"
-            aria-label="Configuration categories"
+            aria-label={tr("config.configurationCategories")}
           >
             {tabs.map((name, index) => (
               <button
@@ -268,7 +284,7 @@ export function ConfigurationDialog({
                     ?.focus();
                 }}
               >
-                {name}
+                {tr(TAB_LABEL_KEYS[name])}
               </button>
             ))}
           </div>
@@ -279,19 +295,21 @@ export function ConfigurationDialog({
               aria-labelledby="configuration-tab-Appearance"
               hidden={tab !== "Appearance"}
             >
-              <p className="configuration-scope">Saved in this browser.</p>
+              <p className="configuration-scope">
+                {tr("config.savedInBrowser")}
+              </p>
               <div className="config-preference-row">
                 <span className="config-item-icon">
                   <SunMoon size={15} />
                 </span>
                 <div className="config-item-copy">
-                  <strong>Theme</strong>
-                  <span>Application appearance</span>
+                  <strong>{tr("config.theme")}</strong>
+                  <span>{tr("config.themeHint")}</span>
                 </div>
                 <div
                   className="config-theme-control"
                   role="group"
-                  aria-label="Theme"
+                  aria-label={tr("config.theme")}
                 >
                   {(
                     [
@@ -303,7 +321,9 @@ export function ConfigurationDialog({
                     <button
                       key={value}
                       type="button"
-                      aria-label={`Use ${value} theme`}
+                      aria-label={tr("config.useTheme", {
+                        theme: tr(`theme.${value}`),
+                      })}
                       aria-pressed={theme === value}
                       className={theme === value ? "is-active" : ""}
                       onClick={() => props.onThemeChange(value)}
@@ -318,13 +338,13 @@ export function ConfigurationDialog({
                   <Moon size={15} />
                 </span>
                 <div className="config-item-copy">
-                  <strong>Black background</strong>
-                  <span>Pure black instead of blue-grey in the dark theme</span>
+                  <strong>{tr("config.blackBackground")}</strong>
+                  <span>{tr("config.blackBackgroundHint")}</span>
                 </div>
                 <button
                   type="button"
                   role="switch"
-                  aria-label="Black background"
+                  aria-label={tr("config.blackBackground")}
                   aria-checked={props.blackBackground}
                   className={
                     "settings-switch" + (props.blackBackground ? " is-on" : "")
@@ -341,19 +361,13 @@ export function ConfigurationDialog({
                   <Palette size={15} />
                 </span>
                 <div className="config-item-copy">
-                  <strong>Accent color</strong>
-                  <span>
-                    {
-                      ACCENT_OPTIONS.find(
-                        (option) => option.value === accentColor,
-                      )?.label
-                    }
-                  </span>
+                  <strong>{tr("config.accentColor")}</strong>
+                  <span>{tr(`accent.${accentColor}`)}</span>
                 </div>
                 <div
                   className="config-accent-control"
                   role="radiogroup"
-                  aria-label="Accent color"
+                  aria-label={tr("config.accentColor")}
                 >
                   {ACCENT_OPTIONS.map((option, index) => (
                     <button
@@ -361,8 +375,8 @@ export function ConfigurationDialog({
                       type="button"
                       role="radio"
                       data-accent={option.value}
-                      title={option.label}
-                      aria-label={option.label}
+                      title={tr(`accent.${option.value}`)}
+                      aria-label={tr(`accent.${option.value}`)}
                       aria-checked={accentColor === option.value}
                       tabIndex={accentColor === option.value ? 0 : -1}
                       className={
@@ -398,17 +412,17 @@ export function ConfigurationDialog({
                   <ALargeSmall size={15} />
                 </span>
                 <div className="config-item-copy">
-                  <strong>Interface scale</strong>
-                  <span>Scale menus, panels, and dialogs</span>
+                  <strong>{tr("config.interfaceScale")}</strong>
+                  <span>{tr("config.interfaceScaleHint")}</span>
                 </div>
                 <div
                   className="config-scale-control"
                   role="group"
-                  aria-label="Interface scale"
+                  aria-label={tr("config.interfaceScale")}
                 >
                   <button
                     type="button"
-                    aria-label="Decrease interface scale"
+                    aria-label={tr("config.decreaseScale")}
                     disabled={uiScale <= UI_SCALE_MIN}
                     onClick={() =>
                       props.onUiScaleChange(
@@ -421,7 +435,7 @@ export function ConfigurationDialog({
                   <button
                     type="button"
                     className="config-scale-value"
-                    aria-label={`Reset interface scale, currently ${uiScale}%`}
+                    aria-label={tr("config.resetScale", { scale: uiScale })}
                     disabled={uiScale === UI_SCALE_DEFAULT}
                     onClick={() => props.onUiScaleChange(UI_SCALE_DEFAULT)}
                   >
@@ -429,7 +443,7 @@ export function ConfigurationDialog({
                   </button>
                   <button
                     type="button"
-                    aria-label="Increase interface scale"
+                    aria-label={tr("config.increaseScale")}
                     disabled={uiScale >= UI_SCALE_MAX}
                     onClick={() =>
                       props.onUiScaleChange(
@@ -451,8 +465,8 @@ export function ConfigurationDialog({
                   <SquareTerminal size={15} />
                 </span>
                 <span className="config-item-copy">
-                  <strong>Terminal</strong>
-                  <span>Customize how terminals look</span>
+                  <strong>{tr("config.terminal")}</strong>
+                  <span>{tr("config.terminalHint")}</span>
                 </span>
                 <ChevronRight size={15} />
               </button>
@@ -465,10 +479,8 @@ export function ConfigurationDialog({
                   <LayoutDashboard size={15} />
                 </span>
                 <span className="config-item-copy">
-                  <strong>Layout</strong>
-                  <span>
-                    Display mode, mobile breakpoint, and sidebar order
-                  </span>
+                  <strong>{tr("config.layout")}</strong>
+                  <span>{tr("config.layoutHint")}</span>
                 </span>
                 <ChevronRight size={15} />
               </button>
@@ -480,8 +492,7 @@ export function ConfigurationDialog({
               hidden={tab !== "Behavior"}
             >
               <p className="configuration-scope">
-                Preferences apply to this browser. Push delivery preferences
-                apply to this device.
+                {tr("config.behaviorScope")}
               </p>
               {tab === "Behavior" ? <SpeechSettings /> : null}
               <div className="config-preference-row">
@@ -489,15 +500,17 @@ export function ConfigurationDialog({
                   <Download size={15} />
                 </span>
                 <div className="config-item-copy">
-                  <strong>Automatic update checks</strong>
+                  <strong>{tr("config.automaticUpdateChecks")}</strong>
                   <span>
-                    {s.automaticUpdateChecksEnabled ? "Enabled" : "Disabled"}
+                    {s.automaticUpdateChecksEnabled
+                      ? tr("config.enabled")
+                      : tr("config.disabled")}
                   </span>
                 </div>
                 <button
                   type="button"
                   role="switch"
-                  aria-label="Automatic update checks"
+                  aria-label={tr("config.automaticUpdateChecks")}
                   aria-checked={s.automaticUpdateChecksEnabled}
                   className={
                     "settings-switch" +
@@ -517,7 +530,7 @@ export function ConfigurationDialog({
                   <Bell size={15} />
                 </span>
                 <div className="config-item-copy">
-                  <strong>Task notifications</strong>
+                  <strong>{tr("config.taskNotifications")}</strong>
                   <span className="config-notification-status">
                     {notificationStatus}
                   </span>
@@ -525,7 +538,7 @@ export function ConfigurationDialog({
                 <button
                   type="button"
                   role="switch"
-                  aria-label="Task notifications"
+                  aria-label={tr("config.taskNotifications")}
                   aria-disabled={s.taskNotificationBusy}
                   aria-checked={s.taskNotificationsEnabled}
                   className={
@@ -545,8 +558,8 @@ export function ConfigurationDialog({
               {s.taskNotificationsEnabled &&
                 (
                   [
-                    ["blocked", "Task needs attention"],
-                    ["completed", "Task completed"],
+                    ["blocked", tr("config.taskNeedsAttention")],
+                    ["completed", tr("config.taskCompleted")],
                   ] as const
                 ).map(([kind, label]) => (
                   <div className="config-preference-row" key={kind}>
@@ -581,17 +594,17 @@ export function ConfigurationDialog({
                     <Option size={15} />
                   </span>
                   <div className="config-item-copy">
-                    <strong>Option key as Alt in terminals</strong>
+                    <strong>{tr("config.optionKeyAsAlt")}</strong>
                     <span>
                       {optionAsMeta
-                        ? "Option sends Alt-modified keys"
-                        : "Option types characters such as @, [ and ~"}
+                        ? tr("config.optionSendsAlt")
+                        : tr("config.optionTypesCharacters")}
                     </span>
                   </div>
                   <button
                     type="button"
                     role="switch"
-                    aria-label="Option key as Alt in terminals"
+                    aria-label={tr("config.optionKeyAsAlt")}
                     aria-checked={optionAsMeta}
                     className={
                       "settings-switch" + (optionAsMeta ? " is-on" : "")
@@ -611,8 +624,8 @@ export function ConfigurationDialog({
                   <Keyboard size={15} />
                 </span>
                 <span className="config-item-copy">
-                  <strong>Keyboard shortcuts</strong>
-                  <span>Presets, bindings, and help</span>
+                  <strong>{tr("config.keyboardShortcuts")}</strong>
+                  <span>{tr("config.keyboardHint")}</span>
                 </span>
                 <ChevronRight size={15} />
               </button>
@@ -625,12 +638,16 @@ export function ConfigurationDialog({
                   <Keyboard size={15} />
                 </span>
                 <span className="config-item-copy">
-                  <strong>Mobile terminal shortcuts</strong>
+                  <strong>{tr("config.mobileShortcuts")}</strong>
                   <span>
-                    {mobileTerminalShortcutCount(props.mobileTerminalShortcuts)}{" "}
-                    panel ·{" "}
-                    {props.mobileTerminalSideShortcuts.filter(Boolean).length}{" "}
-                    side
+                    {tr("config.mobileShortcutsSummary", {
+                      panels: mobileTerminalShortcutCount(
+                        props.mobileTerminalShortcuts,
+                      ),
+                      sides:
+                        props.mobileTerminalSideShortcuts.filter(Boolean)
+                          .length,
+                    })}
                   </span>
                 </span>
                 <ChevronRight size={15} />
@@ -656,7 +673,8 @@ export function ConfigurationDialog({
               hidden={tab !== "Connection"}
             >
               <p className="configuration-scope">
-                Connection: <strong>{s.connectionLabel}</strong>
+                {tr("config.connectionLabel")}{" "}
+                <strong>{s.connectionLabel}</strong>
               </p>
               {tab === "Connection" ? (
                 <TerminalTransportSettings
@@ -675,10 +693,8 @@ export function ConfigurationDialog({
                   <GitBranch size={15} />
                 </span>
                 <span className="config-item-copy">
-                  <strong>Automatic branch updates</strong>
-                  <span>
-                    Manage saved repository sync settings on this connection
-                  </span>
+                  <strong>{tr("config.automaticBranchUpdates")}</strong>
+                  <span>{tr("config.branchUpdatesHint")}</span>
                 </span>
                 <ChevronRight size={15} />
               </button>
@@ -704,13 +720,13 @@ export function ConfigurationDialog({
           <div className="modal-actions">
             <span className="muted">
               {tab === "Integrations"
-                ? "Changes require confirmation."
+                ? tr("config.changesRequireConfirmation")
                 : tab === "Instance"
-                  ? "Use Save to apply instance settings."
-                  : "Changes are saved automatically."}
+                  ? tr("config.useSaveForInstance")
+                  : tr("config.changesSavedAutomatically")}
             </span>
             <button type="button" onClick={onClose}>
-              Done
+              {tr("config.done")}
             </button>
           </div>
         </div>
@@ -719,7 +735,7 @@ export function ConfigurationDialog({
         fallback={
           <ConfigurationLoadingDialog
             onClose={() => setDetail(null)}
-            buttonLabel="Back to Configuration"
+            buttonLabel={tr("config.backToConfiguration")}
           />
         }
       >
@@ -767,6 +783,7 @@ export function ConfigurationDialog({
  * the value button links it again.
  */
 function ChatTextRow({ terminalFontScale }: { terminalFontScale: number }) {
+  const tr = useT();
   const scale = useChatTextScale();
   const onChange = setChatTextScale;
   const shown = scale ?? terminalFontScale;
@@ -776,21 +793,21 @@ function ChatTextRow({ terminalFontScale }: { terminalFontScale: number }) {
         <MessageSquareText size={15} />
       </span>
       <div className="config-item-copy">
-        <strong>Chat text</strong>
+        <strong>{tr("config.chatText")}</strong>
         <span>
           {scale === null
-            ? "Follows the terminal font size"
-            : "Set on its own; the value links it to the terminal again"}
+            ? tr("config.chatFollowsTerminal")
+            : tr("config.chatOwnSetting")}
         </span>
       </div>
       <div
         className="config-scale-control"
         role="group"
-        aria-label="Chat text size"
+        aria-label={tr("config.chatTextSize")}
       >
         <button
           type="button"
-          aria-label="Decrease Chat text size"
+          aria-label={tr("config.decreaseChatText")}
           disabled={shown <= TERMINAL_FONT_SCALE_MIN}
           onClick={() =>
             onChange(clampTerminalFontScale(shown - TERMINAL_FONT_SCALE_STEP))
@@ -801,20 +818,18 @@ function ChatTextRow({ terminalFontScale }: { terminalFontScale: number }) {
         <button
           type="button"
           className="config-scale-value"
-          aria-label={
-            scale === null
-              ? `Chat text size follows the terminal, currently ${shown}%`
-              : `Link Chat text size to the terminal, currently ${shown}%`
-          }
+          aria-label={tr("config.chatLinkedToTerminal", { scale: shown })}
           aria-pressed={scale === null}
           disabled={scale === null}
           onClick={() => onChange(null)}
         >
-          {scale === null ? `Terminal · ${shown}%` : `${shown}%`}
+          {scale === null
+            ? tr("config.chatFollowsValue", { scale: shown })
+            : `${shown}%`}
         </button>
         <button
           type="button"
-          aria-label="Increase Chat text size"
+          aria-label={tr("config.increaseChatText")}
           disabled={shown >= TERMINAL_FONT_SCALE_MAX}
           onClick={() =>
             onChange(clampTerminalFontScale(shown + TERMINAL_FONT_SCALE_STEP))

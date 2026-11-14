@@ -77,6 +77,8 @@ export const en = {
     mobileShortcuts: "Mobile terminal shortcuts",
     mobileShortcutsSummary: "{panels} panel · {sides} side",
     connectionLabel: "Connection:",
+    currentConnection: "Current connection",
+    backToConfiguration: "Back to Configuration",
     automaticBranchUpdates: "Automatic branch updates",
     branchUpdatesHint:
       "Manage saved repository sync settings on this connection",

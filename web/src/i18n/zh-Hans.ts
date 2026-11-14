@@ -76,6 +76,8 @@ export const zhHans: Dictionary = {
     mobileShortcuts: "移动端终端快捷键",
     mobileShortcutsSummary: "{panels} 个面板 · {sides} 个侧栏",
     connectionLabel: "连接:",
+    currentConnection: "当前连接",
+    backToConfiguration: "返回设置",
     automaticBranchUpdates: "自动分支更新",
     branchUpdatesHint: "管理此连接上已保存的仓库同步设置",
     changesRequireConfirmation: "更改需要确认。",

@@ -1,13 +1,13 @@
 import { worldLocalStorage } from "./browserStorage";
 
 export const ACCENT_OPTIONS = [
-  { value: "neutral", label: "Default" },
-  { value: "blue", label: "Blue" },
-  { value: "teal", label: "Teal" },
-  { value: "green", label: "Green" },
-  { value: "amber", label: "Amber" },
-  { value: "rose", label: "Rose" },
-  { value: "violet", label: "Violet" },
+  { value: "neutral" },
+  { value: "blue" },
+  { value: "teal" },
+  { value: "green" },
+  { value: "amber" },
+  { value: "rose" },
+  { value: "violet" },
 ] as const;
 
 export type AccentColor = (typeof ACCENT_OPTIONS)[number]["value"];
@@ -19,9 +19,9 @@ export function normalizeAccentColor(value: string | null): AccentColor {
 }
 
 export const THEME_OPTIONS = [
-  { value: "dark", label: "Dark" },
-  { value: "light", label: "Light" },
-  { value: "system", label: "System" },
+  { value: "dark" },
+  { value: "light" },
+  { value: "system" },
 ] as const;
 
 export type ThemePreference = (typeof THEME_OPTIONS)[number]["value"];
