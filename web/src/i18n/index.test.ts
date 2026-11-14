@@ -47,14 +47,28 @@ async function registerDomTests() {
     await (browser as unknown as HappyWindow).happyDOM.close();
   });
 
+  const { worldLocalStorage } = await import("../browserStorage");
+  // A reload starts here: the saved preference already resolves the locale,
+  // while the dictionary is still the static English one until it is
+  // restored. Preset storage before importing the module.
+  worldLocalStorage.setItem("language", "zh-Hans");
   const {
     getCurrentLocale,
     getLanguagePreference,
     reloadLanguageFromStorage,
+    restoreActiveDictionary,
     setLanguage,
     t,
   } = await import("./index");
-  const { worldLocalStorage } = await import("../browserStorage");
+
+  test("restoreActiveDictionary loads the saved language after a reload", async () => {
+    expect(getCurrentLocale()).toBe("zh-Hans");
+    expect(getLanguagePreference()).toBe("zh-Hans");
+    expect(t("config.title")).toBe("Configuration");
+    await restoreActiveDictionary();
+    expect(t("config.title")).toBe("设置");
+    expect(t("views.town")).toBe("小镇");
+  });
 
   test("reloads a stored preference over browser detection", async () => {
     worldLocalStorage.setItem("language", "zh-Hans");

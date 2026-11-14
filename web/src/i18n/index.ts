@@ -94,6 +94,22 @@ export function reloadLanguageFromStorage(): Promise<void> {
   );
 }
 
+/**
+ * Loads the active locale's dictionary after a page reload. The module starts
+ * on the static English dictionary even when a Chinese preference is saved,
+ * so the app mounts this once alongside `useLanguageSync`.
+ */
+export function restoreActiveDictionary(): Promise<void> {
+  const active = getCurrentLocale();
+  if (active === "en") return Promise.resolve();
+  return loadDictionary(active).then((loaded) => {
+    if (dictionary !== loaded) {
+      dictionary = loaded;
+      emit();
+    }
+  });
+}
+
 function lookup(source: Dictionary, key: string): string | null {
   let node: unknown = source;
   for (const part of key.split(".")) {
@@ -135,6 +151,7 @@ export function useLanguageSync(): Locale {
   const current = useLocale();
   useEffect(() => {
     document.documentElement.lang = HTML_LANG[getCurrentLocale()];
+    void restoreActiveDictionary();
     return subscribeLocalStorage((key) => {
       if (key !== LANGUAGE_KEY) return;
       void reloadLanguageFromStorage();
