@@ -132,17 +132,22 @@ export function t(
 }
 
 export function useLocale(): Locale {
-  return useSyncExternalStore(subscribe, getCurrentLocale);
+  // The locale is module state, so server rendering reads the same snapshot.
+  return useSyncExternalStore(subscribe, getCurrentLocale, getCurrentLocale);
 }
 
 /** The stored preference ("auto" or a locale) — what the switcher shows. */
 export function useLanguage(): LanguagePreference {
-  return useSyncExternalStore(subscribe, getLanguagePreference);
+  return useSyncExternalStore(
+    subscribe,
+    getLanguagePreference,
+    getLanguagePreference,
+  );
 }
 
 /** Reactive `t`: subscribes the caller so a language switch re-renders it. */
 export function useT(): typeof t {
-  useSyncExternalStore(subscribe, getCurrentLocale);
+  useSyncExternalStore(subscribe, getCurrentLocale, getCurrentLocale);
   return t;
 }
 
