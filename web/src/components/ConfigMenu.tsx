@@ -1,41 +1,41 @@
-import { useCloseGlobalMenuForDialog } from "./useCloseGlobalMenuForDialog";
-import { lazyWithReload } from "../lazyWithReload";
-import type { ReactNode } from "react";
-import { createPortal } from "react-dom";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
-  Menu as MenuIcon,
+  Activity,
+  Bug,
   ChevronDown,
   ChevronRight,
   Download,
   ExternalLink,
   Focus,
-  Activity,
   GitPullRequest,
+  Hand,
+  Inbox,
   Keyboard,
   LogOut,
+  Menu as MenuIcon,
+  MessageSquare,
   Palette,
   Plug,
   RefreshCw,
-  SlidersHorizontal,
   Server,
   Settings,
-  Wifi,
-  MessageSquare,
-  Wind,
-  Bug,
   Shirt,
+  SlidersHorizontal,
   Volume2,
-  Hand,
-  Inbox,
+  Wifi,
+  Wind,
 } from "lucide-react";
-import { APP_VERSION } from "../version";
-import { isStaleBuild, useBuildFreshness } from "../buildFreshness";
+import type { ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { type ConnectionStatus, logoutBrowserSession } from "../api";
 import { worldLocalStorage } from "../browserStorage";
+import { isStaleBuild, useBuildFreshness } from "../buildFreshness";
 import { openSounds } from "../chimes/chimeHost";
-import { logoutBrowserSession } from "../api";
 import { connectionHttpPath } from "../connectionHttp";
+import { useT } from "../i18n";
+import type { TranslationKey } from "../i18n/en";
 import { useLayoutPreferences } from "../layoutPreferences";
+import { lazyWithReload } from "../lazyWithReload";
 import { shortcutLabel, useShortcutPreferences } from "../shortcutPreferences";
 import {
   herdrUpgradeMenuEntry,
@@ -46,24 +46,26 @@ import {
   useStoreSelector,
 } from "../store";
 import { useConnectionClient } from "../useConnectionClient";
+import { APP_VERSION } from "../version";
+import {
+  type OfficePreferences,
+  readOfficePreferences,
+  WORLD_OFFICE_PREFERENCES_CHANGED_EVENT,
+  writeOfficePreferences,
+} from "../world/officePreferences";
 import type {
   ConfigurationProps,
   ConfigurationTab,
 } from "./ConfigurationDialog";
-import {
-  readOfficePreferences,
-  WORLD_OFFICE_PREFERENCES_CHANGED_EVENT,
-  writeOfficePreferences,
-  type OfficePreferences,
-} from "../world/officePreferences";
 import { ConfigurationLoadingDialog } from "./ConfigurationLoadingDialog";
 import { HerdrSetupCard } from "./HerdrSetupCard";
 import { MobileSheetHandle } from "./MobileSheetHandle";
+import { useCloseGlobalMenuForDialog } from "./useCloseGlobalMenuForDialog";
 import "./ConfigMenu.css";
 import { useLayer } from "../layerStack";
 import { DEVTOOLS } from "../world/devtools/flag";
-import { WORLD_OPEN_UPDATE_MENU_EVENT } from "../world/townMasterGreeting";
 import { requestTrace, traceRemembered } from "../world/devtools/trace";
+import { WORLD_OPEN_UPDATE_MENU_EVENT } from "../world/townMasterGreeting";
 
 const ConfigurationDialog = lazyWithReload("configuration", () =>
   import("./ConfigurationDialog").then((module) => ({
@@ -72,6 +74,24 @@ const ConfigurationDialog = lazyWithReload("configuration", () =>
 );
 const RELEASES_URL = "https://github.com/IvoryHeart/herdr-world/releases";
 export const CONFIG_MENU_ID = "herdr-world-config-menu";
+
+/** Connection status values shown verbatim in the menu summary. */
+const STATUS_LABEL_KEYS = {
+  connecting: "menu.statusConnecting",
+  connected: "menu.statusConnected",
+  disconnected: "menu.statusDisconnected",
+} as const satisfies Record<ConnectionStatus, TranslationKey>;
+
+/** Quick settings open the matching Configuration tab; labels reuse its keys. */
+const QUICK_SETTING_LABEL_KEYS = {
+  Appearance: "config.tabs.appearance",
+  Behavior: "config.tabs.behavior",
+  Connection: "config.tabs.connection",
+  Integrations: "config.tabs.integrations",
+} as const satisfies Record<
+  "Appearance" | "Behavior" | "Connection" | "Integrations",
+  TranslationKey
+>;
 
 export function reloadApplicationPage(
   target: Pick<Location, "reload"> = window.location,
@@ -101,6 +121,7 @@ export function ConfigMenu({
   ...configuration
 }: ConfigMenuProps) {
   const build = useBuildFreshness();
+  const t = useT();
   const s = useStoreSelector(
     (state) => ({
       bridgeStatus: state.bridgeStatus,
@@ -259,13 +280,17 @@ export function ConfigMenu({
             setLogoutError("");
             setOpen((value) => !value);
           }}
-          aria-label={updateAvailable ? "Menu, update available" : "Menu"}
+          aria-label={
+            updateAvailable
+              ? t("menu.triggerUpdateAvailable")
+              : t("menu.trigger")
+          }
           aria-controls={open ? CONFIG_MENU_ID : undefined}
           aria-expanded={open}
           aria-haspopup="dialog"
         >
           <MenuIcon className="menu-button-icon" size={18} aria-hidden="true" />
-          <span className="menu-button-label">Menu</span>
+          <span className="menu-button-label">{t("menu.trigger")}</span>
           {updateAvailable ? (
             <span className="menu-update-dot" aria-hidden="true" />
           ) : null}
@@ -275,12 +300,10 @@ export function ConfigMenu({
             id={CONFIG_MENU_ID}
             className={`config-dropdown mobile-sheet${expanded ? " is-expanded" : ""}`}
             role="dialog"
-            aria-label="Application menu"
+            aria-label={t("menu.applicationMenu")}
           >
             <MobileSheetHandle
-              label={
-                expanded ? "Show fewer menu options" : "Show more menu options"
-              }
+              label={expanded ? t("menu.showFewer") : t("menu.showMore")}
               expanded={expanded}
               onExpand={() => setExpanded(true)}
               onCollapse={() => setExpanded(false)}
@@ -291,12 +314,15 @@ export function ConfigMenu({
               <div className="config-summary">
                 <div>
                   <strong>Herdr World</strong>
-                  <span>Version {APP_VERSION}</span>
+                  <span>{t("menu.version", { version: APP_VERSION })}</span>
                   {build.loaded ? (
-                    <span className="config-build" title="Loaded build">
-                      Build {build.loaded}
+                    <span
+                      className="config-build"
+                      title={t("menu.loadedBuild")}
+                    >
+                      {t("menu.build", { build: build.loaded })}
                       {isStaleBuild(build)
-                        ? ` · server serves ${build.served}`
+                        ? ` · ${t("menu.servedBy", { served: build.served ?? "" })}`
                         : ""}
                     </span>
                   ) : null}
@@ -305,17 +331,23 @@ export function ConfigMenu({
                   className={`config-connection-summary status-${s.connectionPaused ? "paused" : s.status}`}
                 >
                   <span className="status-dot" />
-                  {s.connectionPaused ? "Paused" : s.status}
+                  {s.connectionPaused
+                    ? t("menu.statusPaused")
+                    : t(STATUS_LABEL_KEYS[s.status])}
                   {typeof clientCount === "number"
-                    ? ` · ${clientCount} client${clientCount === 1 ? "" : "s"}`
+                    ? ` · ${
+                        clientCount === 1
+                          ? t("menu.clientsOne")
+                          : t("menu.clients", { count: clientCount })
+                      }`
                     : ""}
                 </span>
               </div>
               <div className="config-section">
                 <ConfigMenuItem
                   icon={<Settings size={15} />}
-                  label="Configuration"
-                  description="Appearance, behavior, connections, and agent integrations"
+                  label={t("menu.configuration")}
+                  description={t("menu.configurationDescription")}
                   className="config-menu-item-row"
                   onClick={() => {
                     setOpen(false);
@@ -325,8 +357,10 @@ export function ConfigMenu({
                 {layout.mobile ? null : (
                   <ConfigMenuItem
                     icon={<Keyboard size={15} />}
-                    label="Shortcut cheat sheet"
-                    description={`Read-only overview \u00b7 ${shortcutLabel("shortcuts.show")}`}
+                    label={t("menu.shortcuts")}
+                    description={t("menu.shortcutsDescription", {
+                      keys: shortcutLabel("shortcuts.show"),
+                    })}
                     className="config-menu-item-row"
                     onClick={() => {
                       setOpen(false);
@@ -340,9 +374,9 @@ export function ConfigMenu({
                       <Focus size={15} />
                     </span>
                     <div className="config-item-copy">
-                      <strong>Zen mode</strong>
+                      <strong>{t("menu.zenMode")}</strong>
                       <span>
-                        {zenMode ? "Enabled" : "Disabled"}
+                        {zenMode ? t("menu.zenEnabled") : t("menu.zenDisabled")}
                         {layout.mobile
                           ? ""
                           : ` · ${shortcutLabel("zen.toggle")}`}
@@ -351,7 +385,7 @@ export function ConfigMenu({
                     <button
                       type="button"
                       role="switch"
-                      aria-label="Zen mode"
+                      aria-label={t("menu.zenMode")}
                       aria-checked={zenMode}
                       className={"settings-switch" + (zenMode ? " is-on" : "")}
                       onClick={() => {
@@ -365,18 +399,18 @@ export function ConfigMenu({
                 ) : null}
               </div>
               <div className="config-section config-section-tiles-3">
-                <div className="config-title">Views</div>
+                <div className="config-title">{t("menu.viewsTitle")}</div>
                 <label className="config-preference-row">
                   <span className="config-item-icon">
                     <Focus size={15} />
                   </span>
                   <span className="config-item-copy">
-                    <strong>Inspector opening</strong>
-                    <span>How a newly opened entity's Inspector appears</span>
+                    <strong>{t("menu.inspectorOpening")}</strong>
+                    <span>{t("menu.inspectorOpeningDescription")}</span>
                   </span>
                   <select
                     className="config-preference-select"
-                    aria-label="Inspector opening"
+                    aria-label={t("menu.inspectorOpening")}
                     value={officePreferences.inspectorPresentation}
                     onChange={(event) =>
                       updateOfficePreferences({
@@ -385,8 +419,10 @@ export function ConfigMenu({
                       })
                     }
                   >
-                    <option value="floating">Floating</option>
-                    <option value="docked">Snap right</option>
+                    <option value="floating">
+                      {t("menu.inspectorFloating")}
+                    </option>
+                    <option value="docked">{t("menu.inspectorDocked")}</option>
                   </select>
                 </label>
                 <label className="config-preference-row">
@@ -394,14 +430,12 @@ export function ConfigMenu({
                     <MessageSquare size={15} />
                   </span>
                   <span className="config-item-copy">
-                    <strong>Agents open</strong>
-                    <span>
-                      What opening an agent shows: its Chat, or its terminal
-                    </span>
+                    <strong>{t("menu.agentsOpen")}</strong>
+                    <span>{t("menu.agentsOpenDescription")}</span>
                   </span>
                   <select
                     className="config-preference-select"
-                    aria-label="Agents open"
+                    aria-label={t("menu.agentsOpen")}
                     value={officePreferences.townOpens}
                     onChange={(event) =>
                       updateOfficePreferences({
@@ -410,8 +444,10 @@ export function ConfigMenu({
                       })
                     }
                   >
-                    <option value="chat">Chat</option>
-                    <option value="terminal">Terminal</option>
+                    <option value="chat">{t("menu.agentsOpenChat")}</option>
+                    <option value="terminal">
+                      {t("menu.agentsOpenTerminal")}
+                    </option>
                   </select>
                 </label>
                 <label className="config-preference-row">
@@ -419,15 +455,12 @@ export function ConfigMenu({
                     <MessageSquare size={15} />
                   </span>
                   <span className="config-item-copy">
-                    <strong>Town master</strong>
-                    <span>
-                      The agent whose chat Town docks from the start; empty
-                      docks none
-                    </span>
+                    <strong>{t("menu.townMaster")}</strong>
+                    <span>{t("menu.townMasterDescription")}</span>
                   </span>
                   <input
                     className="config-preference-select"
-                    aria-label="Town master"
+                    aria-label={t("menu.townMaster")}
                     defaultValue={officePreferences.townMaster}
                     maxLength={64}
                     spellCheck={false}
@@ -447,13 +480,13 @@ export function ConfigMenu({
                     <Wind size={15} />
                   </span>
                   <div className="config-item-copy">
-                    <strong>Town calm motion</strong>
-                    <span>Less ambient motion and shorter camera moves</span>
+                    <strong>{t("menu.townCalm")}</strong>
+                    <span>{t("menu.townCalmDescription")}</span>
                   </div>
                   <button
                     type="button"
                     role="switch"
-                    aria-label="Town calm motion"
+                    aria-label={t("menu.townCalm")}
                     aria-checked={officePreferences.townCalm}
                     className={
                       "settings-switch" +
@@ -473,16 +506,13 @@ export function ConfigMenu({
                     <Hand size={15} />
                   </span>
                   <div className="config-item-copy">
-                    <strong>Town Master greeting</strong>
-                    <span>
-                      Hello and what changed since you left, on each visit (Show
-                      this on start)
-                    </span>
+                    <strong>{t("menu.greeting")}</strong>
+                    <span>{t("menu.greetingDescription")}</span>
                   </div>
                   <button
                     type="button"
                     role="switch"
-                    aria-label="Town Master greeting"
+                    aria-label={t("menu.greeting")}
                     aria-checked={officePreferences.townGreeting}
                     className={
                       "settings-switch" +
@@ -502,16 +532,13 @@ export function ConfigMenu({
                     <Inbox size={15} />
                   </span>
                   <div className="config-item-copy">
-                    <strong>Count on tab and app icon</strong>
-                    <span>
-                      The browser tab and installed app show how many things
-                      need you (this browser)
-                    </span>
+                    <strong>{t("menu.tabBadge")}</strong>
+                    <span>{t("menu.tabBadgeDescription")}</span>
                   </div>
                   <button
                     type="button"
                     role="switch"
-                    aria-label="Count on tab and app icon"
+                    aria-label={t("menu.tabBadge")}
                     aria-checked={officePreferences.tabBadge}
                     className={
                       "settings-switch" +
@@ -532,13 +559,13 @@ export function ConfigMenu({
                       <Bug size={15} />
                     </span>
                     <div className="config-item-copy">
-                      <strong>Town event trace</strong>
-                      <span>Development builds: record Town's input</span>
+                      <strong>{t("menu.eventTrace")}</strong>
+                      <span>{t("menu.eventTraceDescription")}</span>
                     </div>
                     <button
                       type="button"
                       role="switch"
-                      aria-label="Town event trace"
+                      aria-label={t("menu.eventTrace")}
                       aria-checked={townTrace}
                       className={
                         "settings-switch" + (townTrace ? " is-on" : "")
@@ -555,9 +582,9 @@ export function ConfigMenu({
                 {onOpenAgentProfiles ? (
                   <ConfigMenuItem
                     icon={<Shirt size={15} />}
-                    label="Agent profiles"
+                    label={t("menu.agentProfiles")}
                     className="config-menu-item-row"
-                    description="Name, brain, skills, brief and look for new agents"
+                    description={t("menu.agentProfilesDescription")}
                     onClick={() => {
                       setOpen(false);
                       onOpenAgentProfiles();
@@ -568,9 +595,9 @@ export function ConfigMenu({
                 {onOpenAgentProfiles ? (
                   <ConfigMenuItem
                     icon={<Volume2 size={15} />}
-                    label="Sounds"
+                    label={t("menu.sounds")}
                     className="config-menu-item-row"
-                    description="Chimes for agents that need you, and the Town master"
+                    description={t("menu.soundsDescription")}
                     onClick={() => {
                       setOpen(false);
                       openSounds();
@@ -580,9 +607,9 @@ export function ConfigMenu({
                 {onOpenSources ? (
                   <ConfigMenuItem
                     icon={<GitPullRequest size={15} />}
-                    label="Sources"
+                    label={t("menu.sources")}
                     className="config-menu-item-row"
-                    description="GitHub pull requests and Jira tickets beside your agents"
+                    description={t("menu.sourcesDescription")}
                     onClick={() => {
                       setOpen(false);
                       onOpenSources();
@@ -592,9 +619,9 @@ export function ConfigMenu({
                 {onOpenOfficeMetrics ? (
                   <ConfigMenuItem
                     icon={<Activity size={15} />}
-                    label="OTEL economy metrics"
+                    label={t("menu.otelMetrics")}
                     className="config-menu-item-row"
-                    description="Connect Prometheus to show cost on the Town board"
+                    description={t("menu.otelMetricsDescription")}
                     onClick={() => {
                       setOpen(false);
                       onOpenOfficeMetrics();
@@ -603,35 +630,40 @@ export function ConfigMenu({
                 ) : null}
               </div>
               <div className="config-section">
-                <div className="config-title">Help & updates</div>
-                {[
-                  {
-                    label: "Tutorial",
-                    description: "Learn local work and private remote access",
-                    url: "https://herdr.world/tutorial/",
-                  },
-                  {
-                    label: "Features and shortcuts",
-                    description: "Browse features and keyboard bindings",
-                    url: "https://github.com/IvoryHeart/herdr-world/blob/main/FEATURES.md",
-                  },
-                  {
-                    label: "Troubleshooting",
-                    description: "Resolve connection and deployment problems",
-                    url: "https://github.com/IvoryHeart/herdr-world/blob/main/docs/DEPLOYMENT.md#troubleshooting",
-                  },
-                  {
-                    label: "Report an issue",
-                    description:
-                      "Report bugs or request improvements on GitHub",
-                    url: "https://github.com/IvoryHeart/herdr-world/issues",
-                  },
-                ].map(({ label, description, url }) => (
+                <div className="config-title">{t("menu.helpTitle")}</div>
+                {(
+                  [
+                    {
+                      labelKey: "menu.tutorial",
+                      descriptionKey: "menu.tutorialDescription",
+                      url: "https://herdr.world/tutorial/",
+                    },
+                    {
+                      labelKey: "menu.features",
+                      descriptionKey: "menu.featuresDescription",
+                      url: "https://github.com/IvoryHeart/herdr-world/blob/main/FEATURES.md",
+                    },
+                    {
+                      labelKey: "menu.troubleshooting",
+                      descriptionKey: "menu.troubleshootingDescription",
+                      url: "https://github.com/IvoryHeart/herdr-world/blob/main/docs/DEPLOYMENT.md#troubleshooting",
+                    },
+                    {
+                      labelKey: "menu.reportIssue",
+                      descriptionKey: "menu.reportIssueDescription",
+                      url: "https://github.com/IvoryHeart/herdr-world/issues",
+                    },
+                  ] as const satisfies readonly {
+                    labelKey: TranslationKey;
+                    descriptionKey: TranslationKey;
+                    url: string;
+                  }[]
+                ).map(({ labelKey, descriptionKey, url }) => (
                   <ConfigMenuItem
-                    key={label}
+                    key={labelKey}
                     icon={<ExternalLink size={15} />}
-                    label={label}
-                    description={description}
+                    label={t(labelKey)}
+                    description={t(descriptionKey)}
                     onClick={() => {
                       setOpen(false);
                       window.open(url, "_blank", "noopener,noreferrer");
@@ -640,8 +672,8 @@ export function ConfigMenu({
                 ))}
                 <ConfigMenuItem
                   icon={<ExternalLink size={15} />}
-                  label="Changelog"
-                  description="Recent changes on GitHub"
+                  label={t("menu.changelog")}
+                  description={t("menu.changelogDescription")}
                   onClick={() => {
                     setOpen(false);
                     window.open(RELEASES_URL, "_blank", "noopener,noreferrer");
@@ -649,8 +681,8 @@ export function ConfigMenu({
                 />
                 <ConfigMenuItem
                   icon={<RefreshCw size={15} />}
-                  label="Reload page"
-                  description="Refresh the application"
+                  label={t("menu.reloadPage")}
+                  description={t("menu.reloadPageDescription")}
                   onClick={() => {
                     setOpen(false);
                     reloadApplicationPage();
@@ -662,16 +694,16 @@ export function ConfigMenu({
                   label={
                     updateAvailable
                       ? s.updateInstalling
-                        ? "Updating..."
-                        : `Upgrade to ${updateVersion}`
-                      : "Check for updates"
+                        ? t("menu.updating")
+                        : t("menu.upgradeTo", { version: updateVersion ?? "" })
+                      : t("menu.checkForUpdates")
                   }
                   description={
                     canInstallUpdate
-                      ? "Install and restart"
+                      ? t("menu.installAndRestart")
                       : updateAvailable
                         ? undefined
-                        : "Check the release server"
+                        : t("menu.checkReleaseServer")
                   }
                   primary={canInstallUpdate}
                   disabled={
@@ -685,8 +717,8 @@ export function ConfigMenu({
                 {updateAvailable ? (
                   <ConfigMenuItem
                     icon={<RefreshCw size={15} />}
-                    label="Check for updates"
-                    description="Refresh release availability"
+                    label={t("menu.checkForUpdates")}
+                    description={t("menu.checkForUpdatesDescription")}
                     disabled={s.updateInstalling}
                     onClick={() => {
                       setOpen(false);
@@ -696,30 +728,31 @@ export function ConfigMenu({
                 ) : null}
                 {updateAvailable && !canInstallUpdate ? (
                   <p className="config-update-reason" role="note">
-                    {s.updateInfo?.reason ??
-                      "Automatic installation is unavailable. Use this installation's update channel."}
+                    {s.updateInfo?.reason ?? t("menu.updateUnavailable")}
                   </p>
                 ) : null}
               </div>
               <div className="config-section">
-                <div className="config-title">Runtime</div>
+                <div className="config-title">{t("menu.runtimeTitle")}</div>
                 <div className="config-runtime-row">
                   <span className="config-item-icon">
                     <Server size={15} />
                   </span>
                   <div className="config-item-copy">
-                    <strong>Herdr server</strong>
+                    <strong>{t("menu.herdrServer")}</strong>
                     <span>
                       {herdrInfo?.version
-                        ? `Version ${herdrInfo.version}`
+                        ? t("menu.serverVersion", {
+                            version: herdrInfo.version,
+                          })
                         : herdrUnavailable
-                          ? "Unavailable"
-                          : "Loading server information"}
+                          ? t("menu.serverUnavailable")
+                          : t("menu.serverLoading")}
                     </span>
                   </div>
                   <code>
                     {typeof herdrInfo?.protocol === "number"
-                      ? `Protocol ${herdrInfo.protocol}`
+                      ? t("menu.protocol", { protocol: herdrInfo.protocol })
                       : "-"}
                   </code>
                 </div>
@@ -728,7 +761,7 @@ export function ConfigMenu({
                     icon={<Download size={15} />}
                     label={
                       s.herdrUpgrading
-                        ? "Updating Herdr..."
+                        ? t("menu.herdrUpdating")
                         : herdrUpgrade.label
                     }
                     description={herdrUpgrade.description}
@@ -759,7 +792,7 @@ export function ConfigMenu({
                   <span className="config-item-icon">
                     <Wifi size={15} />
                   </span>
-                  <span>Connection details</span>
+                  <span>{t("menu.connectionDetails")}</span>
                   {connectionDetailsOpen ? (
                     <ChevronDown size={15} />
                   ) : (
@@ -768,8 +801,11 @@ export function ConfigMenu({
                 </button>
                 {connectionDetailsOpen ? (
                   <div className="config-details">
-                    <ConfigRow label="URL" value={location.origin} />
-                    <ConfigRow label="Socket" value={health?.socket ?? "-"} />
+                    <ConfigRow label={t("menu.url")} value={location.origin} />
+                    <ConfigRow
+                      label={t("menu.socket")}
+                      value={health?.socket ?? "-"}
+                    />
                   </div>
                 ) : null}
               </div>
@@ -777,8 +813,8 @@ export function ConfigMenu({
                 <div className="config-section">
                   <ConfigMenuItem
                     icon={<LogOut size={15} />}
-                    label={loggingOut ? "Logging out..." : "Log out"}
-                    description="End this browser session only"
+                    label={loggingOut ? t("menu.loggingOut") : t("menu.logOut")}
+                    description={t("menu.logOutDescription")}
                     className="config-menu-item-row"
                     disabled={loggingOut}
                     onClick={async () => {
@@ -787,9 +823,7 @@ export function ConfigMenu({
                       try {
                         await logoutBrowserSession();
                       } catch {
-                        setLogoutError(
-                          "Could not log out. Check your connection and try again.",
-                        );
+                        setLogoutError(t("menu.logoutError"));
                         setLoggingOut(false);
                       }
                     }}
@@ -805,7 +839,9 @@ export function ConfigMenu({
                 <div className="mobile-sheet-more" aria-hidden={!expanded}>
                   <div className="mobile-sheet-more-content">
                     <div className="config-section">
-                      <div className="config-title">Quick settings</div>
+                      <div className="config-title">
+                        {t("menu.quickSettings")}
+                      </div>
                       {(
                         [
                           ["Appearance", Palette],
@@ -817,7 +853,7 @@ export function ConfigMenu({
                         <ConfigMenuItem
                           key={name}
                           icon={<Icon size={15} />}
-                          label={name}
+                          label={t(QUICK_SETTING_LABEL_KEYS[name])}
                           onClick={() => {
                             setOpen(false);
                             setConfigurationTab(name);
