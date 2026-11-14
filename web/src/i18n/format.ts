@@ -1,5 +1,5 @@
-import { INTL_TAGS } from "./locales";
 import { getCurrentLocale } from "./index";
+import { INTL_TAGS } from "./locales";
 
 /** The BCP 47 tag Intl formatters use: it follows the interface language. */
 export function uiLocale(): string {

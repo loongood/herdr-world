@@ -1,6 +1,12 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { subscribeLocalStorage, worldLocalStorage } from "../browserStorage";
 import {
+  type Dictionary,
+  en,
+  isTranslationKey,
+  type TranslationKey,
+} from "./en";
+import {
   HTML_LANG,
   type LanguagePreference,
   type Locale,
@@ -8,12 +14,6 @@ import {
   resolveLocale,
   serializeLanguage,
 } from "./locales";
-import {
-  type Dictionary,
-  type TranslationKey,
-  en,
-  isTranslationKey,
-} from "./en";
 
 export const LANGUAGE_KEY = "language";
 
@@ -160,5 +160,5 @@ export function useLanguageSync(): Locale {
   return current;
 }
 
+export type { LanguagePreference, Locale, TranslationKey };
 export { isTranslationKey };
-export type { TranslationKey, LanguagePreference, Locale };
