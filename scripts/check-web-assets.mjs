@@ -13,8 +13,9 @@ const publicRoot = fileURLToPath(new URL("../server/public/", import.meta.url));
 // shared helpers). Merging small shared chunks into one group pulled lazy code
 // into the startup bundle (initial JS 313 -> 686 KiB), so the file count gets
 // headroom instead; total bytes and the initial budgets are what users pay for
-// and stay as they are.
-const maxFileCount = 180;
+// and stay as they are. The zh-Hans and zh-Hant dictionaries add two lazy
+// chunks (182 files on 2026-11-14), and the budget keeps its usual headroom.
+const maxFileCount = 184;
 // PDF.js and its worker (1.66 MiB) load only when a PDF is drawn by it, on
 // browsers without a PDF viewer (Roamgate R#537). Ruling S4 raised only this
 // total, from 13.25 MiB; assertLazyPdfAssets keeps them out of the initial load.

@@ -1970,6 +1970,11 @@ load asynchronously; editing the name takes precedence over a late suggestion.
   pure black instead of blue-grey for the interface and terminals in the dark
   theme, from the first paint. **Text size** scales the UI from 80% to 150%,
   including mobile.
+- **Language** (Configuration → Appearance): switches the interface between
+  English, Simplified Chinese and Traditional Chinese. First use follows the
+  browser's languages; the choice is saved in this browser and follows across
+  its tabs. Dates, times and relative labels switch with the language. Views
+  not yet migrated keep English text.
 - Manage a user service from the CLI; check releases and run checksum-verified
   one-click standalone updates under a supported supervisor. Probe `/health` or
   `/healthz`. See [services](docs/DEPLOYMENT.md#user-service).

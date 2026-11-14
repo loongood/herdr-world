@@ -14,6 +14,7 @@ import {
   writeMobileControlsPlacement,
   type MobileControlsPlacement,
 } from "./mobileControlsPlacement";
+import { useLanguageSync } from "./i18n";
 import { TERMINAL_FONT_SCALE_KEY, useTextScales } from "./textScales";
 import {
   isRangerTaskNotificationTarget,
@@ -3585,6 +3586,7 @@ export default function App({
     );
   }, [accentColor, blackBackground, resolvedTheme, theme, uiScale]);
   useTextScales(terminalFontScale);
+  useLanguageSync();
   // A view switch moves to that view's own Zen choice, or its default.
   const applyZenModeRef = useRef(applyZenMode);
   applyZenModeRef.current = applyZenMode;

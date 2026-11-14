@@ -59,6 +59,7 @@ import { CloseButton } from "./CloseButton";
 import { TerminalTransportSettings } from "./TerminalTransportSettings";
 import { ConfigurationLoadingDialog } from "./ConfigurationLoadingDialog";
 import { InstanceNameSettings } from "./InstanceNameSettings";
+import { LanguageSettings } from "./LanguageSettings";
 import { SpeechSettings } from "./SpeechSettings";
 import { WorktreeCommandSettings } from "./WorktreeCommandSettings";
 import { MobileSheetHandle } from "./MobileSheetHandle";
@@ -407,6 +408,7 @@ export function ConfigurationDialog({
                   ))}
                 </div>
               </div>
+              <LanguageSettings />
               <div className="config-preference-row">
                 <span className="config-item-icon">
                   <ALargeSmall size={15} />
