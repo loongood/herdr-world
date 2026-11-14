@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOperationalStore } from "../store";
-import { UI_LOCALE } from "../uiLocale";
+import { uiLocale } from "../uiLocale";
 import { useConnectionClient } from "../useConnectionClient";
 import { CloseButton } from "./CloseButton";
 import { focusDialogElement } from "./dialogFocus";
@@ -271,5 +271,5 @@ function formatLastRun(value?: string) {
   const date = new Date(value);
   return Number.isNaN(date.valueOf())
     ? value
-    : "Last run " + date.toLocaleString(UI_LOCALE);
+    : "Last run " + date.toLocaleString(uiLocale());
 }

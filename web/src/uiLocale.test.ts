@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { formatUiDateTime, formatUiRelativeTime, UI_LOCALE } from "./uiLocale";
+import { formatUiDateTime, formatUiRelativeTime } from "./uiLocale";
 
 describe("UI locale", () => {
   test("formats local dates with 24-hour time and years only outside the current year", () => {
@@ -15,8 +15,7 @@ describe("UI locale", () => {
     expect(formatUiDateTime("unknown", now)).toBe("unknown");
   });
 
-  test("keeps generated relative-time labels in English", () => {
-    expect(UI_LOCALE).toBe("en-US");
+  test("renders relative-time labels in the interface language, English by default", () => {
     expect(formatUiRelativeTime(0, "second")).toBe("now");
     expect(formatUiRelativeTime(-2, "minute")).toBe("2 minutes ago");
     expect(formatUiRelativeTime(1, "day")).toBe("tomorrow");

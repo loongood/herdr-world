@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOperationalStore } from "../store";
-import { UI_LOCALE } from "../uiLocale";
+import { uiLocale } from "../uiLocale";
 import { useConnectionClient } from "../useConnectionClient";
 import { CloseButton } from "./CloseButton";
 import { focusDialogElement } from "./dialogFocus";
@@ -208,7 +208,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 function formatLastRun(value?: string) {
   if (!value) return "Not run yet";
   const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? value : date.toLocaleString(UI_LOCALE);
+  return Number.isNaN(date.valueOf()) ? value : date.toLocaleString(uiLocale());
 }
 
 function statusLabel(status?: AutoSyncStatus) {

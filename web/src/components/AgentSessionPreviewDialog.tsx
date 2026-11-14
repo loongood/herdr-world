@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useStoreSelector } from "../store";
 import type { Pane } from "../types";
-import { UI_LOCALE } from "../uiLocale";
+import { uiLocale } from "../uiLocale";
 import { copyTextWithFeedback } from "../copyText";
 import { useConnectionClient } from "../useConnectionClient";
 import { shortId } from "../utils";
@@ -40,7 +40,7 @@ function formatStepTime(timestamp?: string) {
   if (!timestamp) return "";
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return timestamp;
-  return date.toLocaleTimeString(UI_LOCALE, {
+  return date.toLocaleTimeString(uiLocale(), {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -50,7 +50,7 @@ function formatSessionTime(timestamp?: string) {
   if (!timestamp) return "-";
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return timestamp;
-  return date.toLocaleString(UI_LOCALE, {
+  return date.toLocaleString(uiLocale(), {
     dateStyle: "medium",
     timeStyle: "short",
   });
