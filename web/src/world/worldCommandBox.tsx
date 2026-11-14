@@ -18,10 +18,11 @@ import type {
   CommandExtension,
 } from "../components/CommandCombobox";
 import { AgentMark } from "../components/AgentMark";
+import { t } from "../i18n";
 import { AGENT_MARKS, agentMarkKind } from "./agentMarks";
 import type { WorldObject } from "./worldObject";
 import { worldSearchResults, type WorldSearchResult } from "./worldSearch";
-import { WORLD_VIEW_DESTINATIONS } from "./WorldMobileNav";
+import { WORLD_VIEW_DESTINATIONS, worldViewLabel } from "./WorldMobileNav";
 import type { WorldView } from "./worldViewRouting";
 
 /** Found items the box lists; more words narrow the rest. */
@@ -114,10 +115,10 @@ export function worldViewGroup(
     heading: "Views",
     actions: WORLD_VIEW_DESTINATIONS.filter(
       (destination) => destination.view !== view,
-    ).map(({ view: destination, label, Icon }) => ({
+    ).map(({ view: destination, Icon }) => ({
       key: `world-view-${destination}`,
       icon: <Icon size={15} />,
-      title: `Go to ${label}`,
+      title: t("views.goTo", { view: worldViewLabel(destination) }),
       keywords: ["view", "switch", "open", destination],
       run: () => onSelect(destination),
     })),

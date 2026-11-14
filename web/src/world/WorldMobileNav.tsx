@@ -5,22 +5,22 @@ import {
   PanelsTopLeft,
   StickyNote,
 } from "lucide-react";
+import { t } from "../i18n";
 import type { WorldView } from "./worldViewRouting";
 import "./WorldMobileNav.css";
 
 export const WORLD_VIEW_DESTINATIONS: readonly {
   view: WorldView;
-  label: string;
   Icon: LucideIcon;
 }[] = [
-  { view: "town", label: "Town", Icon: Castle },
-  { view: "board", label: "Board", Icon: StickyNote },
-  { view: "desk", label: "Desk", Icon: LayoutDashboard },
-  { view: "spaces", label: "Spaces", Icon: PanelsTopLeft },
+  { view: "town", Icon: Castle },
+  { view: "board", Icon: StickyNote },
+  { view: "desk", Icon: LayoutDashboard },
+  { view: "spaces", Icon: PanelsTopLeft },
 ];
 
 export function worldViewLabel(view: WorldView) {
-  return view[0].toUpperCase() + view.slice(1);
+  return t(`views.${view}`);
 }
 
 /**
@@ -37,7 +37,7 @@ export function WorldMobileNav({
 }) {
   return (
     <nav className="world-mobile-nav" aria-label="World views">
-      {WORLD_VIEW_DESTINATIONS.map(({ view: destination, label, Icon }) => (
+      {WORLD_VIEW_DESTINATIONS.map(({ view: destination, Icon }) => (
         <button
           key={destination}
           type="button"
@@ -49,7 +49,9 @@ export function WorldMobileNav({
           <span className="world-mobile-nav-icon">
             <Icon size={22} aria-hidden />
           </span>
-          <span className="world-mobile-nav-label">{label}</span>
+          <span className="world-mobile-nav-label">
+            {worldViewLabel(destination)}
+          </span>
         </button>
       ))}
     </nav>

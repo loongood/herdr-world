@@ -49,19 +49,19 @@ export function WorldViewPicker({
         {searchSlot}
         <div className="world-view-picker" role="group" aria-label="World view">
           {extra}
-          {WORLD_VIEW_DESTINATIONS.map(({ view: destination, label, Icon }) => (
+          {WORLD_VIEW_DESTINATIONS.map(({ view: destination, Icon }) => (
             <button
               key={destination}
               type="button"
               aria-pressed={destination === view}
-              aria-label={label}
-              title={label}
+              aria-label={worldViewLabel(destination)}
+              title={worldViewLabel(destination)}
               onClick={() => {
                 if (destination !== view) onSelect(destination);
               }}
             >
               <Icon size={14} aria-hidden />
-              <span>{label}</span>
+              <span>{worldViewLabel(destination)}</span>
             </button>
           ))}
           <CommandBoxButton />
@@ -146,7 +146,7 @@ function PhoneViewPicker({
           aria-label="World view"
           onKeyDown={onMenuKeyDown}
         >
-          {WORLD_VIEW_DESTINATIONS.map(({ view: destination, label, Icon }) => (
+          {WORLD_VIEW_DESTINATIONS.map(({ view: destination, Icon }) => (
             <button
               key={destination}
               type="button"
@@ -159,7 +159,7 @@ function PhoneViewPicker({
               }
             >
               <Icon size={18} aria-hidden />
-              {label}
+              {worldViewLabel(destination)}
             </button>
           ))}
           <hr />
