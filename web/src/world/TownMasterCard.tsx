@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { worldLocalStorage } from "../browserStorage";
 import { CloseButton } from "../components/CloseButton";
+import { t, useT } from "../i18n";
 import { useLayer } from "../layerStack";
 import { useStoreSelector } from "../store";
 import type { UpdateInfo } from "../store/types";
@@ -39,6 +40,8 @@ export default function TownMasterGreetingLayer({
   anchor: HTMLElement | null;
 }) {
   const greeting = sharedGreeting();
+  // Subscribes the layer to the locale: helloLine reads it at every render.
+  useT();
   const card = useRef<HTMLElement>(null);
   const { lines, now } = useSinceYouLeft(world);
   const update = useStoreSelector((state) => state.updateInfo);
@@ -80,14 +83,14 @@ export default function TownMasterGreetingLayer({
 /** "Hello! You were last here at 14:05." (another day adds its weekday). */
 export function helloLine(here: number | null, now: number) {
   return here === null
-    ? "Hello!"
-    : `Hello! You were last here at ${leftAt(here, now)}.`;
+    ? t("master.hello")
+    : t("master.helloLastHere", { time: leftAt(here, now) });
 }
 
 /** The update line, when World's update check reports a newer release. */
 export function updateLine(update: UpdateInfo | null) {
   return update?.update_available && update.latest_version
-    ? `Herdr World ${update.latest_version} is available.`
+    ? t("master.updateAvailable", { version: update.latest_version })
     : null;
 }
 
@@ -117,6 +120,7 @@ export function TownMasterGreetingCard({
   onUpdate(): void;
   onStartChange(on: boolean): void;
 }) {
+  const t = useT();
   const news = updateLine(update);
   return (
     <section
@@ -124,15 +128,15 @@ export function TownMasterGreetingCard({
       className={`town-master-greeting${mobile ? " is-sheet" : ""}`}
       style={style}
       role="dialog"
-      aria-label="Town Master"
+      aria-label={t("master.title")}
     >
       <header>
         {mobile ? (
           <button
             type="button"
             className="town-master-greeting-back"
-            aria-label="Back"
-            title="Back"
+            aria-label={t("master.back")}
+            title={t("master.back")}
             data-layer-back
             onClick={onClose}
           >
@@ -140,21 +144,21 @@ export function TownMasterGreetingCard({
           </button>
         ) : null}
         <ProfileSprite look={TOWN_MASTER_LOOK} scale={2} />
-        <h2>Town Master</h2>
+        <h2>{t("master.title")}</h2>
         {mobile ? null : (
-          <CloseButton label="Close the greeting" onClick={onClose} />
+          <CloseButton label={t("master.closeGreeting")} onClick={onClose} />
         )}
       </header>
       <p className="town-master-greeting-hello">{hello}</p>
       <div className="town-master-greeting-recap">
-        <h3>Since you left</h3>
+        <h3>{t("master.sinceYouLeft")}</h3>
         {lines.length ? (
           <ul>
             {lines.map((line) => (
               <li key={line.kind}>
                 <button
                   type="button"
-                  title="Open in Needs you"
+                  title={t("master.openInNeedsYou")}
                   onClick={() => onLine(line)}
                 >
                   {line.text} <span aria-hidden="true">›</span>
@@ -163,14 +167,14 @@ export function TownMasterGreetingCard({
             ))}
           </ul>
         ) : (
-          <p>Nothing new since you left.</p>
+          <p>{t("master.nothingNew")}</p>
         )}
       </div>
       {news ? (
         <p className="town-master-greeting-update">
           <span>{news}</span>
           <button type="button" onClick={onUpdate}>
-            See update
+            {t("master.seeUpdate")}
           </button>
         </p>
       ) : null}
@@ -181,7 +185,7 @@ export function TownMasterGreetingCard({
             checked={onStart}
             onChange={(event) => onStartChange(event.currentTarget.checked)}
           />
-          Show this on start
+          {t("master.showOnStart")}
         </label>
       </footer>
     </section>
@@ -236,13 +240,14 @@ function useGreetingPlacement(
 export function TownMasterFigure() {
   const anchor = useGreetingAnchor();
   const { open } = useGreeting();
+  const t = useT();
   return (
     <button
       ref={anchor}
       type="button"
       className="town-master-figure"
-      aria-label="Town Master"
-      title="Town Master"
+      aria-label={t("master.title")}
+      title={t("master.title")}
       aria-haspopup="dialog"
       aria-expanded={open}
       onClick={() => sharedGreeting().toggle()}

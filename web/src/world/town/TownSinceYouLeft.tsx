@@ -1,4 +1,5 @@
 import { useNow } from "../handoffs";
+import { useT } from "../../i18n";
 import { itemName, needsYouItems, openNeedsYou } from "../needsYou";
 import {
   sharedPresence,
@@ -55,16 +56,20 @@ export function TownSinceYouLeft({
   variant: "board" | "chip";
 }) {
   const { away, lines, now } = useSinceYouLeft(world);
+  const t = useT();
   if (!away || !lines.length) return null;
   const left = leftAt(away.since, now);
   if (variant === "chip") {
     const first = lines.find((line) => line.itemKey);
-    const text = `Since ${left}: ${sinceYouLeftShort(lines)}`;
+    const text = t("master.recapSince", {
+      time: left,
+      lines: sinceYouLeftShort(lines),
+    });
     return (
       <button
         type="button"
         className="town-recap-chip"
-        aria-label={`${text}. Open Needs you.`}
+        aria-label={t("master.recapChipAria", { text })}
         onClick={() => openNeedsYou(first?.itemKey)}
       >
         <span>{text}</span>
@@ -73,16 +78,19 @@ export function TownSinceYouLeft({
     );
   }
   return (
-    <section className="town-recap" aria-label="Since you left">
+    <section className="town-recap" aria-label={t("master.sinceYouLeft")}>
       <header>
         <span>
-          Since {left} · away {awayFor(away.at - away.since)}
+          {t("master.recapHeader", {
+            time: left,
+            away: awayFor(away.at - away.since),
+          })}
         </span>
         <button
           type="button"
           className="town-recap-clear"
-          aria-label="Clear since you left"
-          title="Clear since you left"
+          aria-label={t("master.clearRecap")}
+          title={t("master.clearRecap")}
           onClick={() => sharedPresence().dismiss()}
         >
           ✕
@@ -101,10 +109,11 @@ export function TownSinceYouLeft({
 
 function RecapLine({ line }: { line: SinceYouLeftLine }) {
   // A merged line names no item, so it opens Needs you itself.
+  const t = useT();
   return (
     <button
       type="button"
-      title="Open in Needs you"
+      title={t("master.openInNeedsYou")}
       onClick={() => openNeedsYou(line.itemKey)}
     >
       {line.text} <span aria-hidden="true">›</span>

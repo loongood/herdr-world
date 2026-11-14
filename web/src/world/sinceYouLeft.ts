@@ -1,4 +1,6 @@
 import type { WorkItem } from "../../../shared/worldSources";
+import { t } from "../i18n";
+import { formatTime, formatWeekdayTime } from "../i18n/format";
 import type { NeedsYouItem } from "./needsYou";
 import type { WorldLeafObject } from "./worldObject";
 
@@ -55,8 +57,18 @@ export function arrivedWhileAway(
   return items.filter((item) => within(window, arrivedAt(item, stoppedAt)));
 }
 
-const plural = (count: number, one: string, many = `${one}s`) =>
-  `${count} ${count === 1 ? one : many}`;
+/** The questions line's text: its count and, when known, who asked. */
+function questionsText(count: number, askers: readonly string[]): string {
+  const name = askers[0];
+  if (count === 1)
+    return name
+      ? t("master.newQuestionFromOne", { name })
+      : t("master.newQuestionOne");
+  if (!name) return t("master.newQuestionsMany", { count });
+  return askers.length > 1
+    ? t("master.newQuestionsFromOthers", { count, name })
+    : t("master.newQuestionsFromOne", { count, name });
+}
 
 /**
  * Up to four lines, most important first: new for you (questions and newly
@@ -91,17 +103,11 @@ export function sinceYouLeft({
   );
   const lines: SinceYouLeftLine[] = [];
   const askers = [...new Set(questions.map(name).filter(Boolean))];
-  const fromWhom =
-    askers.length === 1
-      ? ` from ${askers[0]}`
-      : askers.length > 1
-        ? ` from ${askers[0]} and others`
-        : "";
   const questionLine = (): SinceYouLeftLine => ({
     kind: "questions",
     count: questions.length,
-    text: `${questions.length} new ${questions.length === 1 ? "question" : "questions"}${fromWhom}`,
-    short: `${questions.length} for you`,
+    text: questionsText(questions.length, askers),
+    short: t("master.forYouShort", { count: questions.length }),
     itemKey: questions[0]!.key,
   });
   // When every new item is a question, one line says both.
@@ -111,8 +117,8 @@ export function sinceYouLeft({
     lines.push({
       kind: "for-you",
       count: forYou.length,
-      text: `${forYou.length} new for you`,
-      short: `${forYou.length} for you`,
+      text: t("master.newForYou", { count: forYou.length }),
+      short: t("master.forYouShort", { count: forYou.length }),
       itemKey: forYou[0]!.key,
     });
     if (questions.length) lines.push(questionLine());
@@ -121,16 +127,19 @@ export function sinceYouLeft({
     lines.push({
       kind: "finished",
       count: finished.length,
-      text: `${finished.length} finished`,
-      short: `${finished.length} finished`,
+      text: t("master.finished", { count: finished.length }),
+      short: t("master.finished", { count: finished.length }),
       itemKey: finished[0]!.key,
     });
   if (merged.length)
     lines.push({
       kind: "merged",
       count: merged.length,
-      text: `${plural(merged.length, "PR")} merged`,
-      short: `${merged.length} merged`,
+      text:
+        merged.length === 1
+          ? t("master.mergedPrOne")
+          : t("master.mergedPrMany", { count: merged.length }),
+      short: t("master.mergedShort", { count: merged.length }),
     });
   return lines.slice(0, 4);
 }
@@ -149,20 +158,16 @@ export const sinceYouLeftShort = (lines: readonly SinceYouLeftLine[]) =>
 /** How long the owner was away: "45 min", "3 h", "2 d". */
 export function awayFor(ms: number) {
   const minutes = Math.max(1, Math.round(ms / 60_000));
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return t("master.awayMinutes", { count: minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 48) return `${hours} h`;
-  return `${Math.round(hours / 24)} d`;
+  if (hours < 48) return t("master.awayHours", { count: hours });
+  return t("master.awayDays", { count: Math.round(hours / 24) });
 }
 
 /** When the owner left, as a clock time; another day adds its weekday. */
 export function leftAt(since: number, now: number) {
   const left = new Date(since);
-  const time = left.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
   return left.toDateString() === new Date(now).toDateString()
-    ? time
-    : `${left.toLocaleDateString([], { weekday: "short" })} ${time}`;
+    ? formatTime(left)
+    : formatWeekdayTime(left);
 }
