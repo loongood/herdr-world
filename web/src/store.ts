@@ -44,6 +44,7 @@ import {
   type PopupInfo,
 } from "./store/types";
 import { worldLocalStorage, subscribeLocalStorage } from "./browserStorage";
+import { t } from "./i18n";
 import {
   STARTUP_DEFAULT_CONNECTION_ID,
   copyStartupProfileStorage,
@@ -2104,8 +2105,8 @@ export const store = {
           notice: {
             kind: "success",
             message: enabled
-              ? "Automatic branch updates enabled"
-              : "Automatic branch updates disabled",
+              ? t("status.autoSyncEnabled")
+              : t("status.autoSyncDisabled"),
             detail: enabled
               ? "A sync will run now, then every 10 minutes while this workspace remains open."
               : undefined,
@@ -2118,7 +2119,7 @@ export const store = {
         refresh: "none",
         failureNotice: (error) => ({
           kind: "error",
-          message: "Failed to update automatic sync settings",
+          message: t("status.syncFailed"),
           detail: error.message,
         }),
       },
@@ -2136,8 +2137,8 @@ export const store = {
           notice: {
             kind: "success",
             message: enabled
-              ? "Automatic branch updates enabled"
-              : "Automatic branch updates disabled",
+              ? t("status.autoSyncEnabled")
+              : t("status.autoSyncDisabled"),
             detail: key,
             autoDismissMs: 5000,
           },
@@ -2148,7 +2149,7 @@ export const store = {
         refresh: "none",
         failureNotice: (error) => ({
           kind: "error",
-          message: "Failed to update automatic sync settings",
+          message: t("status.syncFailed"),
           detail: error.message,
         }),
       },
@@ -2327,15 +2328,14 @@ export const store = {
       notice: granted
         ? {
             kind: "success",
-            message: "Task notifications enabled",
-            detail: "Herdr World will notify you when an agent task completes.",
+            message: t("status.taskNotificationsEnabled"),
+            detail: t("status.taskNotificationsDetail"),
             autoDismissMs: 5000,
           }
         : {
             kind: "error",
-            message: "Notification permission was not granted",
-            detail:
-              "Enable notifications for this site in the browser settings, then try again.",
+            message: t("status.notificationDenied"),
+            detail: t("status.notificationDeniedDetail"),
           },
     });
   },
