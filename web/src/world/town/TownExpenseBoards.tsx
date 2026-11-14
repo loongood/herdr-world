@@ -1,39 +1,43 @@
-import { useState, type CSSProperties, type ReactNode, type Ref } from "react";
 import { Coins } from "lucide-react";
+import { type CSSProperties, type ReactNode, type Ref, useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "../../components/ui/popover";
+import { t, useT } from "../../i18n";
 import { formatOfficeUsage } from "../officeObservability";
-import { TOWN_TILE as T } from "./townLayout";
+import { TownExpenseCaveats } from "./TownExpenseCaveats";
 import { TOWN_CITY_BOARD_GAP, type TownCenterLot } from "./townCenter";
 import {
-  townUsageStore,
-  type TownUsageStore,
-  type TownUsageWindow,
-} from "./townPlaceUsage";
-import {
-  TOWN_WINDOW_LABEL,
+  type TownCityExpenses,
+  type TownExpenseTotal,
+  type TownHostExpenses,
   townCityExpenses,
   townCoverageCaveats,
   townExpenseText,
   townHostExpenses,
   townUsd,
+  townWindowLabelText,
   useTownExpensesUsage,
-  type TownExpenseTotal,
-  type TownCityExpenses,
-  type TownHostExpenses,
 } from "./townExpenses";
-import { TownExpenseCaveats } from "./TownExpenseCaveats";
+import { TOWN_TILE as T } from "./townLayout";
+import {
+  type TownUsageStore,
+  type TownUsageWindow,
+  townUsageStore,
+} from "./townPlaceUsage";
 import "./townExpenses.css";
 
 const WAITING_TEXT = {
-  loading: "Reading usage…",
-  unavailable: "Usage unavailable",
-  stale: "out of date",
-  "no-data": "no data",
+  loading: () => t("town.readingUsage"),
+  unavailable: () => t("town.usageUnavailable"),
+  stale: () => t("town.waitingStale"),
+  "no-data": () => t("town.waitingNoData"),
 } as const;
+
+const waitingText = (status: keyof typeof WAITING_TEXT) =>
+  WAITING_TEXT[status]();
 
 /** The figures line, or what stands in for it. */
 function Headline({
@@ -45,12 +49,12 @@ function Headline({
 }) {
   return (
     <p className="town-expenses-headline">
-      <span>{TOWN_WINDOW_LABEL[span]}</span>
+      <span>{townWindowLabelText(span)}</span>
       {" · "}
       <b>
         {expenses.status === "ready"
           ? townExpenseText(expenses.total)
-          : WAITING_TEXT[expenses.status]}
+          : waitingText(expenses.status)}
       </b>
     </p>
   );
@@ -82,6 +86,7 @@ function Board({
   boardRef?: Ref<HTMLElement>;
   children: ReactNode;
 }) {
+  const t = useT();
   if (!folded)
     return (
       <section
@@ -102,7 +107,7 @@ function Board({
           type="button"
           className={`town-expenses-sign ${className}`}
           style={style}
-          aria-label={`${label}: ${summary}. Open`}
+          aria-label={`${label}: ${summary}. ${t("town.open")}`}
           title={label}
         >
           <Coins size={12} aria-hidden="true" />
@@ -132,23 +137,26 @@ const townRoomText = (total: TownExpenseTotal) =>
 const spokenText = (expenses: TownCityExpenses | TownHostExpenses) =>
   expenses.status === "ready"
     ? townExpenseText(expenses.total)
-    : WAITING_TEXT[expenses.status];
+    : waitingText(expenses.status);
 
 const SIGN_WAITING = {
-  loading: "…",
-  unavailable: "n/a",
-  stale: "old",
-  "no-data": "no data",
+  loading: () => "…",
+  unavailable: () => "n/a",
+  stale: () => t("town.signOld"),
+  "no-data": () => t("town.waitingNoData"),
 };
+
+const signWaitingText = (status: keyof typeof SIGN_WAITING) =>
+  SIGN_WAITING[status]();
 
 /** The folded sign's few characters: the cost, else the tokens. */
 const signText = (expenses: TownCityExpenses | TownHostExpenses) => {
-  if (expenses.status !== "ready") return SIGN_WAITING[expenses.status];
+  if (expenses.status !== "ready") return signWaitingText(expenses.status);
   const { total } = expenses;
-  if (!total.records) return "none";
+  if (!total.records) return t("town.signNone");
   return total.price === "priced" && total.costUsd !== null
     ? townUsd(total.costUsd)
-    : `${formatOfficeUsage(total.tokens)} tok`;
+    : t("town.signTokens", { tokens: formatOfficeUsage(total.tokens) });
 };
 
 /**
@@ -169,6 +177,7 @@ export function TownCityBillboard({
   stores?: (span: TownUsageWindow) => TownUsageStore;
 }) {
   const [span, setSpan] = useState<TownUsageWindow>("today");
+  const t = useT();
   const expenses = townCityExpenses(useTownExpensesUsage(stores(span)));
   const style = folded
     ? { left: (center.x + 4) * T, top: (center.y + 2) * T }
@@ -179,19 +188,19 @@ export function TownCityBillboard({
   return (
     <Board
       folded={folded}
-      label="City expenses"
-      summary={`${TOWN_WINDOW_LABEL[span]} ${spokenText(expenses)}`}
+      label={t("town.cityExpenses")}
+      summary={`${townWindowLabelText(span)} ${spokenText(expenses)}`}
       sign={signText(expenses)}
       className="town-expenses-city"
       style={style}
       boardRef={boardRef}
     >
       <header className="town-expenses-title">
-        <span>CITY EXPENSES</span>
+        <span>{t("town.cityExpensesTitle")}</span>
         <span
           className="town-expenses-window"
           role="group"
-          aria-label="Expenses window"
+          aria-label={t("town.expensesWindow")}
         >
           {(["today", "7d"] as const).map((option) => (
             <button
@@ -200,7 +209,7 @@ export function TownCityBillboard({
               aria-pressed={span === option}
               onClick={() => setSpan(option)}
             >
-              {TOWN_WINDOW_LABEL[option]}
+              {townWindowLabelText(option)}
             </button>
           ))}
         </span>
@@ -239,26 +248,32 @@ export function TownReceptionExpenses({
   store?: TownUsageStore;
 }) {
   const expenses = townHostExpenses(useTownExpensesUsage(store), connectionId);
-  const label = `${hostLabel} expenses`;
+  const t = useT();
+  const label = t("town.hostExpenses", { host: hostLabel });
   const details = (
     <>
       <p className="town-expenses-headline">
         <b>{spokenText(expenses)}</b>
       </p>
       {expenses.status === "ready" && expenses.rooms.length ? (
-        <ol className="town-expenses-rooms" aria-label="Top rooms by spend">
+        <ol
+          className="town-expenses-rooms"
+          aria-label={t("town.topRoomsBySpend")}
+        >
           {expenses.rooms.map((room) => (
             <li key={room.workspaceId}>
               <span>
-                {roomLabel(room.workspaceId, room.generation) ?? "closed room"}
+                {roomLabel(room.workspaceId, room.generation) ??
+                  t("town.closedRoom")}
               </span>
               <b>{townRoomText(room.total)}</b>
             </li>
           ))}
           {expenses.moreRooms ? (
             <li className="town-expenses-more">
-              +{expenses.moreRooms} more{" "}
-              {expenses.moreRooms === 1 ? "room" : "rooms"}
+              {expenses.moreRooms === 1
+                ? t("town.moreRoomsOne", { count: expenses.moreRooms })
+                : t("town.moreRooms", { count: expenses.moreRooms })}
             </li>
           ) : null}
         </ol>
@@ -282,7 +297,7 @@ export function TownReceptionExpenses({
         aria-label={label}
       >
         <header className="town-reception-expenses-title">
-          EXPENSES TODAY
+          {t("town.expensesToday")}
         </header>
         {details}
       </section>
@@ -293,7 +308,7 @@ export function TownReceptionExpenses({
         <button
           type="button"
           className="town-expenses-sign"
-          aria-label={`${label}: ${spokenText(expenses)}. Open`}
+          aria-label={`${label}: ${spokenText(expenses)}. ${t("town.open")}`}
           title={label}
         >
           <Coins size={12} aria-hidden="true" />
@@ -307,7 +322,7 @@ export function TownReceptionExpenses({
       >
         <div className="town-expenses-panel">
           <header className="town-expenses-title">
-            <span>EXPENSES TODAY</span>
+            <span>{t("town.expensesToday")}</span>
           </header>
           {details}
         </div>

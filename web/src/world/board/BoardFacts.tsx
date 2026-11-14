@@ -15,15 +15,15 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { WorldLeafObject, WorldAgentStatus } from "../worldObject";
+import { townLocation } from "../town/TownRail";
 import {
-  TOWN_WINDOW_LABEL,
+  type TownCityExpenses,
   townCityExpenses,
   townCoverageNotes,
   townExpenseText,
   townHostExpenses,
+  townWindowLabelText,
   useTownExpensesUsage,
-  type TownCityExpenses,
 } from "../town/townExpenses";
 import {
   townFuelGauges,
@@ -32,19 +32,19 @@ import {
   useTownLimits,
 } from "../town/townLimits";
 import {
+  type TownUsageWindow,
   townPlaceEconomy,
   townUsageCurrent,
   townUsageStore,
   useTownUsage,
-  type TownUsageWindow,
 } from "../town/townPlaceUsage";
-import { townLocation } from "../town/TownRail";
 import type { TownStepStore } from "../town/townStepStore";
 import {
-  townSummaryAge,
   type TownSummary,
   type TownSummaryHost,
+  townSummaryAge,
 } from "../town/townSummary";
+import type { WorldAgentStatus, WorldLeafObject } from "../worldObject";
 import { useBoardNow } from "./boardClock";
 import {
   boardAgentNow,
@@ -165,7 +165,7 @@ export const BoardSummary = memo(function BoardSummary({
             <h3 id={`${panelId}-expenses`}>Expenses · UTC</h3>
             {[today, week].map((expenses, index) => (
               <p key={WINDOWS[index]} className="board-facts-line">
-                <span>{TOWN_WINDOW_LABEL[WINDOWS[index]!]}</span>
+                <span>{townWindowLabelText(WINDOWS[index]!)}</span>
                 <b>{cityLine(expenses)}</b>
               </p>
             ))}

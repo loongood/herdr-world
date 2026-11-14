@@ -1,24 +1,27 @@
+import { type ReactNode, useState } from "react";
 import { usageStopText } from "../../../../shared/usageStop";
-import { useState, type ReactNode } from "react";
+import { useT } from "../../i18n";
+import type { TranslationKey } from "../../i18n/en";
 import {
   formatOfficeCost,
   formatOfficeModelNames,
   formatOfficeUsage,
 } from "../officeObservability";
-import type {
-  TownPlaceSummary,
-  TownSummary,
-  TownSummaryCounts,
-} from "./townSummary";
-import type { TownPlaceEconomy, TownUsageStore } from "./townPlaceUsage";
+import { TownExpenseCaveats } from "./TownExpenseCaveats";
 import {
-  townPriceNote,
-  townCityExpenses,
-  townExpenseText,
-  townCoverageCaveats,
-  TOWN_PARTIAL_CAVEAT,
+  TownFuel,
+  TownFuelChip,
+  townFuelLowest,
+  townFuelLowestText,
+} from "./TownFuelGauge";
+import {
   type TownExpenseCaveat,
+  townCityExpenses,
   townCostText,
+  townCoverageCaveats,
+  townExpenseText,
+  townPartialCaveat,
+  townPriceNote,
   useTownExpensesUsage,
 } from "./townExpenses";
 import {
@@ -27,13 +30,12 @@ import {
   townLimits,
   useTownLimits,
 } from "./townLimits";
-import {
-  TownFuel,
-  TownFuelChip,
-  townFuelLowest,
-  townFuelLowestText,
-} from "./TownFuelGauge";
-import { TownExpenseCaveats } from "./TownExpenseCaveats";
+import type { TownPlaceEconomy, TownUsageStore } from "./townPlaceUsage";
+import type {
+  TownPlaceSummary,
+  TownSummary,
+  TownSummaryCounts,
+} from "./townSummary";
 
 /**
  * The Town board counts the whole town from the Town summary (townSummary.ts):
@@ -51,6 +53,7 @@ export function TownBoard({
   /** "Since you left" after a return: on the sign, and under the phone chip. */
   sinceYouLeft?: { board: ReactNode; chip: ReactNode };
 }) {
+  const t = useT();
   const expenses = townCityExpenses(useTownExpensesUsage(usageStore));
   // Phones show a compact chip; it opens the full board in place.
   const [open, setOpen] = useState(false);
@@ -60,7 +63,17 @@ export function TownBoard({
       setOpen(false);
     }
   };
-  const population = `${counts.agents} ${counts.agents === 1 ? "agent" : "agents"} in ${counts.buildings} ${counts.buildings === 1 ? "building" : "buildings"}`;
+  const population =
+    counts.agents === 1
+      ? counts.buildings === 1
+        ? t("town.populationOneOne")
+        : t("town.populationOneMany", { buildings: counts.buildings })
+      : counts.buildings === 1
+        ? t("town.populationManyOne", { agents: counts.agents })
+        : t("town.populationManyMany", {
+            agents: counts.agents,
+            buildings: counts.buildings,
+          });
   // Subscription fuel: each harness's limit windows, from harness usage.
   const usage = useTownLimits();
   const now = Date.now();
@@ -68,8 +81,13 @@ export function TownBoard({
   const gauges = townFuelGauges(limits, now);
   const notes = townFuelNotes(limits, gauges);
   const lowest = townFuelLowest(gauges);
-  const summary = `${counts.working} working, ${counts.needsYou} need you, ${counts.finished} done, ${counts.quiet} quiet${
-    counts.outOfFuel ? `, ${counts.outOfFuel} out of fuel` : ""
+  const summary = `${t("town.summaryCounts", {
+    working: counts.working,
+    needsYou: counts.needsYou,
+    finished: counts.finished,
+    quiet: counts.quiet,
+  })}${
+    counts.outOfFuel ? t("town.outOfFuelTail", { count: counts.outOfFuel }) : ""
   }; ${population}${lowest ? `; ${townFuelLowestText(lowest, now)}` : ""}`;
   return (
     <>
@@ -80,13 +98,13 @@ export function TownBoard({
         {...(onOpenSummary
           ? { "aria-haspopup": "dialog" as const }
           : { "aria-expanded": open, "aria-controls": "town-board" })}
-        aria-label={`${onOpenSummary ? "Town summary" : "Town board"}: ${summary}`}
+        aria-label={`${onOpenSummary ? t("town.summary") : t("town.board")}: ${summary}`}
         title={
           onOpenSummary
-            ? "Open the Town summary"
+            ? t("town.openSummaryTitle")
             : open
-              ? "Hide the Town board"
-              : "Show the Town board"
+              ? t("town.hideBoardTitle")
+              : t("town.showBoardTitle")
         }
         onClick={() =>
           onOpenSummary ? onOpenSummary() : setOpen((value) => !value)
@@ -104,18 +122,18 @@ export function TownBoard({
         className="town-board"
         data-open={open}
         role="group"
-        aria-label="Town board"
+        aria-label={t("town.board")}
         onKeyDown={closeOnEscape}
       >
         <div className="town-board-title">
-          TOWN BOARD
+          {t("town.boardTitle")}
           {onOpenSummary ? (
             <button
               type="button"
               className="town-board-open"
               onClick={onOpenSummary}
             >
-              Summary
+              {t("town.summaryButton")}
             </button>
           ) : null}
         </div>
@@ -123,14 +141,18 @@ export function TownBoard({
         <TownBoardCounts counts={counts} />
         <p className="town-board-population">
           {population}
-          {counts.unknown ? ` · ${counts.unknown} unknown` : ""}
-          {counts.outOfFuel ? ` · ${counts.outOfFuel} out of fuel` : ""}
+          {counts.unknown
+            ? ` · ${t("town.unknownShort", { count: counts.unknown })}`
+            : ""}
+          {counts.outOfFuel
+            ? ` · ${t("town.outOfFuelShort", { count: counts.outOfFuel })}`
+            : ""}
         </p>
         <TownBoardEconomy
           label={
             expenses.status === "ready" && expenses.coverage.testData
-              ? "ECONOMY TODAY · UTC · TEST DATA"
-              : "ECONOMY TODAY · UTC · HARNESS LOGS"
+              ? t("town.economyTodayUtcTest")
+              : t("town.economyTodayUtcHarness")
           }
           cost={
             expenses.status === "ready" && expenses.total.price === "priced"
@@ -149,15 +171,17 @@ export function TownBoard({
           detail={
             expenses.status === "ready"
               ? expenses.total.price === "priced"
-                ? `${formatOfficeUsage(expenses.total.tokens)} tokens`
+                ? t("town.tokensCount", {
+                    tokens: formatOfficeUsage(expenses.total.tokens),
+                  })
                 : townExpenseText(expenses.total)
               : expenses.status === "loading"
-                ? "Reading usage…"
+                ? t("town.readingUsage")
                 : expenses.status === "stale"
-                  ? "Usage is out of date."
+                  ? t("town.usageStale")
                   : expenses.status === "no-data"
-                    ? "No usage data from hosts."
-                    : "Usage unavailable"
+                    ? t("town.noHostUsage")
+                    : t("town.usageUnavailable")
           }
         />
         <TownFuel gauges={gauges} notes={notes} now={now} />
@@ -168,22 +192,23 @@ export function TownBoard({
 
 /** The board's agent numbers, one short word per column: busy, waiting, done and quiet. */
 function TownBoardCounts({ counts }: { counts: TownSummaryCounts }) {
+  const t = useT();
   return (
     <dl className="town-board-counts">
       <div>
-        <dt>Busy</dt>
+        <dt>{t("town.countBusy")}</dt>
         <dd>{counts.working}</dd>
       </div>
       <div>
-        <dt>Waiting</dt>
+        <dt>{t("town.countWaiting")}</dt>
         <dd>{counts.needsYou}</dd>
       </div>
       <div>
-        <dt>Done</dt>
+        <dt>{t("town.countDone")}</dt>
         <dd>{counts.finished}</dd>
       </div>
       <div>
-        <dt>Quiet</dt>
+        <dt>{t("town.countQuiet")}</dt>
         <dd>{counts.quiet}</dd>
       </div>
     </dl>
@@ -195,7 +220,7 @@ function TownBoardCounts({ counts }: { counts: TownSummaryCounts }) {
  * and one short caveat line explained on hover or tap.
  */
 function TownBoardEconomy({
-  label = "ECONOMY",
+  label,
   cost,
   detail,
   caveats = [],
@@ -205,9 +230,10 @@ function TownBoardEconomy({
   detail: string;
   caveats?: readonly TownExpenseCaveat[];
 }) {
+  const t = useT();
   return (
     <div className="town-board-economy">
-      <span>{label}</span>
+      <span>{label ?? t("town.economyLabel")}</span>
       {cost === undefined ? null : <b>{cost}</b>}
       <small>{detail}</small>
       <TownExpenseCaveats
@@ -218,18 +244,17 @@ function TownBoardEconomy({
   );
 }
 
-const PLACE_ECONOMY: Record<
+const PLACE_ECONOMY_KEYS = {
+  loading: "town.placeLoading",
+  unavailable: "town.placeUnavailable",
+  stale: "town.placeStale",
+  none: "town.placeNone",
+  "no-data": "town.placeNoData",
+  limited: "town.placeLimited",
+} as const satisfies Record<
   Exclude<TownPlaceEconomy["status"], "ready">,
-  string
-> = {
-  loading: "Reading today's usage…",
-  unavailable: "Usage is unavailable right now.",
-  stale: "Usage is out of date: it could not be refreshed.",
-  none: "No usage recorded here today.",
-  "no-data": "No usage data from this host.",
-  limited:
-    "Place detail limited; usage is included in city and building totals.",
-};
+  TranslationKey
+>;
 
 /**
  * A room's or table's card: the Town board without its agents list, for
@@ -243,14 +268,21 @@ export function TownPlaceSummaryCard({
   place: TownPlaceSummary;
   economy: TownPlaceEconomy;
 }) {
+  const t = useT();
   const { counts } = place;
   return (
     <div className="town-place-summary">
       <TownBoardCounts counts={counts} />
       <p className="town-board-population">
-        {counts.agents} {counts.agents === 1 ? "agent" : "agents"}
-        {counts.unknown ? ` · ${counts.unknown} unknown` : ""}
-        {counts.outOfFuel ? ` · ${counts.outOfFuel} out of fuel` : ""}
+        {counts.agents === 1
+          ? t("town.agentsOne")
+          : t("town.agentsMany", { agents: counts.agents })}
+        {counts.unknown
+          ? ` · ${t("town.unknownShort", { count: counts.unknown })}`
+          : ""}
+        {counts.outOfFuel
+          ? ` · ${t("town.outOfFuelShort", { count: counts.outOfFuel })}`
+          : ""}
       </p>
       {place.fuel.map(({ label, stop }, index) => (
         <p key={index} className="town-place-fuel">
@@ -260,23 +292,23 @@ export function TownPlaceSummaryCard({
       ))}
       {economy.status === "ready" ? (
         <TownBoardEconomy
-          label="ECONOMY TODAY"
+          label={t("town.economyToday")}
           cost={
             economy.price === "priced"
               ? formatOfficeCost(economy.costUsd, "estimated")
               : undefined
           }
-          detail={`${formatOfficeUsage(economy.tokens)} tokens${
+          detail={`${t("town.tokensCount", { tokens: formatOfficeUsage(economy.tokens) })}${
             economy.models.length
               ? ` · ${formatOfficeModelNames(economy.models.map((model) => ({ model })))}`
               : ""
           }${economy.price === "priced" ? "" : ` · ${townPriceNote(economy.price)}`}`}
-          caveats={economy.partial ? [TOWN_PARTIAL_CAVEAT] : []}
+          caveats={economy.partial ? [townPartialCaveat()] : []}
         />
       ) : (
         <TownBoardEconomy
-          label="ECONOMY TODAY"
-          detail={PLACE_ECONOMY[economy.status]}
+          label={t("town.economyToday")}
+          detail={t(PLACE_ECONOMY_KEYS[economy.status])}
         />
       )}
     </div>

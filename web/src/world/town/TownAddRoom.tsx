@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { useT } from "../../i18n";
 import { TOWN_TILE as T, type TownLayout } from "./townLayout";
 import type { TownRoomActions } from "./townRoomActions";
 import "./townAddRoom.css";
@@ -20,10 +21,11 @@ export function TownAddRoom({
   roomActions: TownRoomActions;
   selectedRoomKey: string | null;
 }) {
+  const t = useT();
   const state = roomActions.addRoomState(building.hostKey, selectedRoomKey);
   if (!state.visible) return null;
   const { x, y, w, h } = building.addRoom;
-  const label = `Add room to ${hostLabel}`;
+  const label = t("town.addRoomTo", { host: hostLabel });
   return (
     <button
       className="town-add-room"
@@ -36,7 +38,7 @@ export function TownAddRoom({
       onClick={() => roomActions.onAddRoom(building.hostKey, selectedRoomKey)}
     >
       <Plus size={26} strokeWidth={3} aria-hidden="true" />
-      <span>Add room</span>
+      <span>{t("town.addRoom")}</span>
     </button>
   );
 }

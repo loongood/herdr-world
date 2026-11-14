@@ -41,6 +41,17 @@ export function formatDateTime(timestamp: string | number | Date): string {
   );
 }
 
+/** "Tue 14:00" in the interface language: a limit window's reset moment. */
+export function formatWeekdayTime(timestamp: string | number | Date): string {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return String(timestamp);
+  return dateTimeFormatter({
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 const relativeFormatters = new Map<string, Intl.RelativeTimeFormat>();
 
 export function formatRelativeTime(

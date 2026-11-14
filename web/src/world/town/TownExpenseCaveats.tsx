@@ -4,7 +4,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../components/ui/popover";
-import { townCaveatLine, type TownExpenseCaveat } from "./townExpenses";
+import { useT } from "../../i18n";
+import { type TownExpenseCaveat, townCaveatLine } from "./townExpenses";
 import "./townExpenses.css";
 
 /**
@@ -19,6 +20,7 @@ export function TownExpenseCaveats({
   caveats: readonly TownExpenseCaveat[];
   className?: string;
 }) {
+  const t = useT();
   if (!caveats.length) return null;
   const line = townCaveatLine(caveats);
   const explanations = caveats.map((caveat) => caveat.explain);
@@ -29,7 +31,7 @@ export function TownExpenseCaveats({
           type="button"
           className={`town-expenses-caveats ${className}`}
           title={explanations.join("\n")}
-          aria-label={`${line ? `${line}. ` : ""}About these figures`}
+          aria-label={`${line ? `${line}. ` : ""}${t("town.aboutFigures")}`}
         >
           {line ? <span>{line}</span> : null}
           <Info size={10} aria-hidden="true" />
@@ -38,7 +40,7 @@ export function TownExpenseCaveats({
       <PopoverContent
         className="town-expenses-popover"
         collisionPadding={8}
-        aria-label="About these figures"
+        aria-label={t("town.aboutFigures")}
       >
         <ul className="town-expenses-panel town-expenses-explain">
           {explanations.map((text) => (

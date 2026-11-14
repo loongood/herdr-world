@@ -4,18 +4,19 @@ import type {
   UsageTotal,
   WorldUsageSnapshot,
 } from "../../../../shared/usage";
+import { t } from "../../i18n";
 import { formatOfficeUsage } from "../officeObservability";
 import {
+  type TownCurrentUsage,
+  type TownUsagePrice,
+  type TownUsageStore,
+  type TownUsageWindow,
   townHostHasData,
   townHostPartial,
   townUsageCounted,
   townUsagePrice,
   townUsageStore,
   useTownCurrentUsage,
-  type TownCurrentUsage,
-  type TownUsagePrice,
-  type TownUsageStore,
-  type TownUsageWindow,
 } from "./townPlaceUsage";
 
 /**
@@ -299,13 +300,15 @@ export function townUsd(value: number) {
 
 /** Why a figure has no cost. */
 export const townPriceNote = (price: Exclude<TownUsagePrice, "priced">) =>
-  price === "no-table" ? "no price table" : "some models unpriced";
+  price === "no-table"
+    ? t("town.priceNoteNoTable")
+    : t("town.priceNoteUnpriced");
 
 /** "$3.40 est.", or why there is no cost; null when nothing was recorded. */
 export function townCostText(total: TownExpenseTotal) {
   if (!total.records) return null;
   return total.price === "priced" && total.costUsd !== null
-    ? `${townUsd(total.costUsd)} est.`
+    ? t("town.estCost", { usd: townUsd(total.costUsd) })
     : townPriceNote(total.price === "priced" ? "unpriced" : total.price);
 }
 
@@ -313,8 +316,11 @@ export function townCostText(total: TownExpenseTotal) {
 export function townExpenseText(total: TownExpenseTotal) {
   const cost = townCostText(total);
   return cost === null
-    ? "none recorded"
-    : `${formatOfficeUsage(total.tokens)} tokens · ${cost}`;
+    ? t("town.noneRecorded")
+    : t("town.tokensWithCost", {
+        tokens: formatOfficeUsage(total.tokens),
+        cost,
+      });
 }
 
 /** The notes under Board's facts (#787): what its totals leave out. */
@@ -323,18 +329,21 @@ export function townCoverageNotes(
   unattributed: TownExpenseTotal,
 ) {
   const notes: string[] = [];
-  if (coverage.testData) notes.push("TEST DATA · synthetic economy");
+  if (coverage.testData) notes.push(t("town.notesTestData"));
   if (unattributed.records)
     notes.push(
-      `${formatOfficeUsage(unattributed.tokens)} unattributed (included)`,
+      t("town.unattributedNote", {
+        tokens: formatOfficeUsage(unattributed.tokens),
+      }),
     );
-  if (coverage.partial) notes.push("partial");
-  if (coverage.detailsLimited)
-    notes.push("detail list limited; totals include all collected usage");
-  if (coverage.stale) notes.push("stale data left out");
+  if (coverage.partial) notes.push(t("town.caveat.partialShort"));
+  if (coverage.detailsLimited) notes.push(t("town.notesDetailsLimited"));
+  if (coverage.stale) notes.push(t("town.notesStaleLeftOut"));
   if (coverage.noDataHosts)
     notes.push(
-      `no data from ${coverage.noDataHosts} ${coverage.noDataHosts === 1 ? "host" : "hosts"}`,
+      coverage.noDataHosts === 1
+        ? t("town.notesNoDataHostsOne")
+        : t("town.notesNoDataHosts", { count: coverage.noDataHosts }),
     );
   return notes;
 }
@@ -346,14 +355,11 @@ export function townCoverageNotes(
  */
 export type TownExpenseCaveat = { short: string | null; explain: string };
 
-const PARTIAL_EXPLAIN =
-  "Partial: a harness was read only in part, or the read was cut short, so the figures may be low.";
-
 /** A place's partial read, as on the expense boards. */
-export const TOWN_PARTIAL_CAVEAT: TownExpenseCaveat = {
-  short: "partial",
-  explain: PARTIAL_EXPLAIN,
-};
+export const townPartialCaveat = (): TownExpenseCaveat => ({
+  short: t("town.caveat.partialShort"),
+  explain: t("town.caveat.partialExplain"),
+});
 
 /**
  * What a board's totals leave out or include. `scope` names what usage was
@@ -367,36 +373,41 @@ export function townCoverageCaveats(
   const caveats: TownExpenseCaveat[] = [];
   if (coverage.testData)
     caveats.push({
-      short: "TEST DATA",
-      explain:
-        "Test data: a synthetic economy for this preview, not your harness logs.",
+      short: t("town.caveat.testDataShort"),
+      explain: t("town.caveat.testDataExplain"),
     });
-  if (coverage.partial) caveats.push(TOWN_PARTIAL_CAVEAT);
+  if (coverage.partial) caveats.push(townPartialCaveat());
   if (coverage.stale)
     caveats.push({
-      short: "stale left out",
-      explain:
-        "Stale data left out: numbers that could not be refreshed are not in the totals.",
+      short: t("town.caveat.staleShort"),
+      explain: t("town.caveat.staleExplain"),
     });
   if (coverage.noDataHosts) {
-    const hosts = `${coverage.noDataHosts} ${coverage.noDataHosts === 1 ? "host" : "hosts"}`;
+    const hosts =
+      coverage.noDataHosts === 1
+        ? t("town.hostsOne")
+        : t("town.hostsMany", { count: coverage.noDataHosts });
     caveats.push({
-      short: `${hosts} missing`,
-      explain: `No data from ${hosts}: harness logs could not be read there. Missing, not zero.`,
+      short: t("town.caveat.hostsMissingShort", { hosts }),
+      explain: t("town.caveat.hostsMissingExplain", { hosts }),
     });
   }
   if (unattributed.records)
     caveats.push({
       short: null,
-      explain: `${formatOfficeUsage(unattributed.tokens)} tokens unattributed: usage not tied to ${
-        scope === "pane" ? "an agent's pane" : "one of its rooms"
-      }. Already included in the total, not another charge.`,
+      explain:
+        scope === "pane"
+          ? t("town.caveat.unattributedExplainPane", {
+              tokens: formatOfficeUsage(unattributed.tokens),
+            })
+          : t("town.caveat.unattributedExplainRoom", {
+              tokens: formatOfficeUsage(unattributed.tokens),
+            }),
     });
   if (coverage.detailsLimited)
     caveats.push({
       short: null,
-      explain:
-        "Detail list limited: fewer entries were listed, but the totals include all collected usage.",
+      explain: t("town.caveat.detailsLimitedExplain"),
     });
   return caveats;
 }
@@ -405,10 +416,9 @@ export function townCoverageCaveats(
 export const townCaveatLine = (caveats: readonly TownExpenseCaveat[]) =>
   caveats.flatMap((caveat) => (caveat.short ? [caveat.short] : [])).join(" · ");
 
-export const TOWN_WINDOW_LABEL: Record<TownUsageWindow, string> = {
-  today: "Today",
-  "7d": "7 days",
-};
+/** A usage window's name: "Today", "7 days". */
+export const townWindowLabelText = (window: TownUsageWindow) =>
+  window === "today" ? t("town.windowToday") : t("town.window7d");
 
 /** Boards re-read usage about once a minute while shown, and on focus. */
 export const TOWN_EXPENSES_REFRESH_MS = 60_000;

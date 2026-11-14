@@ -1,45 +1,54 @@
 import { Fuel } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import { type ReactNode, useId, useState } from "react";
+import { t, useT } from "../../i18n";
 import {
+  type TownFuelGauge,
+  type TownFuelNote,
+  type TownFuelWindow,
   townFuelAge,
   townReachedText,
   townResetTime,
   townSeenAge,
-  type TownFuelGauge,
-  type TownFuelNote,
-  type TownFuelWindow,
 } from "./townLimits";
 import "./townFuel.css";
 
 /** A window's level in words: "5 h 60 % left", or "5 h limit reached". */
 const levelText = (w: TownFuelWindow) =>
-  w.reached ? townReachedText(w) : `${w.label} ${w.left} % left`;
+  w.reached
+    ? townReachedText(w)
+    : t("town.fuel.percentLeft", { label: w.label, left: w.left });
 
 /** "5 h resets Tue 14:00 · week resets Sat 09:00 · seen 3 min ago · Codex session log" */
 export function townFuelDetails(gauge: TownFuelGauge, now: number) {
   const resets = gauge.windows.map((w) =>
     w.resetsAt === null
-      ? `${w.label} reset unknown`
+      ? t("town.fuel.resetUnknown", { label: w.label })
       : w.reached && !gauge.stale
-        ? `${townReachedText(w)}, resets ${townResetTime(w.resetsAt)}`
-        : `${gauge.windows.length > 1 ? `${w.label} ` : ""}resets ${townResetTime(w.resetsAt)}`,
+        ? `${townReachedText(w)}${t("town.fuel.resetsTail", { time: townResetTime(w.resetsAt) })}`
+        : `${gauge.windows.length > 1 ? `${w.label} ` : ""}${t("town.fuel.resets", { time: townResetTime(w.resetsAt) })}`,
   );
   return [
     ...(gauge.stale
-      ? [`stale: last ${gauge.windows.map(levelText).join(", ")}`]
+      ? [
+          t("town.fuel.staleDetail", {
+            levels: gauge.windows.map(levelText).join(", "),
+          }),
+        ]
       : []),
     ...resets,
-    `seen ${townSeenAge(gauge.observedAt, now)}`,
+    t("town.fuel.seen", { age: townSeenAge(gauge.observedAt, now) }),
     gauge.source,
   ].join(" · ");
 }
 
 const windowText = (gauge: TownFuelGauge, w: TownFuelWindow) =>
   gauge.stale
-    ? `${w.label} stale`
+    ? t("town.fuel.staleWindow", { label: w.label })
     : w.reached
-      ? `${townReachedText(w)}${w.resetsAt === null ? "" : `, resets ${townResetTime(w.resetsAt)}`}`
-      : `${w.label} ${w.left} % left${w.low ? ", low" : ""}`;
+      ? `${townReachedText(w)}${w.resetsAt === null ? "" : t("town.fuel.resetsTail", { time: townResetTime(w.resetsAt) })}`
+      : w.low
+        ? t("town.fuel.percentLeftLow", { label: w.label, left: w.left })
+        : t("town.fuel.percentLeft", { label: w.label, left: w.left });
 
 /**
  * One entry on the fuel row: a button whose hover, focus or tap shows its
@@ -99,10 +108,11 @@ export function TownFuelGaugeView({
   gauge: TownFuelGauge;
   now: number;
 }) {
+  const t = useT();
   const age = townFuelAge(gauge, now);
   return (
     <TownFuelTip
-      label={`${gauge.name} limits: ${gauge.windows.map((w) => windowText(gauge, w)).join("; ")}${age ? `; ${age}` : ""}`}
+      label={`${gauge.name} ${t("town.fuel.nameLimits", { windows: gauge.windows.map((w) => windowText(gauge, w)).join("; ") })}${age ? `; ${age}` : ""}`}
       stale={gauge.stale}
       details={townFuelDetails(gauge, now)}
     >
@@ -116,10 +126,12 @@ export function TownFuelGaugeView({
           <span className="town-fuel-label">{w.label}</span>
           {!gauge.stale && w.reached ? (
             <span className="town-fuel-reached">
-              reached
+              {t("town.fuel.reached")}
               {w.resetsAt === null
                 ? ""
-                : `, resets ${townResetTime(w.resetsAt)}`}
+                : t("town.fuel.resetsTail", {
+                    time: townResetTime(w.resetsAt),
+                  })}
             </span>
           ) : (
             <>
@@ -127,8 +139,10 @@ export function TownFuelGaugeView({
                 {gauge.stale ? null : <span style={{ width: `${w.left}%` }} />}
               </span>
               <span className="town-fuel-value">
-                {gauge.stale ? "stale" : `${w.left}%`}
-                {!gauge.stale && w.low ? " low" : ""}
+                {gauge.stale
+                  ? t("town.fuel.stale")
+                  : t("town.fuel.percentValue", { left: w.left })}
+                {!gauge.stale && w.low ? t("town.fuel.lowShort") : ""}
               </span>
             </>
           )}
@@ -141,15 +155,18 @@ export function TownFuelGaugeView({
 
 /** A harness with no readable limits: named, "not available", and why. */
 export function TownFuelNoteView({ note }: { note: TownFuelNote }) {
+  const t = useT();
   return (
     <TownFuelTip
-      label={`${note.name} limits not available: ${note.reason}`}
+      label={`${note.name} ${t("town.fuel.limitsNotAvailableShort", { reason: note.reason })}`}
       unavailable
-      details={`Limits not available: ${note.reason}`}
+      details={t("town.fuel.limitsNotAvailableDetail", { reason: note.reason })}
     >
       <span className="town-fuel-name">{note.name}</span>
       <span className="town-fuel-window">
-        <span className="town-fuel-unavailable">not available</span>
+        <span className="town-fuel-unavailable">
+          {t("town.fuel.notAvailable")}
+        </span>
       </span>
     </TownFuelTip>
   );
@@ -168,10 +185,15 @@ export function TownFuel({
   notes?: readonly TownFuelNote[];
   now: number;
 }) {
+  const t = useT();
   if (!gauges.length && !notes.length) return null;
   return (
-    <div className="town-fuel" role="group" aria-label="Subscription limits">
-      <span className="town-fuel-title">FUEL</span>
+    <div
+      className="town-fuel"
+      role="group"
+      aria-label={t("town.fuel.groupLabel")}
+    >
+      <span className="town-fuel-title">{t("town.fuel.title")}</span>
       {gauges.map((gauge) => (
         <TownFuelGaugeView key={gauge.harness} gauge={gauge} now={now} />
       ))}
@@ -202,7 +224,9 @@ export function townFuelLowestText(
   return `${gauge.name} ${
     w.reached
       ? townReachedText(w)
-      : `${w.label} ${w.left} % left${w.low ? ", low" : ""}`
+      : w.low
+        ? t("town.fuel.percentLeftLow", { label: w.label, left: w.left })
+        : t("town.fuel.percentLeft", { label: w.label, left: w.left })
   }${age ? `; ${age}` : ""}`;
 }
 
@@ -214,11 +238,14 @@ export function TownFuelChip({
   lowest: TownFuelLowest;
   now: number;
 }) {
+  const t = useT();
   const age = townFuelAge(lowest.gauge, now);
   return (
     <span data-status="fuel" data-low={lowest.window.low}>
       <Fuel size={12} aria-hidden="true" />
-      {lowest.window.reached ? "reached" : `${lowest.window.left}%`}
+      {lowest.window.reached
+        ? t("town.fuel.reached")
+        : t("town.fuel.percentValue", { left: lowest.window.left })}
       {age ? <span className="town-fuel-age">{age}</span> : null}
     </span>
   );

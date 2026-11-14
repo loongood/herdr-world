@@ -1,15 +1,17 @@
 import { useEffect } from "react";
 import {
-  usageLimitExpired,
   type UsageLimit,
   type UsageLimitReached,
   type UsageLimitWindow,
+  usageLimitExpired,
 } from "../../../../shared/usage";
+import { t } from "../../i18n";
+import { formatWeekdayTime } from "../../i18n/format";
 import {
+  type TownUsageState,
+  type TownUsageStore,
   townUsageStore,
   useTownUsage,
-  type TownUsageStore,
-  type TownUsageState,
 } from "./townPlaceUsage";
 
 /**
@@ -66,11 +68,12 @@ export const townLimitSourceName = (source: UsageLimit["source"]) =>
 
 /** A window's length in words: 300 minutes is "5 h", 10,080 is "week". */
 export function townWindowLabel(minutes: number) {
-  if (minutes === 10080) return "week";
-  if (minutes === 1440) return "day";
-  if (minutes % 1440 === 0) return `${minutes / 1440} d`;
-  if (minutes % 60 === 0) return `${minutes / 60} h`;
-  return `${minutes} min`;
+  if (minutes === 10080) return t("town.fuel.week");
+  if (minutes === 1440) return t("town.fuel.day");
+  if (minutes % 1440 === 0)
+    return t("town.fuel.days", { count: minutes / 1440 });
+  if (minutes % 60 === 0) return t("town.fuel.hours", { count: minutes / 60 });
+  return t("town.fuel.minutes", { count: minutes });
 }
 
 export function townFuelWindow(window: UsageLimitWindow): TownFuelWindow {
@@ -103,7 +106,9 @@ export function townFuelReached(reached: UsageLimitReached): TownFuelWindow {
 
 /** "5 h limit reached", or "limit reached" when the window is unnamed. */
 export const townReachedText = (w: TownFuelWindow) =>
-  w.label === "limit" ? "limit reached" : `${w.label} limit reached`;
+  w.label === "limit"
+    ? t("town.fuel.limitReached")
+    : t("town.fuel.windowLimitReached", { label: w.label });
 
 /** One limit as a gauge, or null when it has no numbers to show. */
 export function townFuelGauge(
@@ -184,29 +189,25 @@ export function townFuelNotes(
       notes.set(limit.harness, {
         harness: limit.harness,
         name: townHarnessName(limit.harness),
-        reason: limit.reason ?? "no source",
+        reason: limit.reason ?? t("town.fuel.noSource"),
       });
   return [...notes.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-const resetFormat = new Intl.DateTimeFormat(undefined, {
-  weekday: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
-/** "Tue 14:00", in the viewer's time zone. */
+/** "Tue 14:00", in the interface language. */
 export function townResetTime(at: number) {
-  return resetFormat.format(at);
+  return formatWeekdayTime(at);
 }
 
 /** How long ago, in words that read after "seen". */
 export function townSeenAge(at: number, now: number) {
   const minutes = Math.floor(Math.max(0, now - at) / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return t("town.fuel.seenJustNow");
+  if (minutes < 60) return t("town.fuel.seenMinutes", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  return hours < 24 ? `${hours} h ago` : `${Math.floor(hours / 24)} d ago`;
+  return hours < 24
+    ? t("town.fuel.seenHours", { count: hours })
+    : t("town.fuel.seenDays", { count: Math.floor(hours / 24) });
 }
 
 /** A current reading older than this shows its age on the gauge itself. */
@@ -220,7 +221,7 @@ export const TOWN_FUEL_AGE_SHOWN_MS = 15 * 60_000;
 export function townFuelAge(gauge: TownFuelGauge, now: number) {
   return gauge.stale || now - gauge.observedAt <= TOWN_FUEL_AGE_SHOWN_MS
     ? null
-    : `seen ${townSeenAge(gauge.observedAt, now)}`;
+    : t("town.fuel.seen", { age: townSeenAge(gauge.observedAt, now) });
 }
 
 /**
