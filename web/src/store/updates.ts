@@ -1,4 +1,5 @@
 import { bridge } from "../api";
+import { t } from "../i18n";
 import { createUpdateNotificationHistory } from "../updateNotifications";
 import { worldLocalStorage, worldSessionStorage } from "../browserStorage";
 import {
@@ -137,18 +138,25 @@ export function herdrUpgradeMenuEntry(status: {
     const from =
       upgrade.state === "outdated" ? upgrade.version : status.version;
     return {
-      label: `Upgrade Herdr to ${status.verified_version}`,
-      description: `Herdr ${from} is installed or running; this release verified ${status.verified_version}`,
+      label: t("menu.upgrades.herdrOutdated", {
+        version: status.verified_version ?? "",
+      }),
+      description: t("menu.upgrades.herdrOutdatedDescription", {
+        from: from ?? "",
+        version: status.verified_version ?? "",
+      }),
     };
   }
   const names = (upgrade?.pending ?? []).map((item) =>
     item === WORLD_PLUGIN_ID
-      ? "Herdr World plugin"
-      : `${item} harness integration`,
+      ? t("menu.upgrades.worldPlugin")
+      : t("menu.upgrades.harnessIntegration", { name: item }),
   );
   return {
-    label: "Update Herdr integrations",
-    description: `For this release: ${names.join(", ")}`,
+    label: t("menu.upgrades.integrations"),
+    description: t("menu.upgrades.integrationsDescription", {
+      names: names.join(", "),
+    }),
   };
 }
 
