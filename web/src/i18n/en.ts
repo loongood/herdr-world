@@ -109,7 +109,13 @@ export const en = {
   },
 } as const;
 
-export type Dictionary = typeof en;
+// The translation contract: the English key structure with every leaf
+// widened from its literal to `string`, so translations hold other text.
+type WidenLeaves<T> = {
+  [K in keyof T]: T[K] extends string ? string : WidenLeaves<T[K]>;
+};
+
+export type Dictionary = WidenLeaves<typeof en>;
 
 type Join<K extends string, P extends string> = `${K}.${P}`;
 
