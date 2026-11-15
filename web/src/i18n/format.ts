@@ -54,6 +54,23 @@ export function formatWeekdayTime(timestamp: string | number | Date): string {
 
 const relativeFormatters = new Map<string, Intl.RelativeTimeFormat>();
 
+const numberFormatters = new Map<string, Intl.NumberFormat>();
+
+function numberFormatter(): Intl.NumberFormat {
+  const locale = uiLocale();
+  let formatter = numberFormatters.get(locale);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale);
+    numberFormatters.set(locale, formatter);
+  }
+  return formatter;
+}
+
+/** A number in the interface language's grouping. */
+export function formatNumber(value: number): string {
+  return numberFormatter().format(value);
+}
+
 export function formatRelativeTime(
   value: number,
   unit: Intl.RelativeTimeFormatUnit,

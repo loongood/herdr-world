@@ -155,12 +155,12 @@ const kindWord = (kind: WorldObjectNode["kind"]) =>
 function hostStateLabel(state: WorldObjectNode["hostState"]) {
   switch (state) {
     case "active":
-      return "Active";
+      return t("intent.hostActive");
     case "ready-inactive":
-      return "Ready · inactive";
+      return t("intent.hostReadyInactive");
     case "reconnecting":
-      return "Reconnecting";
+      return t("intent.hostReconnecting");
     case "offline-stale":
-      return "Offline · stale";
+      return t("intent.hostOfflineStale");
   }
 }

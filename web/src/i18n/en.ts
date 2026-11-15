@@ -320,6 +320,9 @@ export const en = {
         "Detail list limited: fewer entries were listed, but the totals include all collected usage.",
     },
     fuel: {
+      sourceClaudeTranscript: "Claude transcript",
+      sourceClaudeStatusLine: "Claude status line",
+      sourceCodexSessionLog: "Codex session log",
       groupLabel: "Subscription limits",
       title: "FUEL",
       week: "week",
@@ -698,6 +701,8 @@ export const en = {
     clearRecap: "Clear since you left",
   },
   chat: {
+    conversationChangedNothingSent:
+      "The conversation changed. Nothing was sent.",
     agentName: "Agent",
     theAgent: "the agent",
     theAgentSentence: "The agent",
@@ -1751,6 +1756,10 @@ export const en = {
     },
   },
   terminal: {
+    clipboardPayloadTooLarge:
+      "terminal clipboard payload exceeds the 100,000 character limit",
+    browserClipboardUnavailable: "browser clipboard access is unavailable",
+    clipboardAccessFailed: "clipboard access failed",
     inputOutcomeUncertain: "Terminal input outcome is uncertain",
     inputNotSent: "Terminal input was not sent",
     inputUncertainDetail:
@@ -2827,6 +2836,10 @@ export const en = {
     terminalColour: "Terminal colour",
   },
   diff: {
+    autoCollapseChangedLines: "{count} changed lines",
+    autoCollapseLargeFile: "large file",
+    autoCollapseLargeDiff: "large diff",
+    autoCollapseGenerated: "generated file",
     viewMode: "Diff view mode",
     lineChanges: "Line changes",
     imagePreviewUnavailable: "Image preview unavailable.",
@@ -2900,6 +2913,7 @@ export const en = {
     copyFailedNotice: "Failed to copy {label}",
   },
   worktree: {
+    originDefaultBranch: "origin's default branch",
     detachedHead: "Detached HEAD",
     selectionChanged: "Worktree selection changed; refresh before reading.",
     hostUnavailableForRead:
@@ -3361,6 +3375,8 @@ export const en = {
     pinnedOnly: "Pinned only",
   },
   creation: {
+    destinationNavigationUnavailable:
+      "The destination host's navigation mode is not available yet.",
     preparingTerminal: "Preparing the source terminal…",
     creatingTab: "Creating tab…",
     creatingWorkspace: "Creating workspace…",
@@ -3705,6 +3721,7 @@ export const en = {
     creating: "Creating…",
   },
   bin: {
+    putInBin: "Put in the bin",
     addFailed: "{label} was not put in the bin",
     outcomeClosed: "Closed",
     outcomeNotClosed: "Not closed",
@@ -4614,6 +4631,7 @@ export const en = {
     profilesEllipsis: "Profiles…",
   },
   world: {
+    terminalCouldNotBeOpened: "This terminal could not be opened",
     conversationUnavailable: "Conversation unavailable",
     noMessagesYet: "No messages yet.",
     loadingConversation: "Loading conversation…",
@@ -4716,7 +4734,7 @@ export const en = {
     defaultAvatar: "Default avatar",
     unavailableWhileStale:
       "Appearance is unavailable while this terminal is stale.",
-    unavailable: "Terminal appearance unavailable",
+    unavailable: "Terminal appearance is unavailable",
   },
   lens: {
     name: {
@@ -4821,6 +4839,7 @@ export const en = {
     },
   },
   search: {
+    noMatches: "No matches",
     kindBuilding: "Building",
     kindRoom: "Room",
     kindTable: "Table",
@@ -4889,6 +4908,7 @@ export const en = {
     factChecksPass: "checks pass",
   },
   boardView: {
+    noteNoLongerExists: "the note no longer exists",
     // Notices and toasts.
     namingProblem: "Herdr did not say which tab it created",
     movedTo: "{what} moved to {where}",
@@ -5505,6 +5525,11 @@ export const en = {
     nameAgent: "Waiting on a subagent",
   },
   herdrOrder: {
+    tabMoveUnsupported:
+      "This host's Herdr cannot reorder tabs. Herdr 0.7.2 or later can.",
+    alreadyLast: "It is already last in Herdr.",
+    alreadyFirst: "It is already first in Herdr.",
+    hostRooms: "The host's rooms",
     changed: "{what} changed. Try again.",
     building: "The building",
     room: "The room",
@@ -5806,6 +5831,18 @@ export const en = {
       "The browser could not revoke its push subscription. Try again.",
     pushDisableFailed: "Unable to disable the previous push subscription.",
     pushReplaceFailed: "Unable to replace the previous push subscription.",
+  },
+  office: {
+    stale: "stale",
+    emptyDesk: "empty desk",
+    desksAndAgents: "{desks} desks · {agents} agents",
+    liveState: "live Office state",
+    notObserved: "not observed",
+    activityJustNow: "just now",
+    activitySecondsAgo: "{count}s ago",
+    activityMinutesAgo: "{count}m ago",
+    activityHoursAgo: "{count}h ago",
+    activityDaysAgo: "{count}d ago",
   },
 } as const;
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { t } from "../../i18n";
 import type { ConnectionClient } from "../../api";
 import type { KeyResult } from "./types";
 
@@ -65,7 +66,7 @@ export function useChatKeys({
       options: { menu?: string; text?: string } = {},
     ): Promise<string> => {
       if (!sessionFingerprint || !client.isCurrent())
-        return "The conversation changed. Nothing was sent.";
+        return t("chat.conversationChangedNothingSent");
       setPressing(true);
       try {
         const result = (await client.call("agent_conversation.press", {

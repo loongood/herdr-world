@@ -917,7 +917,7 @@ export function useWorldInspectorController(props: WorldControlPlaneProps) {
                 dockedInspectorIdRef.current)))
       ) {
         if (!(await applySelection(id, opened, true, candidateWorld, signal))) {
-          throw new Error("This terminal could not be opened");
+          throw new Error(t("world.terminalCouldNotBeOpened"));
         }
         return;
       }

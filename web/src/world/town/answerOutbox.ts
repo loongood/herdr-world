@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { townLocation } from "./TownRail";
 import { createContext, useContext } from "react";
 import type { WorldAsk } from "../worldAsks";
@@ -32,7 +33,7 @@ export function answerRecipientView(
     leaf && office.paneRoster.find((entry) => entry.device.nodeId === leaf.id);
   return {
     name: ask.actor.name ?? ask.actor.label,
-    location: townLocation(agent ?? pane) || "original host",
+    location: townLocation(agent ?? pane) || t("outbox.originalHost"),
     target: agent
       ? {
           name: agent.agent.displayLabel,

@@ -305,6 +305,9 @@ export const zhHant: Dictionary = {
         "明細列表受限:列出的項目較少,但總計包含全部已蒐集用量。",
     },
     fuel: {
+      sourceClaudeTranscript: "Claude 會話記錄",
+      sourceClaudeStatusLine: "Claude 狀態列",
+      sourceCodexSessionLog: "Codex 會話日誌",
       groupLabel: "訂閱額度",
       title: "額度",
       week: "週",
@@ -681,6 +684,7 @@ export const zhHant: Dictionary = {
     clearRecap: "清除離開期間回顧",
   },
   chat: {
+    conversationChangedNothingSent: "對話已變更，未傳送任何內容。",
     agentName: "智慧代理",
     theAgent: "智慧代理",
     theAgentSentence: "智慧代理",
@@ -1676,6 +1680,9 @@ export const zhHant: Dictionary = {
     },
   },
   terminal: {
+    clipboardPayloadTooLarge: "終端機剪貼簿內容超過 100,000 字元上限",
+    browserClipboardUnavailable: "瀏覽器剪貼簿無法使用",
+    clipboardAccessFailed: "剪貼簿存取失敗",
     inputOutcomeUncertain: "終端機輸入結果不確定",
     inputNotSent: "終端機輸入未送出",
     inputUncertainDetail:
@@ -2709,6 +2716,10 @@ export const zhHant: Dictionary = {
     terminalColour: "終端機顏色",
   },
   diff: {
+    autoCollapseChangedLines: "{count} 行變更",
+    autoCollapseLargeFile: "大型檔案",
+    autoCollapseLargeDiff: "大型變更",
+    autoCollapseGenerated: "產生的檔案",
     viewMode: "差異檢視模式",
     lineChanges: "行變更",
     imagePreviewUnavailable: "圖片預覽不可用。",
@@ -2782,6 +2793,7 @@ export const zhHant: Dictionary = {
     copyFailedNotice: "複製{label}失敗",
   },
   worktree: {
+    originDefaultBranch: "origin 的預設分支",
     detachedHead: "分離 HEAD",
     selectionChanged: "工作樹選取已變更，請重新整理後再讀取。",
     hostUnavailableForRead: "主機不可用，請先重新整理它的工作樹再讀取。",
@@ -3225,6 +3237,7 @@ export const zhHant: Dictionary = {
     pinnedOnly: "只看已釘選",
   },
   creation: {
+    destinationNavigationUnavailable: "目標主機的導覽模式尚不可用。",
     preparingTerminal: "正在準備來源終端機…",
     creatingTab: "正在建立分頁…",
     creatingWorkspace: "正在建立工作區…",
@@ -3560,6 +3573,7 @@ export const zhHant: Dictionary = {
     creating: "建立中...",
   },
   bin: {
+    putInBin: "放進回收箱",
     addFailed: "{label} 未能放入回收站",
     outcomeClosed: "已關閉",
     outcomeNotClosed: "未關閉",
@@ -4433,6 +4447,7 @@ export const zhHant: Dictionary = {
     profilesEllipsis: "設定檔…",
   },
   world: {
+    terminalCouldNotBeOpened: "無法開啟此終端機",
     conversationUnavailable: "無法讀取對話",
     noMessagesYet: "尚無訊息。",
     loadingConversation: "正在讀取對話…",
@@ -4634,6 +4649,7 @@ export const zhHant: Dictionary = {
     },
   },
   search: {
+    noMatches: "沒有相符項目",
     kindBuilding: "建築",
     kindRoom: "房間",
     kindTable: "桌臺",
@@ -4699,6 +4715,7 @@ export const zhHant: Dictionary = {
     factChecksPass: "檢查通過",
   },
   boardView: {
+    noteNoLongerExists: "該便條已不存在",
     // 通知與提示。
     namingProblem: "Herdr 沒有說明它建立的是哪個標籤頁",
     movedTo: "{what}已移動到{where}",
@@ -5285,6 +5302,11 @@ export const zhHant: Dictionary = {
     nameAgent: "正在等待子智慧代理",
   },
   herdrOrder: {
+    tabMoveUnsupported:
+      "該主機的 Herdr 無法重排標籤頁；Herdr 0.7.2 及更新版本可以。",
+    alreadyLast: "它已經是 Herdr 中的最後一個。",
+    alreadyFirst: "它已經是 Herdr 中的第一個。",
+    hostRooms: "該主機的房間",
     changed: "{what}已改變,請重試。",
     building: "這棟大樓",
     room: "這個房間",
@@ -5578,5 +5600,17 @@ export const zhHant: Dictionary = {
     pushRevokeFailed: "瀏覽器無法撤銷其推播訂閱，請重試。",
     pushDisableFailed: "無法停用先前的推播訂閱。",
     pushReplaceFailed: "無法取代先前的推播訂閱。",
+  },
+  office: {
+    stale: "過期",
+    emptyDesk: "空工位",
+    desksAndAgents: "{desks} 個工位 · {agents} 個智慧代理",
+    liveState: "即時 Office 狀態",
+    notObserved: "未觀測",
+    activityJustNow: "剛剛",
+    activitySecondsAgo: "{count} 秒前",
+    activityMinutesAgo: "{count} 分鐘前",
+    activityHoursAgo: "{count} 小時前",
+    activityDaysAgo: "{count} 天前",
   },
 };

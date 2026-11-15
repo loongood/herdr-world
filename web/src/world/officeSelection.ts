@@ -1,3 +1,4 @@
+import { t } from "../i18n/core";
 import { preparedOfficePresentationKey } from "./herdrOfficeProjection";
 import type { WorldAgentStatus } from "./worldObject";
 import type {
@@ -80,7 +81,7 @@ export function officeCalloutForKey(
     return {
       kind: "agent",
       title: agent.displayLabel,
-      detail: `${agent.stale ? "stale" : (agent.stateLabels[agent.semanticStatus] ?? agent.semanticStatus)} · ${agentEntry.roomLabel} · ${agentEntry.hostLabel}`,
+      detail: `${agent.stale ? t("office.stale") : (agent.stateLabels[agent.semanticStatus] ?? agent.semanticStatus)} · ${agentEntry.roomLabel} · ${agentEntry.hostLabel}`,
       ...(agent.taskSummary ? { summary: agent.taskSummary } : {}),
       status: agent.stale ? "stale" : agent.semanticStatus,
     };
@@ -96,7 +97,7 @@ export function officeCalloutForKey(
     return {
       kind: "desk",
       title: deskEntry.desk.displayLabel,
-      detail: `${occupant ? `${occupant.displayLabel} · ${occupant.stale ? "stale" : occupant.semanticStatus}` : "empty desk"} · ${deskEntry.roomLabel} · ${deskEntry.hostLabel}`,
+      detail: `${occupant ? `${occupant.displayLabel} · ${occupant.stale ? t("office.stale") : occupant.semanticStatus}` : t("office.emptyDesk")} · ${deskEntry.roomLabel} · ${deskEntry.hostLabel}`,
       ...(occupant?.taskSummary ? { summary: occupant.taskSummary } : {}),
       status: deskEntry.desk.stale
         ? "stale"
@@ -110,7 +111,7 @@ export function officeCalloutForKey(
     return {
       kind: "room",
       title: room.displayLabel,
-      detail: `${room.stale ? "stale" : `${roomProjection?.desks.length ?? 0} desks · ${roomProjection?.roomAgents.length ?? 0} agents`} · ${room.hostLabel}`,
+      detail: `${room.stale ? t("office.stale") : t("office.desksAndAgents", { desks: roomProjection?.desks.length ?? 0, agents: roomProjection?.roomAgents.length ?? 0 })} · ${room.hostLabel}`,
       status: room.stale ? "stale" : null,
     };
   }
@@ -120,7 +121,7 @@ export function officeCalloutForKey(
     return {
       kind: "host",
       title: host.displayLabel,
-      detail: `${host.connectionState} · ${host.observed ? "live Office state" : "not observed"}`,
+      detail: `${host.connectionState} · ${host.observed ? t("office.liveState") : t("office.notObserved")}`,
       status: host.stale ? "stale" : null,
     };
   }
@@ -193,16 +194,24 @@ export function formatOfficeActivityAge(
   }
   const elapsed = Math.max(0, now - timestamp);
   if (elapsed < 1_000) {
-    return "just now";
+    return t("office.activityJustNow");
   }
   if (elapsed < 60_000) {
-    return `${Math.floor(elapsed / 1_000)}s ago`;
+    return t("office.activitySecondsAgo", {
+      count: Math.floor(elapsed / 1_000),
+    });
   }
   if (elapsed < 3_600_000) {
-    return `${Math.floor(elapsed / 60_000)}m ago`;
+    return t("office.activityMinutesAgo", {
+      count: Math.floor(elapsed / 60_000),
+    });
   }
   if (elapsed < 86_400_000) {
-    return `${Math.floor(elapsed / 3_600_000)}h ago`;
+    return t("office.activityHoursAgo", {
+      count: Math.floor(elapsed / 3_600_000),
+    });
   }
-  return `${Math.floor(elapsed / 86_400_000)}d ago`;
+  return t("office.activityDaysAgo", {
+    count: Math.floor(elapsed / 86_400_000),
+  });
 }

@@ -173,8 +173,7 @@ async function prepareQualifiedCreation(
       snapshot.error
     )
       throw new Error(
-        snapshot.error ??
-          "The destination host's navigation mode is not available yet.",
+        snapshot.error ?? t("creation.destinationNavigationUnavailable"),
       );
   }
   if (snapshot.navigationMode === "shared")

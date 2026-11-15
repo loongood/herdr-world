@@ -5,6 +5,7 @@
  * Lenses control opens the chooser, and Escape or ✕ leaves the lens.
  */
 
+import { t } from "../../i18n";
 import {
   type CSSProperties,
   createContext,
@@ -156,7 +157,7 @@ export function boardLensCard(
     ...(mark ? { mark } : {}),
     data: markData(mark),
     ...(style ? { style } : {}),
-    label: `. ${townLensName(view.lens)}: ${mark?.words ?? "nothing to show"}`,
+    label: `. ${townLensName(view.lens)}: ${mark?.words ?? t("town.lensNothingToShow")}`,
   };
 }
 

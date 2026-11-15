@@ -114,12 +114,14 @@ export async function requestWorkspaceStep(
 ): Promise<HerdrOrderOutcome & { neighbor?: string }> {
   const { client, order } = await herdrWorkspaceOrder(owner);
   const neighbor = herdrOrderNeighbor(order, workspaceId, step);
-  if (neighbor === undefined) return CHANGED("The host's rooms");
+  if (neighbor === undefined) return CHANGED(t("herdrOrder.hostRooms"));
   if (neighbor === null)
     return {
       status: "refused",
       reason: "edge",
-      message: `It is already ${step < 0 ? "first" : "last"} in Herdr.`,
+      message: t(
+        step < 0 ? "herdrOrder.alreadyFirst" : "herdrOrder.alreadyLast",
+      ),
     };
   const ids = order.filter((id) => id === workspaceId || id === neighbor);
   const moves = herdrWorkspaceOrderMoves(order, [...ids].reverse())!;
@@ -127,11 +129,11 @@ export async function requestWorkspaceStep(
   return { status: "moved", neighbor };
 }
 
-const TAB_MOVE_UNSUPPORTED: HerdrTabOrderOutcome = {
+const tabMoveUnsupported = (): HerdrTabOrderOutcome => ({
   status: "refused",
   reason: "tab_move_unsupported",
-  message: "This host's Herdr cannot reorder tabs. Herdr 0.7.2 or later can.",
-};
+  message: t("herdrOrder.tabMoveUnsupported"),
+});
 
 /**
  * Reorder a tab within its workspace: it takes the slot of the tab `onto`
@@ -154,13 +156,13 @@ async function reorderTab(
   const operations = scene ? null : operationalStore(runtime);
   const observed = operations?.get();
   if (observed && observed.lastRefresh > 0 && !observed.tabMoveSupported)
-    return TAB_MOVE_UNSUPPORTED;
+    return tabMoveUnsupported();
   const listed = (await bridge
     .connection(owner.connectionId, owner.generation)
     .call("tab.list", {})) as
     | { tabs?: Tab[]; tab_move_supported?: boolean }
     | undefined;
-  if (listed?.tab_move_supported === false) return TAB_MOVE_UNSUPPORTED;
+  if (listed?.tab_move_supported === false) return tabMoveUnsupported();
   const tabs = listed?.tabs ?? [];
   const workspaceId = tabs.find((tab) => tab.tab_id === tabId)?.workspace_id;
   const order = tabs
@@ -218,7 +220,9 @@ export async function requestTabStep(
     ? {
         status: "refused",
         reason: "edge",
-        message: `It is already ${step < 0 ? "first" : "last"} in Herdr.`,
+        message: t(
+          step < 0 ? "herdrOrder.alreadyFirst" : "herdrOrder.alreadyLast",
+        ),
       }
     : outcome;
 }

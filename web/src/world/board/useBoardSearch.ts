@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../i18n";
 import type { WorldObject } from "../worldObject";
 import { worldSearchResults, type WorldSearchResult } from "../worldSearch";
 import type { BoardModel } from "./boardModel";
@@ -83,10 +84,10 @@ export function useBoardSearch(
       },
       resultLabel: open
         ? results.length === 0
-          ? "No matches"
+          ? t("search.noMatches")
           : results.length === 1
-            ? "1 match"
-            : `${results.length} matches`
+            ? t("search.matchOne")
+            : t("search.matchMany", { count: results.length })
         : undefined,
       onSubmit: () => {
         const result = results.find(({ id }) => id === activeId);

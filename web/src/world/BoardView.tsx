@@ -2715,7 +2715,7 @@ export default function BoardView({
     if (mode === "over" && !current) {
       keptDraftStore.update(draft.key, {
         reason: "deleted",
-        error: "the note no longer exists",
+        error: t("boardView.noteNoLongerExists"),
       });
       return;
     }

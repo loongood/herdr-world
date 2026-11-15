@@ -304,6 +304,9 @@ export const zhHans: Dictionary = {
         "明细列表受限:列出的条目较少,但总计包含全部已采集用量。",
     },
     fuel: {
+      sourceClaudeTranscript: "Claude 会话记录",
+      sourceClaudeStatusLine: "Claude 状态栏",
+      sourceCodexSessionLog: "Codex 会话日志",
       groupLabel: "订阅额度",
       title: "额度",
       week: "周",
@@ -679,6 +682,7 @@ export const zhHans: Dictionary = {
     clearRecap: "清除离开期间回顾",
   },
   chat: {
+    conversationChangedNothingSent: "对话已更改，未发送任何内容。",
     agentName: "智能体",
     theAgent: "智能体",
     theAgentSentence: "智能体",
@@ -1673,6 +1677,9 @@ export const zhHans: Dictionary = {
     },
   },
   terminal: {
+    clipboardPayloadTooLarge: "终端剪贴板内容超过 100,000 字符上限",
+    browserClipboardUnavailable: "浏览器剪贴板不可用",
+    clipboardAccessFailed: "剪贴板访问失败",
     inputOutcomeUncertain: "终端输入结果不确定",
     inputNotSent: "终端输入未发送",
     inputUncertainDetail:
@@ -2705,6 +2712,10 @@ export const zhHans: Dictionary = {
     terminalColour: "终端颜色",
   },
   diff: {
+    autoCollapseChangedLines: "{count} 行变更",
+    autoCollapseLargeFile: "大文件",
+    autoCollapseLargeDiff: "大变更",
+    autoCollapseGenerated: "生成的文件",
     viewMode: "差异视图模式",
     lineChanges: "行变更",
     imagePreviewUnavailable: "图片预览不可用。",
@@ -2778,6 +2789,7 @@ export const zhHans: Dictionary = {
     copyFailedNotice: "复制{label}失败",
   },
   worktree: {
+    originDefaultBranch: "origin 的默认分支",
     detachedHead: "分离 HEAD",
     selectionChanged: "工作树选择已更改，请刷新后再读取。",
     hostUnavailableForRead: "主机不可用，请先刷新它的工作树再读取。",
@@ -3221,6 +3233,7 @@ export const zhHans: Dictionary = {
     pinnedOnly: "仅看已固定",
   },
   creation: {
+    destinationNavigationUnavailable: "目标主机的导航模式尚不可用。",
     preparingTerminal: "正在准备源终端…",
     creatingTab: "正在创建标签页…",
     creatingWorkspace: "正在创建工作区…",
@@ -3554,6 +3567,7 @@ export const zhHans: Dictionary = {
     creating: "创建中...",
   },
   bin: {
+    putInBin: "放进回收箱",
     addFailed: "{label} 未能放入回收站",
     outcomeClosed: "已关闭",
     outcomeNotClosed: "未关闭",
@@ -4429,6 +4443,7 @@ export const zhHans: Dictionary = {
     profilesEllipsis: "档案…",
   },
   world: {
+    terminalCouldNotBeOpened: "无法打开此终端",
     conversationUnavailable: "无法读取对话",
     noMessagesYet: "暂无消息。",
     loadingConversation: "正在读取对话…",
@@ -4630,6 +4645,7 @@ export const zhHans: Dictionary = {
     },
   },
   search: {
+    noMatches: "没有匹配项",
     kindBuilding: "建筑",
     kindRoom: "房间",
     kindTable: "桌台",
@@ -4695,6 +4711,7 @@ export const zhHans: Dictionary = {
     factChecksPass: "检查通过",
   },
   boardView: {
+    noteNoLongerExists: "该便条已不存在",
     // 通知与提示。
     namingProblem: "Herdr 没有说明它创建的是哪个标签页",
     movedTo: "{what}已移动到{where}",
@@ -5280,6 +5297,11 @@ export const zhHans: Dictionary = {
     nameAgent: "正在等待子智能体",
   },
   herdrOrder: {
+    tabMoveUnsupported:
+      "该主机的 Herdr 无法重排标签页；Herdr 0.7.2 及更高版本可以。",
+    alreadyLast: "它已经是 Herdr 中的最后一个。",
+    alreadyFirst: "它已经是 Herdr 中的第一个。",
+    hostRooms: "该主机的房间",
     changed: "{what}已改变,请重试。",
     building: "这栋楼",
     room: "这个房间",
@@ -5572,5 +5594,17 @@ export const zhHans: Dictionary = {
     pushRevokeFailed: "浏览器无法撤销其推送订阅，请重试。",
     pushDisableFailed: "无法停用之前的推送订阅。",
     pushReplaceFailed: "无法替换之前的推送订阅。",
+  },
+  office: {
+    stale: "过期",
+    emptyDesk: "空工位",
+    desksAndAgents: "{desks} 个工位 · {agents} 个智能体",
+    liveState: "实时 Office 状态",
+    notObserved: "未观测",
+    activityJustNow: "刚刚",
+    activitySecondsAgo: "{count} 秒前",
+    activityMinutesAgo: "{count} 分钟前",
+    activityHoursAgo: "{count} 小时前",
+    activityDaysAgo: "{count} 天前",
   },
 };

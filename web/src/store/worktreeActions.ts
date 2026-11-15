@@ -81,7 +81,7 @@ export function createWorktree(
       } else {
         const commit = String(result?.base_sync?.commit ?? "").slice(0, 12);
         const base = String(
-          result?.base_sync?.base ?? "origin's default branch",
+          result?.base_sync?.base ?? t("worktree.originDefaultBranch"),
         );
         setForConnection(lease, {
           notice: {

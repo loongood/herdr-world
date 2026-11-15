@@ -6,6 +6,7 @@ import {
   usageLimitExpired,
 } from "../../../../shared/usage";
 import { t } from "../../i18n";
+import type { TranslationKey } from "../../i18n/en";
 import { formatWeekdayTime } from "../../i18n/format";
 import {
   type TownUsageState,
@@ -55,16 +56,19 @@ const HARNESS_NAMES: Record<UsageLimit["harness"], string> = {
   codex: "Codex",
   claude: "Claude",
 };
-const SOURCE_NAMES: Record<NonNullable<UsageLimit["source"]>, string> = {
-  "codex-session-log": "Codex session log",
-  "claude-status-line": "Claude status line",
-  "claude-transcript": "Claude transcript",
+const SOURCE_NAMES: Record<
+  NonNullable<UsageLimit["source"]>,
+  TranslationKey
+> = {
+  "codex-session-log": "town.fuel.sourceCodexSessionLog",
+  "claude-status-line": "town.fuel.sourceClaudeStatusLine",
+  "claude-transcript": "town.fuel.sourceClaudeTranscript",
 };
 
 export const townHarnessName = (harness: UsageLimit["harness"]) =>
   HARNESS_NAMES[harness] ?? harness;
 export const townLimitSourceName = (source: UsageLimit["source"]) =>
-  source ? (SOURCE_NAMES[source] ?? source) : "";
+  source ? (SOURCE_NAMES[source] ? t(SOURCE_NAMES[source]) : source) : "";
 
 /** A window's length in words: 300 minutes is "5 h", 10,080 is "week". */
 export function townWindowLabel(minutes: number) {

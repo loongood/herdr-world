@@ -8,6 +8,7 @@
  * test clock and test frames.
  */
 
+import { t } from "../../../i18n/core";
 import {
   initialGesture,
   stepGesture,
@@ -541,10 +542,10 @@ export class TownInteraction {
     if (this.ports.binAt?.(at)) {
       this.carrying.target = {
         key: "bin",
-        label: "Put in the bin",
+        label: t("bin.putInBin"),
         action: "bin",
       };
-      this.ports.ghost.aim("Put in the bin", true, "bin", at);
+      this.ports.ghost.aim(t("bin.putInBin"), true, "bin", at);
       const world = stage.camera.toWorld(at.x, at.y);
       stage.moveDrag(world.x, world.y, null);
       return;

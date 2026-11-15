@@ -2,6 +2,7 @@ import type {
   ClipboardSelectionType,
   IClipboardProvider,
 } from "@xterm/addon-clipboard";
+import { t } from "./i18n/core";
 
 type ClipboardWriter = Pick<Clipboard, "writeText">;
 export const MAX_TERMINAL_CLIPBOARD_CHARS = 100_000;
@@ -20,7 +21,9 @@ interface TerminalClipboardProviderOptions {
 function clipboardError(error: unknown): Error {
   return error instanceof Error
     ? error
-    : new Error(typeof error === "string" ? error : "clipboard access failed");
+    : new Error(
+        typeof error === "string" ? error : t("terminal.clipboardAccessFailed"),
+      );
 }
 
 function copyWithDocument(text: string): boolean {
@@ -109,7 +112,7 @@ async function writeClipboardText(
     failure ??= error;
   }
 
-  throw clipboardError(failure ?? "browser clipboard access is unavailable");
+  throw clipboardError(failure ?? t("terminal.browserClipboardUnavailable"));
 }
 
 /** Copy from a real button click or terminal keyboard shortcut. */
@@ -132,7 +135,7 @@ export async function copyTextFromUserGesture(
         : null
       : options.clipboard;
   if (!clipboard?.writeText) {
-    throw new Error("browser clipboard access is unavailable");
+    throw new Error(t("terminal.browserClipboardUnavailable"));
   }
   await clipboard.writeText(text);
 }
@@ -161,9 +164,7 @@ export function createTerminalClipboardProvider(
       options.onWriteStart?.();
       if (text.length > MAX_TERMINAL_CLIPBOARD_CHARS) {
         options.onWriteError?.(
-          new Error(
-            "terminal clipboard payload exceeds the 100,000 character limit",
-          ),
+          new Error(t("terminal.clipboardPayloadTooLarge")),
           null,
         );
         return;

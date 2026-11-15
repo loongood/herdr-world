@@ -279,6 +279,18 @@
   recovery, the visible tab layout, the worktree lifecycle, the workspace
   tree badges (their pull request titles and provider links) and the pull
   request hook (its status, branch and refresh notices).
+  The remaining scattered words follow too: the Office selection details (the
+  stale word, the empty desk, the desk and agent counts, the live and
+  unobserved host states and the activity ages), Board's search count and
+  empty result, the Town lens reading that has nothing to show, the Herdr
+  order refusals (the host's rooms, the already first or last tab and the
+  Herdr that cannot reorder tabs), the Town drag ghost's "Put in the bin",
+  the Town fuel gauges' usage sources, the terminal that could not be
+  opened, the host states in the World selection profile, the answer
+  outbox's original host, the Board note that no longer exists, the
+  worktree's origin default branch, the destination host whose navigation
+  mode is not ready, the terminal clipboard failures, the diff viewer's
+  auto-collapsed file reasons and the chat's "nothing was sent" reason.
   Remaining surfaces keep English
   until their phase lands.
 
@@ -287,3 +299,5 @@
 - The Ranger panel no longer fails on an action whose field is named like a
   built-in property; the field name is shown as it came. The task form keeps
   its own name ("Create task" or "Edit task") beside its heading.
+- The English notice for an unavailable terminal appearance reads as it did
+  before the translation work ("Terminal appearance is unavailable").
