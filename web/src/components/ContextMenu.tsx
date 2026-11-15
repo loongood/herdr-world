@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useT } from "../i18n";
 import { ColorSwatches } from "./ColorSwatch";
 import { WorkspaceColorContext } from "./workspaceColor";
 import type { Workspace } from "../types";
@@ -102,6 +103,7 @@ export function ContextMenu({
    */
   workspaces?: Workspace[];
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const workspaceColors = useContext(WorkspaceColorContext);
   const sessionWorkspaces = useStoreSelector((state) => state.workspaces);
@@ -153,11 +155,11 @@ export function ContextMenu({
       onClose();
     };
     // Defer so the triggering contextmenu event doesn't immediately close it.
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       window.addEventListener("scroll", onScroll, true);
     }, 0);
     return () => {
-      clearTimeout(t);
+      clearTimeout(timer);
       window.removeEventListener("scroll", onScroll, true);
     };
   }, [state, onClose]);
@@ -175,11 +177,11 @@ export function ContextMenu({
     <>
       <TextInputDialog
         open={dialog?.type === "new-worktree"}
-        title="New Worktree"
-        label="Branch"
+        title={t("commands.newWorktreeTitle")}
+        label={t("commands.branchLabel")}
         initialValue={luckyWorktreeBranchName}
-        placeholder="Branch name"
-        submitLabel="Create"
+        placeholder={t("worktree.branchPlaceholder")}
+        submitLabel={t("commands.createAction")}
         onClose={() => setDialog(null)}
         onSubmit={(branch) => {
           const value = branch.trim();
@@ -191,10 +193,10 @@ export function ContextMenu({
       />
       <TextInputDialog
         open={dialog?.type === "rename-workspace"}
-        title="Rename Workspace"
-        label="Name"
+        title={t("commands.renameWorkspaceTitle")}
+        label={t("contextMenu.nameLabel")}
         initialValue={dialog?.type === "rename-workspace" ? dialog.label : ""}
-        submitLabel="Rename"
+        submitLabel={t("tabbar.renameAction")}
         onClose={() => setDialog(null)}
         onSubmit={(label) => {
           const value = label.trim();
@@ -208,13 +210,13 @@ export function ContextMenu({
       />
       <ConfirmDialog
         open={dialog?.type === "remove-worktree"}
-        title="Remove Worktree"
+        title={t("commands.removeWorktreeTitle")}
         message={
           dialog?.type === "remove-worktree"
-            ? `Remove worktree "${dialog.label}"?`
+            ? t("commands.removeWorktreeNamed", { name: dialog.label })
             : ""
         }
-        confirmLabel="Remove"
+        confirmLabel={t("commands.removeAction")}
         danger
         onClose={() => setDialog(null)}
         onConfirm={() => {
@@ -225,10 +227,12 @@ export function ContextMenu({
       />
       <ConfirmDialog
         open={dialog?.type === "close-workspace"}
-        title="Close Workspace"
+        title={t("commands.closeWorkspaceTitle")}
         message={
           dialog?.type === "close-workspace"
-            ? `Close workspace "${dialog.label}"?${terminalComposerCloseWarning(
+            ? `${t("commands.closeWorkspaceNamed", {
+                name: dialog.label,
+              })}${terminalComposerCloseWarning(
                 terminalComposerDraftPaneIds(
                   activeConnectionId,
                   connectionGeneration,
@@ -239,7 +243,7 @@ export function ContextMenu({
               )}`
             : ""
         }
-        confirmLabel="Close"
+        confirmLabel={t("contextMenu.closeAction")}
         danger
         onClose={() => setDialog(null)}
         onConfirm={() => {
@@ -319,11 +323,11 @@ export function ContextMenu({
 
   const inspectItems: Item[] = [
     {
-      label: "Browse files",
+      label: t("contextMenu.browseFiles"),
       action: () => onBrowseFiles?.(w),
     },
     {
-      label: "Review changes",
+      label: t("contextMenu.reviewChanges"),
       action: () => onReviewChanges?.(w),
     },
   ];
@@ -337,11 +341,17 @@ export function ContextMenu({
   }
   const organizeItems: Item[] = [
     {
-      label: `${pinned ? "Unpin" : "Pin"} ${isLinked ? "worktree" : "workspace"}`,
+      label: pinned
+        ? isLinked
+          ? t("contextMenu.unpinWorktree")
+          : t("contextMenu.unpinWorkspace")
+        : isLinked
+          ? t("contextMenu.pinWorktree")
+          : t("contextMenu.pinWorkspace"),
       action: () => onPinnedChange(w, !pinned),
     },
     {
-      label: "Rename workspace…",
+      label: t("contextMenu.renameWorkspaceEllipsis"),
       action: () => {
         setDialog({
           type: "rename-workspace",
@@ -358,17 +368,17 @@ export function ContextMenu({
   // opening an existing worktree is offered everywhere, like creating one.
   const worktreeItems: Item[] = [
     {
-      label: "Open worktree…",
+      label: t("contextMenu.openWorktreeEllipsis"),
       action: () => setOpenWorktreeWorkspaceId(w.workspace_id),
     },
     {
-      label: "Worktree location…",
+      label: t("contextMenu.worktreeLocationEllipsis"),
       action: () => setLocationWorkspaceId(w.workspace_id),
     },
   ];
   if (w.worktree) {
     organizeItems.push({
-      label: "Copy checkout path",
+      label: t("contextMenu.copyCheckoutPath"),
       action: () => {
         const path = w.worktree?.checkout_path;
         if (!path) return;
@@ -376,14 +386,14 @@ export function ContextMenu({
           () =>
             store.notify({
               kind: "success",
-              message: "Checkout path copied",
+              message: t("contextMenu.checkoutPathCopied"),
               detail: path,
               autoDismissMs: 5000,
             }),
           (error) =>
             store.notify({
               kind: "error",
-              message: "Failed to copy checkout path",
+              message: t("contextMenu.copyCheckoutPathFailed"),
               detail: error instanceof Error ? error.message : String(error),
             }),
         );
@@ -391,18 +401,18 @@ export function ContextMenu({
     });
     worktreeItems.push(
       {
-        label: "Worktree lifecycle…",
+        label: t("contextMenu.worktreeLifecycleEllipsis"),
         action: () => setLifecycleWorkspaceId(w.workspace_id),
       },
       {
-        label: "Configure worktree hooks…",
+        label: t("contextMenu.configureHooksEllipsis"),
         action: () => setWorktreeHooksWorkspaceId(w.workspace_id),
       },
     );
   }
   if (creationSource) {
     worktreeItems.unshift({
-      label: "New worktree…",
+      label: t("contextMenu.newWorktreeEllipsis"),
       action: () => {
         setDialog({
           type: "new-worktree",
@@ -413,20 +423,20 @@ export function ContextMenu({
   }
   const sourceControlItems: Item[] = [
     {
-      label: "Pull from Git",
+      label: t("contextMenu.pullFromGit"),
       action: () => {
         void store.gitPullWorkspace(w.workspace_id);
       },
     },
     {
-      label: "Configure branch auto-update…",
+      label: t("contextMenu.configureAutoUpdateEllipsis"),
       action: () => setAutoSyncWorkspaceId(w.workspace_id),
     },
   ];
   const closeItems: Item[] = [];
   if (isLinked) {
     closeItems.push({
-      label: "Remove worktree",
+      label: t("commands.removeWorktree"),
       danger: true,
       action: () => {
         setDialog({
@@ -438,7 +448,7 @@ export function ContextMenu({
     });
   }
   closeItems.push({
-    label: "Close workspace",
+    label: t("commands.closeWorkspace"),
     danger: true,
     action: () => {
       setDialog({
@@ -454,7 +464,7 @@ export function ContextMenu({
           label: state.source!.serverLabel,
           items: [
             {
-              label: "Open workspace",
+              label: t("contextMenu.openWorkspace"),
               action: () => {
                 void openServerSession(state.source!, w.workspace_id);
               },
@@ -463,11 +473,18 @@ export function ContextMenu({
         },
       ]
     : [
-        { label: "Inspect", items: inspectItems },
-        { label: "Organize", items: organizeItems },
-        { label: "Worktrees", items: worktreeItems },
-        { label: "Source control", items: sourceControlItems },
-        { label: "Close", items: closeItems, danger: true },
+        { label: t("contextMenu.groupInspect"), items: inspectItems },
+        { label: t("contextMenu.groupOrganize"), items: organizeItems },
+        { label: t("contextMenu.groupWorktrees"), items: worktreeItems },
+        {
+          label: t("contextMenu.groupSourceControl"),
+          items: sourceControlItems,
+        },
+        {
+          label: t("contextMenu.groupClose"),
+          items: closeItems,
+          danger: true,
+        },
       ].filter((group) => group.items.length > 0);
 
   const style: React.CSSProperties = {
@@ -485,14 +502,14 @@ export function ContextMenu({
         style={style}
       >
         <div className="context-menu-header">
-          <span>Workspace</span>
+          <span>{t("contextMenu.headerWorkspace")}</span>
           <strong title={displayName}>{displayName}</strong>
           <small>
             {isLinked
-              ? "Linked worktree"
+              ? t("inspector.linkedWorktree")
               : w.worktree
-                ? "Git workspace"
-                : "Workspace"}
+                ? t("contextMenu.kindGitWorkspace")
+                : t("contextMenu.kindWorkspace")}
           </small>
         </div>
         {groups.map((group) => (
@@ -528,7 +545,7 @@ export function ContextMenu({
             <ColorSwatches
               palette={workspaceColors.palette}
               current={workspaceColors.colorOf(w.workspace_id)}
-              label="Workspace colour"
+              label={t("contextMenu.workspaceColour")}
               onColor={(id) => {
                 onClose();
                 workspaceColors.onColor(w.workspace_id, id);

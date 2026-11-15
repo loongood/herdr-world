@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { t } from "../i18n";
 import {
   resolveTerminalWindowArrangement,
   terminalArrangementContentWidth,
@@ -40,7 +41,10 @@ describe("terminal window arrangements", () => {
     expect(placements("single", 3)).toEqual([{ id: "tab-3", geometry: stage }]);
     expect(
       resolveTerminalWindowArrangement("single", stage, windows(2), "missing"),
-    ).toEqual({ available: false, reason: "Active window is unavailable." });
+    ).toEqual({
+      available: false,
+      reason: t("window.activeUnavailable"),
+    });
   });
 
   test("Columns and Rows tile every window without overlap", () => {

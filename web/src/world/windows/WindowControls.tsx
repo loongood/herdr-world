@@ -1,6 +1,8 @@
 import {
   INTEREST_CHOICES,
   type InterestChoice,
+  interestHint,
+  interestLabel,
 } from "../../components/InterestButton";
 import {
   ChevronLeft,
@@ -19,6 +21,7 @@ import {
   type ColorValue,
 } from "../../components/ColorSwatch";
 import { measuredFixedPositionScale } from "../../fixedPositionScale";
+import { t, useT } from "../../i18n";
 import { useLayer } from "../../layerStack";
 import type { FitSide, SnapTarget } from "./windowManager";
 import "./windows.css";
@@ -69,11 +72,12 @@ export type ManagedWindowControls = {
 /** Close presented as Back, for the leading edge of a window bar. */
 export function WindowBackButton({
   controls,
-  label = "window",
+  label = t("window.defaultName"),
 }: {
   controls: ManagedWindowControls;
   label?: string;
 }) {
+  const t = useT();
   if (!controls.back) return null;
   // It closes the window, so it keeps the window's Close name; the tooltip
   // says where Back leads.
@@ -81,7 +85,7 @@ export function WindowBackButton({
     <button
       type="button"
       className="world-window-back"
-      aria-label={`Close ${label}`}
+      aria-label={t("window.closeAria", { name: label })}
       title={controls.back.label}
       onClick={controls.onClose}
     >
@@ -89,19 +93,19 @@ export function WindowBackButton({
     </button>
   );
 }
-const fitChoices: { side: FitSide; label: string }[] = [
-  { side: "right", label: "Fit right" },
-  { side: "left", label: "Fit left" },
+const fitChoices = () => [
+  { side: "right" as FitSide, label: t("window.arrangeFitRight") },
+  { side: "left" as FitSide, label: t("window.arrangeFitLeft") },
 ];
-const choices: { target: SnapTarget; label: string }[] = [
-  { target: "left", label: "Left half" },
-  { target: "right", label: "Right half" },
-  { target: "top", label: "Top half" },
-  { target: "bottom", label: "Bottom half" },
-  { target: "top-left", label: "Top left" },
-  { target: "top-right", label: "Top right" },
-  { target: "bottom-left", label: "Bottom left" },
-  { target: "bottom-right", label: "Bottom right" },
+const snapChoices = () => [
+  { target: "left" as SnapTarget, label: t("window.snapLeftHalf") },
+  { target: "right" as SnapTarget, label: t("window.snapRightHalf") },
+  { target: "top" as SnapTarget, label: t("window.snapTopHalf") },
+  { target: "bottom" as SnapTarget, label: t("window.snapBottomHalf") },
+  { target: "top-left" as SnapTarget, label: t("window.snapTopLeft") },
+  { target: "top-right" as SnapTarget, label: t("window.snapTopRight") },
+  { target: "bottom-left" as SnapTarget, label: t("window.snapBottomLeft") },
+  { target: "bottom-right" as SnapTarget, label: t("window.snapBottomRight") },
 ];
 type MenuItem = {
   key?: string;
@@ -120,19 +124,20 @@ type MenuItem = {
  */
 export function WindowControls({
   controls,
-  label = "window",
+  label = t("window.defaultName"),
 }: {
   controls: ManagedWindowControls;
   label?: string;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const pinItems: MenuItem[] = controls.pin
     ? [
         {
           key: "pin",
           label: controls.pin.pinned
-            ? "Unpin desk in Town"
-            : "Pin desk in Town",
+            ? t("window.unpinTown")
+            : t("window.pinTown"),
           checked: controls.pin.pinned,
           toggle: true,
           run: () => controls.pin?.onPin(!controls.pin.pinned),
@@ -145,91 +150,99 @@ export function WindowControls({
       key: `view:${view.id}`,
       label: view.label,
       checked: view.checked,
-      section: index === 0 ? "View" : undefined,
+      section: index === 0 ? t("window.sectionView") : undefined,
       run: view.onSelect,
     })),
     ...(controls.attention?.onDefault
       ? [
           {
             key: "attention:default",
-            label: "Default (from groups)",
-            detail: "Use group Focus or Mute; otherwise watch",
+            label: t("interest.default"),
+            detail: t("interest.defaultHint"),
             checked: controls.attention.override === null,
-            section: "Attention",
+            section: t("window.sectionAttention"),
             run: () => controls.attention?.onDefault?.(),
           },
         ]
       : []),
     ...(controls.attention
       ? INTEREST_CHOICES.map((choice, index) => ({
-          key: `attention:${choice.id}`,
+          key: `attention:${choice}`,
           label:
-            controls.attention?.onDefault && choice.id === "watching"
-              ? "Watch"
-              : choice.label,
+            controls.attention?.onDefault && choice === "watching"
+              ? t("interest.watch")
+              : interestLabel(choice),
           detail:
-            controls.attention?.quiet && choice.id === "watching"
-              ? "Quiet while an agent is focused"
-              : choice.hint,
+            controls.attention?.quiet && choice === "watching"
+              ? t("interest.quietHint")
+              : interestHint(choice),
           checked:
             (controls.attention?.onDefault
               ? controls.attention.override
-              : controls.attention?.current) === choice.id,
+              : controls.attention?.current) === choice,
           section:
             index === 0 && !controls.attention?.onDefault
-              ? "Attention"
+              ? t("window.sectionAttention")
               : undefined,
-          run: () => controls.attention?.onInterest(choice.id),
+          run: () => controls.attention?.onInterest(choice),
         }))
       : []),
     ...(controls.switchTo ?? []).map((target, index) => ({
       key: `switch:${target.id}`,
       label: target.label,
       detail: target.detail,
-      section: index === 0 ? "Switch to" : undefined,
+      section: index === 0 ? t("window.sectionSwitchTo") : undefined,
       run: target.onSelect,
     })),
     ...(controls.narrow
       ? [
           {
-            label: controls.maximized ? "Restore" : "Maximize",
+            label: controls.maximized
+              ? t("window.restoreItem")
+              : t("window.maximizeItem"),
             section:
               controls.views?.length ||
               controls.switchTo?.length ||
               controls.attention
-                ? "Window"
+                ? t("window.sectionWindow")
                 : undefined,
             run: controls.onMaximize,
           },
         ]
       : []),
     {
-      label: "Minimize",
+      label: t("window.minimizeItem"),
       section: controls.narrow
         ? undefined
         : controls.views?.length ||
             controls.switchTo?.length ||
             controls.attention
-          ? "Window"
+          ? t("window.sectionWindow")
           : undefined,
       run: controls.onMinimize,
     },
     ...(controls.compact
       ? []
       : [
-          ...fitChoices.map(({ side, label }) => ({
+          ...fitChoices().map(({ side, label }) => ({
             label,
             run: () => controls.onFit(side),
           })),
-          ...choices.map(({ target, label }) => ({
+          ...snapChoices().map(({ target, label }) => ({
             label,
             run: () => controls.onSnap(target),
           })),
-          { label: "Float window", run: controls.onFloat },
+          { label: t("window.floatItem"), run: controls.onFloat },
         ]),
     ...(!controls.compact ? pinItems : []),
     ...(controls.bin
-      ? [{ key: "bin", label: "Put in bin", run: controls.bin.onBin }]
+      ? [
+          {
+            key: "bin",
+            label: t("window.binItem"),
+            run: controls.bin.onBin,
+          },
+        ]
       : []),
   ];
   const host = useRef<HTMLDivElement>(null);
@@ -302,8 +315,8 @@ export function WindowControls({
       <button
         ref={trigger}
         type="button"
-        aria-label={`More actions for ${label}`}
-        title="More window actions"
+        aria-label={t("window.moreAria", { name: label })}
+        title={t("window.actionsTitle")}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -312,8 +325,8 @@ export function WindowControls({
       </button>
       <button
         type="button"
-        aria-label={`Minimize ${label}`}
-        title="Minimize window"
+        aria-label={t("window.minimizeAria", { name: label })}
+        title={t("window.minimizeTitle")}
         onClick={controls.onMinimize}
       >
         <Minus size={16} aria-hidden="true" />
@@ -321,8 +334,16 @@ export function WindowControls({
       {!controls.compact && !controls.narrow && (
         <button
           type="button"
-          aria-label={`${controls.maximized ? "Restore" : "Maximize"} ${label}`}
-          title={controls.maximized ? "Restore window" : "Maximize window"}
+          aria-label={
+            controls.maximized
+              ? t("window.restoreNamed", { name: label })
+              : t("window.maximizeAria", { name: label })
+          }
+          title={
+            controls.maximized
+              ? t("window.restoreTitle")
+              : t("window.maximizeTitle")
+          }
           onClick={controls.onMaximize}
         >
           {controls.maximized ? (
@@ -336,8 +357,8 @@ export function WindowControls({
         <button
           type="button"
           className="world-window-close"
-          aria-label={`Close ${label}`}
-          title="Close window"
+          aria-label={t("window.closeAria", { name: label })}
+          title={t("window.closeTitle")}
           onClick={controls.onClose}
         >
           <X size={16} />
@@ -359,7 +380,7 @@ export function WindowControls({
                 : ""
             }`}
             role="menu"
-            aria-label="Window actions"
+            aria-label={t("window.actionsAria")}
           >
             {items.map((item) => (
               <Fragment key={item.key ?? item.label}>
@@ -380,11 +401,7 @@ export function WindowControls({
                         ? "is-wide"
                         : undefined
                   }
-                  title={
-                    item.toggle
-                      ? "A pinned desk keeps its place in Town, and its agents stay at it"
-                      : undefined
-                  }
+                  title={item.toggle ? t("window.pinTownTitle") : undefined}
                   role={
                     item.checked === undefined
                       ? "menuitem"
@@ -407,8 +424,8 @@ export function WindowControls({
             {controls.color ? (
               <ColorSwatchButton
                 className="world-window-color"
-                label="Terminal colour"
-                text="Colour"
+                label={t("window.terminalColour")}
+                text={t("inspector.colourLabel")}
                 palette={controls.color.palette}
                 current={controls.color.current}
                 onColor={(id) => {

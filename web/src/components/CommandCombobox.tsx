@@ -67,6 +67,8 @@ import {
 } from "./ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
+  arrangementDescription,
+  arrangementLabel,
   offeredArrangementChoices,
   type WindowArrangementControl,
 } from "./WindowArrangementMenu";
@@ -994,7 +996,7 @@ function OwnedCommandCombobox({
 
   const arrangementActions: ActionDefinition[] = arrangementControl
     ? offeredArrangementChoices(arrangementControl).map(
-        ({ command, label, description, shortcutId }) => {
+        ({ command, shortcutId }) => {
           const shortcut = shortcutId
             ? shortcutLabel(shortcutId)
             : "Unassigned";
@@ -1003,17 +1005,19 @@ function OwnedCommandCombobox({
             icon: <LayoutGrid size={15} />,
             title:
               command === "fit-right" || command === "fit-left"
-                ? label
+                ? arrangementLabel(command)
                 : command === "close-all"
                   ? t("commands.closeAllWindows")
                   : command === "open-all"
                     ? t("commands.openAllWindows")
                     : command === "restore"
                       ? t("commands.restoreWindowPositions")
-                      : t("commands.arrangeWindows", { label }),
-            detail: description,
+                      : t("commands.arrangeWindows", {
+                          label: arrangementLabel(command),
+                        }),
+            detail: arrangementDescription(command),
             shortcut: shortcut === "Unassigned" ? undefined : shortcut,
-            keywords: ["layout", "tile", "windows", label],
+            keywords: ["layout", "tile", "windows", command],
             disabledReason: arrangementControl.disabledReasons[command],
             run: () => arrangementControl.onSelect(command),
           };

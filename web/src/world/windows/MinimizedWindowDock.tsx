@@ -1,6 +1,7 @@
 import { PanelsTopLeft } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useT } from "../../i18n";
 import type { WindowSwitcherEntry } from "./WindowSwitcher";
 import "./windows.css";
 
@@ -16,6 +17,7 @@ export function MinimizedWindowDock({
 }: {
   entries?: readonly WindowSwitcherEntry[];
 }) {
+  const t = useT();
   const minimized = entries.filter((entry) => entry.minimized);
   const open = entries.filter((entry) => !entry.minimized);
   const shownId = (open.find((entry) => entry.active) ?? open[0])?.id;
@@ -39,15 +41,15 @@ export function MinimizedWindowDock({
   return createPortal(
     <nav
       className={`world-minimized-dock${host ? " is-in-window" : ""}`}
-      aria-label="Minimized windows"
+      aria-label={t("window.dockAria")}
     >
       {minimized.map((entry) => (
         <button
           key={entry.id}
           type="button"
           data-restore-window-id={entry.id}
-          aria-label={`Restore ${entry.label}`}
-          title={`Restore ${entry.label}`}
+          aria-label={t("window.restoreNamed", { name: entry.label })}
+          title={t("window.restoreNamed", { name: entry.label })}
           onClick={entry.onSelect}
         >
           <PanelsTopLeft size={15} aria-hidden="true" />

@@ -118,7 +118,12 @@
   manager (overview, hook/command/location policies, per-row actions and
   removal confirmations), the hooks detail dialog, the pull-request
   badges, the automatic branch update dialogs, the agent worktree picker
-  and gate, and the worktree location dialog. The built-in
+  and gate, and the worktree location dialog. The window surfaces follow:
+  the window bars' controls and action menus (attention choices, views,
+  desk pinning, snap targets and colours), the minimized-window dock, the
+  window arrangement menu, the agent interest button, the workspace
+  context menu with its confirmations, and the terminal arrangement
+  diagnostics. The built-in
   slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.

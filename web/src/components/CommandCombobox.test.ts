@@ -174,14 +174,14 @@ describe("arrangement actions", () => {
   });
 
   test("phone layouts leave Fit right and Fit left out of Actions", () => {
-    const desktop = offeredArrangementChoices(control()).map((c) => c.label);
-    expect(desktop).toContain("Fit right");
-    expect(desktop).toContain("Fit left");
+    const desktop = offeredArrangementChoices(control()).map((c) => c.command);
+    expect(desktop).toContain("fit-right");
+    expect(desktop).toContain("fit-left");
     const phone = offeredArrangementChoices(
       control(["fit-right", "fit-left"]),
-    ).map((c) => c.label);
-    expect(phone).not.toContain("Fit right");
-    expect(phone).not.toContain("Fit left");
-    expect(phone).toContain("Single");
+    ).map((c) => c.command);
+    expect(phone).not.toContain("fit-right");
+    expect(phone).not.toContain("fit-left");
+    expect(phone).toContain("single");
   });
 });

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   FLOATING_TERMINAL_DEFAULT_SIZE,
   TILED_TERMINAL_MIN_SIZE,
@@ -139,26 +140,26 @@ export function resolveTerminalWindowArrangement(
   activeId: string | null,
 ): TerminalWindowArrangementResult {
   if (!validStage(stage)) {
-    return unavailable("The available stage has no usable size.");
+    return unavailable(t("window.stageNoSize"));
   }
   if (windows.length === 0) {
-    return unavailable("No eligible terminal windows are open.");
+    return unavailable(t("window.noWindowsOpen"));
   }
   if (!validWindows(windows)) {
-    return unavailable("Window dimensions or identities are unavailable.");
+    return unavailable(t("window.windowsUnavailable"));
   }
 
   if (preset === "single") {
     const active = windows.find((window) => window.id === activeId);
-    if (!active) return unavailable("Active window is unavailable.");
+    if (!active) return unavailable(t("window.activeUnavailable"));
     if (stage.width < active.minWidth || stage.height < active.minHeight) {
-      return unavailable("The stage is too small for the active window.");
+      return unavailable(t("window.stageTooSmallActive"));
     }
     return available([{ id: active.id, geometry: { ...stage } }]);
   }
 
   if (windows.length < 2) {
-    return unavailable("Open another eligible window to use this arrangement.");
+    return unavailable(t("window.openAnother"));
   }
 
   switch (preset) {
@@ -202,10 +203,10 @@ function columns(
     0,
   );
   if (stage.width < minimumWidth) {
-    return unavailable("Stage width is too small for these columns.");
+    return unavailable(t("window.stageTooSmallColumnsWidth"));
   }
   if (windows.some((window) => stage.height < window.minHeight)) {
-    return unavailable("Stage height is too small for these columns.");
+    return unavailable(t("window.stageTooSmallColumnsHeight"));
   }
   const width = Math.max(
     minimumWidth,
@@ -237,10 +238,10 @@ function rows(
     0,
   );
   if (stage.height < minimumHeight) {
-    return unavailable("Stage height is too small for these rows.");
+    return unavailable(t("window.stageTooSmallRowsHeight"));
   }
   if (windows.some((window) => stage.width < window.minWidth)) {
-    return unavailable("Stage width is too small for these rows.");
+    return unavailable(t("window.stageTooSmallRowsWidth"));
   }
   const height = Math.max(
     minimumHeight,
@@ -277,10 +278,10 @@ function cascade(
     0,
   );
   if (stage.width < minimumWidth) {
-    return unavailable("Stage width is too small for this cascade.");
+    return unavailable(t("window.stageTooSmallCascadeWidth"));
   }
   if (stage.height < minimumHeight) {
-    return unavailable("Stage height is too small for this cascade.");
+    return unavailable(t("window.stageTooSmallCascadeHeight"));
   }
   const depth = Math.min(
     windows.length,
@@ -321,14 +322,14 @@ function grid(
     const width = (stage.width - GAP) / 2;
     const height = (stage.height - GAP) / 2;
     if (windows.some((window) => width < window.minWidth)) {
-      return unavailable("Stage width is too small for this grid.");
+      return unavailable(t("window.stageTooSmallGridWidth"));
     }
     if (
       stage.height < windows[0]!.minHeight ||
       height < windows[1]!.minHeight ||
       height < windows[2]!.minHeight
     ) {
-      return unavailable("Stage height is too small for this grid.");
+      return unavailable(t("window.stageTooSmallGridHeight"));
     }
     return available([
       {
@@ -368,7 +369,7 @@ function grid(
   );
   const maximumColumns = Math.floor((stage.width + GAP) / (minimumWidth + GAP));
   if (maximumColumns < 1) {
-    return unavailable("Stage width is too small for this grid.");
+    return unavailable(t("window.stageTooSmallGridWidth"));
   }
   const columnCount = Math.min(
     Math.ceil(Math.sqrt(windows.length)),

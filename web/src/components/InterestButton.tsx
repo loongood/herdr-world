@@ -1,6 +1,7 @@
 import { BellOff, Crosshair, Eye } from "lucide-react";
 import { useState } from "react";
 import type { Interest } from "../../../shared/interest";
+import { t, useT } from "../i18n";
 import { cn } from "../utils";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import "./InterestButton.css";
@@ -22,12 +23,33 @@ export type InterestChoice = {
   description?: string;
 };
 
-export const INTEREST_CHOICES: { id: Interest; label: string; hint: string }[] =
-  [
-    { id: "watching", label: "Watching", hint: "Chimes as usual" },
-    { id: "muted", label: "Muted", hint: "No chimes; still in reception" },
-    { id: "focused", label: "Focused", hint: "Only focused agents chime" },
-  ];
+export const INTEREST_CHOICES: readonly Interest[] = [
+  "watching",
+  "muted",
+  "focused",
+];
+
+export function interestLabel(choice: Interest): string {
+  switch (choice) {
+    case "watching":
+      return t("interest.watching");
+    case "muted":
+      return t("interest.muted");
+    case "focused":
+      return t("interest.focused");
+  }
+}
+
+export function interestHint(choice: Interest): string {
+  switch (choice) {
+    case "watching":
+      return t("interest.watchingHint");
+    case "muted":
+      return t("interest.mutedHint");
+    case "focused":
+      return t("interest.focusedHint");
+  }
+}
 
 const ICONS = { watching: Eye, muted: BellOff, focused: Crosshair };
 
@@ -40,10 +62,11 @@ export function InterestButton({
   description,
   className,
 }: InterestChoice & { className?: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const Icon = ICONS[current];
   const held = quiet && current === "watching";
-  const label = `${description ?? INTEREST_CHOICES.find((choice) => choice.id === current)!.label}${held ? ", quiet while an agent is focused" : ""}`;
+  const label = `${description ?? interestLabel(current)}${held ? t("interest.quietSuffix") : ""}`;
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -52,9 +75,9 @@ export function InterestButton({
           className={cn("interest-button", className)}
           data-interest={current}
           data-quiet={held || undefined}
-          aria-label={`Interest: ${label}`}
+          aria-label={t("interest.interestAria", { label })}
           aria-haspopup="dialog"
-          title={`Interest: ${label}`}
+          title={t("interest.interestAria", { label })}
         >
           <Icon size={15} aria-hidden="true" />
         </button>
@@ -64,7 +87,11 @@ export function InterestButton({
         align="start"
         collisionPadding={8}
       >
-        <div className="interest-choices" role="group" aria-label="Interest">
+        <div
+          className="interest-choices"
+          role="group"
+          aria-label={t("interest.ariaLabel")}
+        >
           {onDefault && (
             <button
               type="button"
@@ -77,41 +104,38 @@ export function InterestButton({
             >
               <Eye size={15} aria-hidden="true" />
               <span>
-                <b>Default (from groups)</b>
-                <small>Use group Focus or Mute; otherwise watch</small>
+                <b>{t("interest.default")}</b>
+                <small>{t("interest.defaultHint")}</small>
               </span>
             </button>
           )}
           {INTEREST_CHOICES.map((choice) => {
-            const ChoiceIcon = ICONS[choice.id];
+            const ChoiceIcon = ICONS[choice];
             return (
               <button
-                key={choice.id}
+                key={choice}
                 type="button"
                 className="interest-choice"
                 aria-pressed={
-                  onDefault ? override === choice.id : current === choice.id
+                  onDefault ? override === choice : current === choice
                 }
                 onClick={() => {
                   setOpen(false);
-                  if (
-                    choice.id !== current ||
-                    (onDefault && override !== choice.id)
-                  )
-                    onInterest(choice.id);
+                  if (choice !== current || (onDefault && override !== choice))
+                    onInterest(choice);
                 }}
               >
                 <ChoiceIcon size={15} aria-hidden="true" />
                 <span>
                   <b>
-                    {onDefault && choice.id === "watching"
-                      ? "Watch"
-                      : choice.label}
+                    {onDefault && choice === "watching"
+                      ? t("interest.watch")
+                      : interestLabel(choice)}
                   </b>
                   <small>
-                    {quiet && choice.id === "watching"
-                      ? "Quiet while an agent is focused"
-                      : choice.hint}
+                    {quiet && choice === "watching"
+                      ? t("interest.quietHint")
+                      : interestHint(choice)}
                   </small>
                 </span>
               </button>

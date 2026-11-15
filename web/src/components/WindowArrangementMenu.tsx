@@ -3,6 +3,7 @@ import {
   WindowSwitcher,
   type WindowSwitcherEntry,
 } from "../world/windows/WindowSwitcher";
+import { t, useT } from "../i18n";
 import { LayoutGrid, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -31,73 +32,103 @@ export type WindowArrangementControl = {
 
 export const WINDOW_ARRANGEMENT_CHOICES: readonly {
   command: WindowArrangementCommand;
-  label: string;
-  description: string;
   shortcutId?: ShortcutId;
   /** A placement of the active window: in Actions, not this menu. */
   actionOnly?: true;
 }[] = [
   {
     command: "single",
-    label: "Single",
-    description: "Show the active window",
     shortcutId: "arrangement.single",
   },
   {
     command: "cascade",
-    label: "Cascade",
-    description: "Overlap windows diagonally",
     shortcutId: "arrangement.cascade",
   },
   {
     command: "columns",
-    label: "Columns",
-    description: "Fit windows side by side",
     shortcutId: "arrangement.columns",
   },
   {
     command: "rows",
-    label: "Rows",
-    description: "Fit windows top to bottom",
     shortcutId: "arrangement.rows",
   },
   {
     command: "grid",
-    label: "Grid",
-    description: "Tile four corners",
     shortcutId: "arrangement.grid",
   },
   {
     command: "restore",
-    label: "Restore positions",
-    description: "Return still-open windows to their previous positions",
     shortcutId: "arrangement.restore",
   },
   {
     command: "close-all",
-    label: "Close all terminal windows",
-    description: "Dismiss windows without closing tabs or sessions",
   },
   {
     command: "open-all",
-    label: "Open all terminal windows",
-    description: "Present every terminal on the selected host",
   },
   {
     command: "fit-right",
-    label: "Fit right",
-    description: "Put the active window on the right edge at its normal width",
     shortcutId: "window.fitRight",
     actionOnly: true,
   },
   {
     command: "fit-left",
-    label: "Fit left",
-    description: "Put the active window on the left edge at its normal width",
     shortcutId: "window.fitLeft",
     actionOnly: true,
   },
 ];
+
+export function arrangementLabel(command: WindowArrangementCommand): string {
+  switch (command) {
+    case "single":
+      return t("window.arrangeSingle");
+    case "cascade":
+      return t("window.arrangeCascade");
+    case "columns":
+      return t("window.arrangeColumns");
+    case "rows":
+      return t("window.arrangeRows");
+    case "grid":
+      return t("window.arrangeGrid");
+    case "restore":
+      return t("window.arrangeRestore");
+    case "close-all":
+      return t("window.arrangeCloseAll");
+    case "open-all":
+      return t("window.arrangeOpenAll");
+    case "fit-right":
+      return t("window.arrangeFitRight");
+    case "fit-left":
+      return t("window.arrangeFitLeft");
+  }
+}
+
+export function arrangementDescription(
+  command: WindowArrangementCommand,
+): string {
+  switch (command) {
+    case "single":
+      return t("window.arrangeSingleHint");
+    case "cascade":
+      return t("window.arrangeCascadeHint");
+    case "columns":
+      return t("window.arrangeColumnsHint");
+    case "rows":
+      return t("window.arrangeRowsHint");
+    case "grid":
+      return t("window.arrangeGridHint");
+    case "restore":
+      return t("window.arrangeRestoreHint");
+    case "close-all":
+      return t("window.arrangeCloseAllHint");
+    case "open-all":
+      return t("window.arrangeOpenAllHint");
+    case "fit-right":
+      return t("window.arrangeFitRightHint");
+    case "fit-left":
+      return t("window.arrangeFitLeftHint");
+  }
+}
 
 /** The choices a layout offers in Actions; phone layouts hide Fit. */
 export function offeredArrangementChoices(control: WindowArrangementControl) {
@@ -113,6 +144,7 @@ export function WindowArrangementMenu({
   control: WindowArrangementControl;
   showWindowSwitcher?: boolean;
 }) {
+  const t = useT();
   useShortcutPreferences();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -202,10 +234,10 @@ export function WindowArrangementMenu({
         ref={triggerRef}
         type="button"
         className={`tabbar-arrangement-trigger ${open ? "is-active" : ""}`}
-        aria-label="Arrange windows"
+        aria-label={t("window.arrangeWindows")}
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Arrange windows"
+        title={t("window.arrangeWindows")}
         onClick={() => setOpen((current) => !current)}
       >
         <LayoutGrid size={16} aria-hidden="true" />
@@ -215,14 +247,14 @@ export function WindowArrangementMenu({
             <div
               ref={menuRef}
               role="menu"
-              aria-label="Arrange windows"
+              aria-label={t("window.arrangeWindows")}
               className="window-arrangement-menu"
               style={position}
               onKeyDown={onMenuKeyDown}
             >
               {WINDOW_ARRANGEMENT_CHOICES.filter(
                 (choice) => !choice.actionOnly,
-              ).map(({ command, label, description, shortcutId }) => {
+              ).map(({ command, shortcutId }) => {
                 const reason = control.disabledReasons[command];
                 const shortcut = shortcutId
                   ? shortcutLabel(shortcutId)
@@ -234,7 +266,7 @@ export function WindowArrangementMenu({
                     role="menuitem"
                     aria-disabled={!!reason}
                     className={`window-arrangement-option ${control.activePreset === command ? "is-active" : ""}`}
-                    title={reason ?? description}
+                    title={reason ?? arrangementDescription(command)}
                     onClick={() => {
                       if (reason) return;
                       setOpen(false);
@@ -256,8 +288,8 @@ export function WindowArrangementMenu({
                       </span>
                     )}
                     <span className="window-arrangement-copy">
-                      <strong>{label}</strong>
-                      <small>{reason ?? description}</small>
+                      <strong>{arrangementLabel(command)}</strong>
+                      <small>{reason ?? arrangementDescription(command)}</small>
                     </span>
                     {shortcut !== "Unassigned" ? (
                       <kbd className="window-arrangement-shortcut">
