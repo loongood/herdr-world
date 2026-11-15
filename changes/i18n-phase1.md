@@ -63,7 +63,17 @@
   sheet (titles, minimized and pinned rows, close and unpin labels, new
   tab), the layout preferences dialog (display mode, breakpoint, sidebar
   order and URL-override note), the recent-panes and pane-search overlay,
-  and the agent status words it shows. The built-in slash-command catalog
+  and the agent status words it shows. The application shell follows too:
+  the top bar (brand version title, shortcut cheat sheet and Ranger
+  entries), Zen island, the mobile navigation and more sheet (view labels,
+  tabs and type entries, drag hints), the sidebar resizer and navigator
+  toggles, the inspector resizer label, terminal and Ranger loading
+  fallbacks, the layout-save and history-open notices, review feedback
+  delivery notices (copy, pre-fill and their retained-draft details), the
+  terminal clipboard notices, and the workspace-resource and Ranger-source
+  errors. The more sheet's popover anchor now targets a stable attribute
+  instead of the translated button label, so it stays positioned in every
+  language. The built-in slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
   Remaining surfaces keep English

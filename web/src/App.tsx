@@ -14,7 +14,7 @@ import {
   writeMobileControlsPlacement,
   type MobileControlsPlacement,
 } from "./mobileControlsPlacement";
-import { useLanguageSync } from "./i18n";
+import { useLanguageSync, useT } from "./i18n";
 import { TERMINAL_FONT_SCALE_KEY, useTextScales } from "./textScales";
 import {
   isRangerTaskNotificationTarget,
@@ -341,15 +341,12 @@ type TerminalViewProps = {
   onOpenWorkspaceFile?: (request: TerminalWorkspaceFileRequest) => void;
 };
 
-function TerminalLoadingFallback({
-  label = "Loading terminal",
-}: {
-  label?: string;
-}) {
+function TerminalLoadingFallback({ label }: { label?: string }) {
+  const t = useT();
   return (
     <div className="terminal-loading" role="status">
       <span className="terminal-loading-dot" />
-      {label}
+      {label ?? t("app.loadingTerminal")}
     </div>
   );
 }
@@ -805,6 +802,7 @@ export default function App({
   renderZenControl?: (exitZen: () => void) => ReactNode;
   onZenActiveChange?: (active: boolean) => void;
 } = {}) {
+  const t = useT();
   const operations = useOperationalStore();
   const creationSources = useCreationSources();
   const hasWorkspaceSurface =
@@ -1046,8 +1044,8 @@ export default function App({
     } catch {
       store.notify({
         kind: "error",
-        message: "Annotation layout could not be saved",
-        detail: "The layout applies until this page reloads.",
+        message: t("app.annotationLayoutSaveFailed"),
+        detail: t("app.annotationLayoutSaveDetail"),
       });
     }
   };
@@ -1255,6 +1253,7 @@ export default function App({
     s.recentPaneIds,
     s.tabs,
     s.workspaces,
+    t,
   ]);
   const activePaneHasAgent = paneHasAgentHistory(activePane);
   const historyInspectorOpen =
@@ -1333,9 +1332,12 @@ export default function App({
       paneId: pane.pane_id,
       terminalId: pane.terminal_id,
       label:
-        paneAgentTitle(pane, pane.display_agent ?? pane.agent) || "Terminal",
+        paneAgentTitle(pane, pane.display_agent ?? pane.agent) ||
+        t("shell.terminalFallback"),
       hostLabel: s.activeConnectionId,
-      spaceLabel: workspace.label ?? `Workspace ${workspace.number}`,
+      spaceLabel:
+        workspace.label ??
+        t("app.workspaceNumbered", { number: workspace.number }),
       portal: null,
       endpointReadiness: true,
     };
@@ -1409,9 +1411,9 @@ export default function App({
         tabId: destination.tabId,
         paneId: pane.pane_id,
         terminalId: pane.terminal_id,
-        label: "Terminal",
+        label: t("shell.terminalFallback"),
         hostLabel: s.activeConnectionId,
-        spaceLabel: focusedWorkspace.label ?? "Workspace",
+        spaceLabel: focusedWorkspace.label ?? t("app.workspaceFallback"),
         portal: destination.portal,
         endpointReadiness: true,
         presentationKind: "spaces",
@@ -1440,9 +1442,9 @@ export default function App({
       tabId: inspectorTerminalPane.tab_id,
       paneId: inspectorTerminalPane.pane_id,
       terminalId: inspectorTerminalPane.terminal_id,
-      label: "Terminal",
+      label: t("shell.terminalFallback"),
       hostLabel: s.activeConnectionId,
-      spaceLabel: inspectorWorkspace.label ?? "Workspace",
+      spaceLabel: inspectorWorkspace.label ?? t("app.workspaceFallback"),
       portal: inspectorTerminalPortal,
       endpointReadiness: true,
       presentationKind: "spaces",
@@ -1501,7 +1503,7 @@ export default function App({
       tabId: source.tab_id,
       paneId: source.pane_id,
       terminalId: source.terminal_id,
-      label: "Terminal",
+      label: t("shell.terminalFallback"),
       hostLabel: source.connectionId,
       spaceLabel: source.workspace_id,
       portal: null,
@@ -1743,16 +1745,17 @@ export default function App({
       if (!workspace) {
         store.notify({
           kind: "error",
-          message: `Cannot open ${
-            view === "files"
-              ? "Files"
-              : view === "changes"
-                ? "Changes"
-                : view === "commits"
-                  ? "Commits"
-                  : "History"
-          }`,
-          detail: "The target workspace is no longer open.",
+          message: t("app.cannotOpenView", {
+            view:
+              view === "files"
+                ? t("app.navFiles")
+                : view === "changes"
+                  ? t("app.navChanges")
+                  : view === "commits"
+                    ? t("app.navCommits")
+                    : t("app.navHistory"),
+          }),
+          detail: t("app.targetWorkspaceClosed"),
         });
         return;
       }
@@ -1866,6 +1869,7 @@ export default function App({
       annotationsOpen,
       annotationScopeRef,
       setAnnotationDraftScope,
+      t,
     ],
   );
   const openAnnotations = useCallback(
@@ -1949,7 +1953,7 @@ export default function App({
     } catch {
       store.notify({
         kind: "error",
-        message: "Ranger layout could not be saved",
+        message: t("app.rangerLayoutSaveFailed"),
       });
     }
   };
@@ -1964,10 +1968,7 @@ export default function App({
             connection.state === "ready",
         );
     try {
-      if (!isCurrent())
-        throw new Error(
-          "This source connection is no longer available. Ask Ranger to read it again.",
-        );
+      if (!isCurrent()) throw new Error(t("app.rangerSourceUnavailable"));
       const opened =
         !operationalShortcutsEnabled && onWorkspaceSurfaceSelect
           ? await Promise.resolve(
@@ -1985,7 +1986,7 @@ export default function App({
               paneId: source.pane_id,
             });
       if (!opened || !isCurrent())
-        throw new Error("This source connection changed while opening it.");
+        throw new Error(t("app.rangerSourceChanged"));
       if (mobile) {
         setAssistantOpen(false);
         setMobileView("session");
@@ -1993,7 +1994,7 @@ export default function App({
     } catch (error) {
       store.notify({
         kind: "error",
-        message: "Could not open Ranger source",
+        message: t("app.rangerSourceOpenFailed"),
         detail: (error as Error).message,
       });
     }
@@ -2060,7 +2061,7 @@ export default function App({
       if (!message) {
         store.notify({
           kind: "error",
-          message: "Add text to a review comment before delivery",
+          message: t("app.annotationEmpty"),
         });
         return;
       }
@@ -2071,15 +2072,18 @@ export default function App({
         store.notify({
           kind: "success",
           message: fallback
-            ? "No agent pane found; feedback copied"
-            : "Review feedback copied",
-          detail: `${annotations.length} comment${annotations.length === 1 ? "" : "s"}`,
+            ? t("app.noAgentPaneCopied")
+            : t("app.reviewCopied"),
+          detail:
+            annotations.length === 1
+              ? t("annotations.commentsOne")
+              : t("annotations.commentsMany", { count: annotations.length }),
           autoDismissMs: 3000,
         });
       } catch (error) {
         store.notify({
           kind: "error",
-          message: "Failed to copy review feedback",
+          message: t("app.reviewCopyFailed"),
           detail: error instanceof Error ? error.message : String(error),
         });
       } finally {
@@ -2087,7 +2091,7 @@ export default function App({
           setAnnotationDeliveryBusy(false);
       }
     },
-    [annotations, annotationSessionRef],
+    [annotations, annotationSessionRef, t],
   );
   const sendFeedback = useCallback(
     async (paneId: string | null) => {
@@ -2103,7 +2107,7 @@ export default function App({
       if (!message) {
         store.notify({
           kind: "error",
-          message: "Add text to a review comment before delivery",
+          message: t("app.annotationEmpty"),
         });
         return;
       }
@@ -2124,17 +2128,17 @@ export default function App({
         }
         store.notify({
           kind: "success",
-          message: "Feedback pre-filled in the agent pane",
+          message: t("app.reviewPrefilled"),
           detail: draftActive
-            ? "Review the message there, then press Enter to submit it."
-            : "Original draft retained because its workspace was left or unloaded, or its connection changed. Review the message in the agent pane, then press Enter.",
+            ? t("app.reviewPrefilledAgent")
+            : t("app.reviewPrefilledRetained"),
           autoDismissMs: 6000,
         });
       } catch (error) {
         if (!annotationClient?.isCurrent()) return;
         store.notify({
           kind: "error",
-          message: "Failed to pre-fill review feedback",
+          message: t("app.reviewPrefillFailed"),
           detail: error instanceof Error ? error.message : String(error),
         });
       } finally {
@@ -2149,6 +2153,7 @@ export default function App({
       commitAnnotations,
       annotationClient,
       copyFeedback,
+      t,
     ],
   );
   const goToDeliveredAgent = useCallback(() => {
@@ -2250,8 +2255,8 @@ export default function App({
       ) {
         store.notify({
           kind: "error",
-          message: "Cannot open History",
-          detail: "Select an active agent pane first.",
+          message: t("app.cannotOpenHistory"),
+          detail: t("app.selectActiveAgentPane"),
         });
         return;
       }
@@ -2259,7 +2264,7 @@ export default function App({
         originPaneId: targetPane.pane_id,
       });
     },
-    [operations, closeInspector, openInspector],
+    [operations, closeInspector, openInspector, t],
   );
   const toggleWorkspaceInspector = useCallback(() => {
     const current = inspectorStateRef.current;
@@ -2507,7 +2512,7 @@ export default function App({
       }
       void openPaneNotification(target);
     },
-    [operationalShortcutsEnabled, mobile, openPaneNotification],
+    [operationalShortcutsEnabled, mobile, openPaneNotification, t],
   );
   const handleNoticeAction = useCallback(
     (notice: Notice) => {
@@ -2518,13 +2523,13 @@ export default function App({
           () =>
             store.notify({
               kind: "success",
-              message: "Copied to clipboard",
+              message: t("app.copiedToClipboard"),
               autoDismissMs: 5000,
             }),
           (error) =>
             store.notify({
               kind: "error",
-              message: "Terminal copy failed",
+              message: t("app.terminalCopyFailed"),
               detail: error instanceof Error ? error.message : String(error),
             }),
         );
@@ -2603,7 +2608,7 @@ export default function App({
           detail.onAdmission?.(false);
           store.notify({
             kind: "error",
-            message: "Could not open workspace resource",
+            message: t("app.workspaceResourceOpenFailed"),
             detail: error instanceof Error ? error.message : String(error),
           });
         });
@@ -2664,6 +2669,7 @@ export default function App({
     openInspector,
     hasWorkspaceSurface,
     onWorkspaceSurfaceSelect,
+    t,
   ]);
   useEffect(() => {
     const handleInspectorClose = () => closeInspector();
@@ -3903,7 +3909,7 @@ export default function App({
       }
     >
       <Suspense
-        fallback={<TerminalLoadingFallback label="Loading Inspector" />}
+        fallback={<TerminalLoadingFallback label={t("app.loadingInspector")} />}
       >
         <WorkspaceInspectorHost
           key={`${resourceUiKey}:${resourceOwnerKey(inspectorState.scope)}`}
@@ -4063,8 +4069,8 @@ export default function App({
       aria-label={
         assistantSnapshot?.running ||
         assistantActionExecuting(assistantSnapshot)
-          ? "Ranger is working"
-          : "Open Ranger"
+          ? t("app.rangerWorking")
+          : t("app.openRanger")
       }
       aria-pressed={assistantVisible}
       tabIndex={mobile && mobileControlsCollapsed ? -1 : 0}
@@ -4094,7 +4100,10 @@ export default function App({
               alt=""
             />
             <span className="brand-title">Herdr World</span>
-            <span className="brand-version" title={`Version ${APP_VERSION}`}>
+            <span
+              className="brand-version"
+              title={t("menu.version", { version: APP_VERSION })}
+            >
               v{APP_VERSION}
             </span>
           </div>
@@ -4118,11 +4127,8 @@ export default function App({
             <button
               type="button"
               className={`topbar-button icon-button ${shortcutCheatSheetOpen ? "is-active" : ""}`}
-              aria-label="Show shortcut cheat sheet"
-              title={shortcutTitle(
-                "Show shortcut cheat sheet",
-                "shortcuts.show",
-              )}
+              aria-label={t("app.showShortcuts")}
+              title={shortcutTitle(t("app.showShortcuts"), "shortcuts.show")}
               onClick={openShortcutCheatSheet}
             >
               <Command size={15} aria-hidden="true" />
@@ -4236,7 +4242,7 @@ export default function App({
     element: () =>
       appRef.current?.querySelector(".mobile-controls-stack") ?? null,
     anchors: () =>
-      document.querySelectorAll('button[aria-label="More options"]'),
+      document.querySelectorAll("button[data-mobile-more-trigger]"),
   });
   useSystemBack(
     mobileTabSheetOpen,
@@ -4282,12 +4288,12 @@ export default function App({
           <button
             type="button"
             className="zen-island"
-            title={shortcutTitle("Exit Zen mode", "zen.toggle")}
-            aria-label={shortcutTitle("Exit Zen mode", "zen.toggle")}
+            title={shortcutTitle(t("app.exitZenMode"), "zen.toggle")}
+            aria-label={shortcutTitle(t("app.exitZenMode"), "zen.toggle")}
             onClick={exitZen}
           >
             <Minimize2 size={13} />
-            <span>Exit Zen</span>
+            <span>{t("app.exitZen")}</span>
           </button>
         </div>
       ) : null}
@@ -4297,7 +4303,7 @@ export default function App({
         <button
           type="button"
           className="mobile-more-backdrop"
-          aria-label="Close more"
+          aria-label={t("app.closeMore")}
           onClick={() => setMobileMoreOpen(false)}
         />
       ) : null}
@@ -4314,16 +4320,16 @@ export default function App({
       >
         {mobile && mobileMoreOpen ? (
           <div className="mobile-more-head">
-            <span>More options</span>
+            <span>{t("shell.moreOptions")}</span>
             <CloseButton
-              label="Close menu"
+              label={t("app.closeMenu")}
               onClick={() => setMobileMoreOpen(false)}
             />
           </div>
         ) : null}
         <nav
           className="mobile-nav"
-          aria-label="Workspace view switcher"
+          aria-label={t("app.navSwitcherAria")}
           aria-hidden={mobileControlsCollapsed}
         >
           <button
@@ -4334,8 +4340,8 @@ export default function App({
                 ? "active"
                 : ""
             }
-            title="Session"
-            aria-label="Show terminal session"
+            title={t("app.navSession")}
+            aria-label={t("app.showTerminalSession")}
             tabIndex={mobileControlsCollapsed ? -1 : 0}
             disabled={
               workspaceSurfaceInspector !== null &&
@@ -4348,13 +4354,13 @@ export default function App({
             }}
           >
             <SquareTerminal size={16} />
-            <span className="mobile-nav-label">Session</span>
+            <span className="mobile-nav-label">{t("app.navSession")}</span>
           </button>
           <button
             type="button"
             className={mobileNavigationView === "files" ? "active" : ""}
-            title={shortcutTitle("Files", "files.toggle")}
-            aria-label="Show workspace files"
+            title={shortcutTitle(t("app.navFiles"), "files.toggle")}
+            aria-label={t("app.showWorkspaceFiles")}
             tabIndex={mobileControlsCollapsed ? -1 : 0}
             disabled={
               workspaceSurfaceInspector !== null &&
@@ -4367,13 +4373,13 @@ export default function App({
             }}
           >
             <FolderTree size={16} />
-            <span className="mobile-nav-label">Files</span>
+            <span className="mobile-nav-label">{t("app.navFiles")}</span>
           </button>
           <button
             type="button"
             className={mobileNavigationView === "changes" ? "active" : ""}
-            title={shortcutTitle("Changes", "diff.toggle")}
-            aria-label="Show workspace changes"
+            title={shortcutTitle(t("app.navChanges"), "diff.toggle")}
+            aria-label={t("app.showWorkspaceChanges")}
             tabIndex={mobileControlsCollapsed ? -1 : 0}
             disabled={
               workspaceSurfaceInspector !== null &&
@@ -4386,13 +4392,13 @@ export default function App({
             }}
           >
             <FileDiff size={16} />
-            <span className="mobile-nav-label">Changes</span>
+            <span className="mobile-nav-label">{t("app.navChanges")}</span>
           </button>
           <button
             type="button"
             className={mobileNavigationView === "annotations" ? "active" : ""}
-            title={shortcutTitle("Annotations", "annotations.toggle")}
-            aria-label="Show review annotations"
+            title={shortcutTitle(t("app.navAnnotations"), "annotations.toggle")}
+            aria-label={t("app.showReviewAnnotations")}
             aria-pressed={annotationsOpen}
             tabIndex={mobileControlsCollapsed ? -1 : 0}
             onClick={toggleAnnotations}
@@ -4400,15 +4406,15 @@ export default function App({
             <MessageSquareText size={16} />
             <span className="mobile-nav-label">
               {annotations.length > 0
-                ? `Annotations ${annotations.length}`
-                : "Annotations"}
+                ? `${t("app.navAnnotations")} ${annotations.length}`
+                : t("app.navAnnotations")}
             </span>
           </button>
           <button
             type="button"
             className={mobileNavigationView === "commits" ? "active" : ""}
-            title="Commits"
-            aria-label="Show workspace commits"
+            title={t("app.navCommits")}
+            aria-label={t("app.showWorkspaceCommits")}
             tabIndex={mobileControlsCollapsed ? -1 : 0}
             disabled={
               workspaceSurfaceInspector !== null &&
@@ -4420,7 +4426,7 @@ export default function App({
             }}
           >
             <GitBranch size={16} />
-            <span className="mobile-nav-label">Commits</span>
+            <span className="mobile-nav-label">{t("app.navCommits")}</span>
           </button>
           <button
             type="button"
@@ -4428,13 +4434,13 @@ export default function App({
             title={
               workspaceSurfaceInspector
                 ? workspaceSurfaceInspectorSupports("history")
-                  ? "History"
-                  : "History is unavailable for this selection"
+                  ? t("app.navHistory")
+                  : t("app.historyUnavailable")
                 : activePaneHasAgent || historyInspectorOpen
-                  ? "History"
-                  : "Select an agent pane to view History"
+                  ? t("app.navHistory")
+                  : t("app.historyNeedsAgentPane")
             }
-            aria-label="Show agent message history"
+            aria-label={t("app.showAgentHistory")}
             aria-pressed={
               workspaceSurfaceInspector
                 ? mobileNavigationView === "history"
@@ -4456,7 +4462,7 @@ export default function App({
             }}
           >
             <History size={16} />
-            <span className="mobile-nav-label">History</span>
+            <span className="mobile-nav-label">{t("app.navHistory")}</span>
           </button>
         </nav>
         <OperationalContext.Provider
@@ -4477,9 +4483,11 @@ export default function App({
           className={`mobile-workspace-shortcut ${
             mobileView === "workspaces" ? "is-active" : ""
           }`}
-          title={shortcutTitle("Workspaces", "workspaces.open")}
+          title={shortcutTitle(t("app.navWorkspaces"), "workspaces.open")}
           aria-label={
-            mobileView === "workspaces" ? "Hide workspaces" : "Show workspaces"
+            mobileView === "workspaces"
+              ? t("app.hideWorkspaces")
+              : t("app.showWorkspaces")
           }
           aria-pressed={mobileView === "workspaces"}
           aria-hidden={mobileControlsCollapsed}
@@ -4496,15 +4504,15 @@ export default function App({
         <div className="mobile-terminal-controls">
           <nav
             className="mobile-nav mobile-terminal-tools mobile-workspace-tools"
-            aria-label="Workspace tabs and arrangements"
+            aria-label={t("app.workspaceTabsAria")}
             aria-hidden={mobileControlsCollapsed}
           >
             {mobile ? assistantEntry : null}
             <button
               type="button"
               className={mobileTabSheetOpen ? "active" : ""}
-              title="Tabs"
-              aria-label="Show tabs"
+              title={t("shell.tabsTitle")}
+              aria-label={t("shell.showTabs")}
               aria-pressed={mobileTabSheetOpen}
               tabIndex={mobileControlsCollapsed ? -1 : 0}
               disabled={!tabWorkspace && !arrangementControl?.windows?.length}
@@ -4517,7 +4525,7 @@ export default function App({
                   {focusedWorkspaceTabCount}
                 </span>
               ) : null}
-              <span className="mobile-nav-label">Tabs</span>
+              <span className="mobile-nav-label">{t("shell.tabsTitle")}</span>
             </button>
             {mobile && !mobileControlsCollapsed && arrangementControl ? (
               <WindowArrangementMenu
@@ -4530,16 +4538,16 @@ export default function App({
             ref={mobileControlsToggleRef}
             type="button"
             className="mobile-controls-toggle"
-            aria-description="Drag to move the controls"
+            aria-description={t("app.dragMoveControls")}
             aria-label={
               mobileControlsCollapsed
-                ? "Show mobile controls"
-                : "Hide mobile controls"
+                ? t("app.showMobileControls")
+                : t("app.hideMobileControls")
             }
             title={
               mobileControlsCollapsed
-                ? "Show mobile controls"
-                : "Hide mobile controls"
+                ? t("app.showMobileControls")
+                : t("app.hideMobileControls")
             }
             aria-pressed={mobileControlsCollapsed}
             onClick={() => setMobileControlsCollapsed((value) => !value)}
@@ -4558,8 +4566,12 @@ export default function App({
         <button
           type="button"
           className="mobile-composer-shortcut"
-          title="Open terminal input"
-          aria-label={`Open terminal input${terminalComposerHasDraft ? ", unsent draft" : ""}`}
+          title={t("app.openTerminalInput")}
+          aria-label={
+            terminalComposerHasDraft
+              ? t("app.openTerminalInputUnsent")
+              : t("app.openTerminalInput")
+          }
           aria-haspopup="dialog"
           onPointerDown={blurActiveInput}
           onClick={() => {
@@ -4577,7 +4589,7 @@ export default function App({
           {terminalComposerHasDraft ? (
             <span className="mobile-composer-draft-dot" aria-hidden="true" />
           ) : null}
-          <span className="mobile-nav-label">Type</span>
+          <span className="mobile-nav-label">{t("app.navType")}</span>
         </button>
       ) : null}
 
@@ -4656,16 +4668,16 @@ export default function App({
         <div
           className="resizer"
           onPointerDown={startResize}
-          title="Drag to resize sidebar"
+          title={t("app.dragResizeSidebar")}
         >
           {!mobile ? (
             <button
               type="button"
               className="sidebar-visibility-toggle sidebar-hide"
-              aria-label="Hide workspace navigator"
+              aria-label={t("app.hideNavigator")}
               aria-controls="workspace-navigator"
               aria-expanded="true"
-              title="Hide workspace navigator"
+              title={t("app.hideNavigator")}
               onPointerDown={(event) => event.stopPropagation()}
               onClick={toggleSidebar}
             >
@@ -4677,10 +4689,10 @@ export default function App({
           <button
             type="button"
             className="sidebar-visibility-toggle sidebar-show"
-            aria-label="Show workspace navigator"
+            aria-label={t("app.showNavigator")}
             aria-controls="workspace-navigator"
             aria-expanded="false"
-            title="Show workspace navigator"
+            title={t("app.showNavigator")}
             onClick={toggleSidebar}
           >
             <ChevronRight size={14} aria-hidden="true" />
@@ -4778,7 +4790,12 @@ export default function App({
                 <div
                   className="workspace-inspector-resizer"
                   role="separator"
-                  aria-label={`Resize ${inspectorState.dock} Inspector`}
+                  aria-label={t("app.resizeInspectorAria", {
+                    dock:
+                      inspectorState.dock === "right"
+                        ? t("app.dockRight")
+                        : t("app.dockBottom"),
+                  })}
                   aria-orientation={
                     inspectorState.dock === "right" ? "vertical" : "horizontal"
                   }
@@ -4841,7 +4858,7 @@ export default function App({
                       aria-label="Ranger"
                     >
                       <div className="assistant-panel-empty">
-                        Loading Ranger...
+                        {t("app.loadingRanger")}
                       </div>
                     </aside>
                   ) : null

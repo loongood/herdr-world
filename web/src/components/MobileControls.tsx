@@ -347,6 +347,7 @@ export function MobileTerminalAppBar() {
       <button
         type="button"
         className="mobile-more-button"
+        data-mobile-more-trigger=""
         aria-label={t("shell.moreOptions")}
         aria-haspopup="menu"
         aria-expanded={controls.moreOpen}
