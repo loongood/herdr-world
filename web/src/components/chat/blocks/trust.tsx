@@ -1,5 +1,6 @@
 import { SquareTerminal } from "lucide-react";
 import type { ReactNode } from "react";
+import { t, useT } from "../../../i18n";
 import type { PendingPrompt, TrustChoice, TrustResult } from "../types";
 import "./ask.css";
 
@@ -18,7 +19,7 @@ export async function chooseTrust(
   choice: TrustChoice,
 ): Promise<string> {
   if (client.isCurrent && !client.isCurrent())
-    return "The connection changed. Nothing was sent.";
+    return t("chat.connectionChanged");
   try {
     const result = (await client.call("agent_conversation.trust", {
       pane_id: paneId,
@@ -28,7 +29,7 @@ export async function chooseTrust(
     if (result.status === "refused") return result.message;
     return result.acknowledged
       ? ""
-      : `Sent "${result.label}", but the question still shows. Check the Terminal.`;
+      : t("chat.trustSentUnconfirmed", { label: result.label });
   } catch (reason) {
     return reason instanceof Error ? reason.message : String(reason);
   }
@@ -54,6 +55,7 @@ export function TrustCard({
   onOpenTerminal?: () => void;
   renderMessage?: (message: ReactNode) => ReactNode;
 }) {
+  const t = useT();
   const message = (
     <>
       {prompt.request.length ? <pre>{prompt.request.join("\n")}</pre> : null}
@@ -64,17 +66,21 @@ export function TrustCard({
   );
   const terminal = onOpenTerminal ? (
     <button type="button" onClick={onOpenTerminal}>
-      <SquareTerminal size={13} /> Open Terminal
+      <SquareTerminal size={13} /> {t("chat.openTerminal")}
     </button>
   ) : null;
   return (
     <section
       className="agent-chat-ask agent-chat-trust"
-      aria-label="Claude asks whether to trust this folder"
+      aria-label={t("chat.trustAria")}
     >
-      <h3>Claude asks whether to trust this folder</h3>
+      <h3>{t("chat.trustAria")}</h3>
       {renderMessage ? renderMessage(message) : message}
-      <div className="agent-chat-ask-options" role="group" aria-label="Choices">
+      <div
+        className="agent-chat-ask-options"
+        role="group"
+        aria-label={t("chat.choicesAria")}
+      >
         {prompt.options.map((option) => (
           <button
             key={option.key}
@@ -85,16 +91,15 @@ export function TrustCard({
           >
             <span className="agent-chat-ask-label">
               {option.label}
-              {option.cursor ? <small>Selected in the Terminal</small> : null}
+              {option.cursor ? (
+                <small>{t("chat.selectedInTerminal")}</small>
+              ) : null}
             </span>
           </button>
         ))}
       </div>
       <p className="agent-chat-ask-fine">
-        Claude has not started its session yet. Chat checks that this is still
-        the same question in the same Claude process, moves Claude's selection
-        to your choice and presses Enter, checking again before each key. Chat
-        opens once the session starts. {terminal}
+        {t("chat.trustNote")} {terminal}
       </p>
       {notice ? (
         <p className="agent-chat-ask-notice" role="alert">

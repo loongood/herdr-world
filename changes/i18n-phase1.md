@@ -15,5 +15,9 @@
   phone chip, with the away duration and return times in the selected
   language. The agent Chat pane follows as well: its toolbar, status and stop
   notes, delivery notices, errors, empty states and the fixed-findings
-  message it sends. Remaining surfaces keep English
+  message it sends. The chat interaction cards follow too: the question,
+  menu, trust and step cards with their buttons, notes and screen-reader
+  labels, sent-answer receipts, the composer's extra controls, and the
+  mission-log quest chip and log with their status and source words.
+  Remaining surfaces keep English
   until their phase lands.

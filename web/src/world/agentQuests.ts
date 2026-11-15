@@ -8,6 +8,8 @@ import { useEffect, useRef, useState } from "react";
 import { bridge, type ConnectionClient } from "../api";
 import type { AgentQuest, Quest } from "../../../server/src/agent/quest";
 import type { AgentUsageStop } from "../../../shared/usageStop";
+import { t } from "../i18n";
+import type { TranslationKey } from "../i18n/en";
 import { deskClient } from "./handoffs";
 import type { WorldLeafObject } from "./worldObject";
 
@@ -34,20 +36,24 @@ export type AgentDeskReads = {
 };
 const EMPTY_READS: AgentDeskReads = { quests: EMPTY, stops: NO_STOPS };
 
-export const QUEST_SOURCE_LABELS: Record<Quest["source"], string> = {
-  todo: "Checklist",
-  plan: "Plan",
-  goal: "Goal",
-  loop: "Loop",
-};
+const QUEST_SOURCE_KEYS = {
+  todo: "quest.sourceChecklist",
+  plan: "quest.sourcePlan",
+  goal: "quest.sourceGoal",
+  loop: "quest.sourceLoop",
+} as const satisfies Record<Quest["source"], TranslationKey>;
+
+/** The quest's source, in words. */
+export const questSourceLabel = (source: Quest["source"]) =>
+  t(QUEST_SOURCE_KEYS[source]);
 
 /** A short progress label: "2/5", "Loop ×3", or the source's name. */
 export function questProgressText(quest: Quest) {
   if (quest.progress.total > 0)
     return `${quest.progress.done}/${quest.progress.total}`;
   if (quest.source === "loop" && quest.iterations)
-    return `Loop ×${quest.iterations}`;
-  return QUEST_SOURCE_LABELS[quest.source];
+    return `${t("quest.sourceLoop")} ×${quest.iterations}`;
+  return questSourceLabel(quest.source);
 }
 
 /** What Town's pennant shows for a quest. */

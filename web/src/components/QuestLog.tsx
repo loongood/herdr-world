@@ -1,9 +1,11 @@
 import { useState } from "react";
 import type { Quest } from "../../../server/src/agent/quest";
+import { t, useT } from "../i18n";
+import type { TranslationKey } from "../i18n/en";
 import {
-  QUEST_SOURCE_LABELS,
   questCurrentStep,
   questProgressText,
+  questSourceLabel,
 } from "../world/agentQuests";
 import "./QuestLog.css";
 
@@ -14,18 +16,27 @@ const STEP_MARKS: Record<Quest["steps"][number]["status"], string> = {
   pending: "·",
 };
 
-const STATUS_WORDS: Record<Quest["status"], string> = {
-  active: "In progress",
-  done: "Complete",
-  blocked: "Blocked",
-  paused: "Paused",
-};
+const STATUS_KEYS = {
+  active: "quest.statusActive",
+  done: "quest.statusDone",
+  blocked: "quest.statusBlocked",
+  paused: "quest.statusPaused",
+} as const satisfies Record<Quest["status"], TranslationKey>;
 
 /** Where the quest came from, in the harness's own words. */
 function questOrigin(quest: Quest) {
-  const parts = [`${QUEST_SOURCE_LABELS[quest.source]} from ${quest.tool}`];
+  const parts = [
+    t("quest.originFrom", {
+      source: questSourceLabel(quest.source),
+      tool: quest.tool,
+    }),
+  ];
   if (quest.helpers)
-    parts.push(`${quest.helpers} helper${quest.helpers === 1 ? "" : "s"}`);
+    parts.push(
+      quest.helpers === 1
+        ? t("quest.helpersOne")
+        : t("quest.helpersMany", { count: quest.helpers }),
+    );
   return parts.join(" · ");
 }
 
@@ -34,12 +45,20 @@ function questOrigin(quest: Quest) {
  * or the quest's kind. Its title names the quest and the current step.
  */
 export function QuestChip({ quest }: { quest: Quest }) {
+  const t = useT();
   const step = questCurrentStep(quest);
   return (
     <span
       className={`quest-chip is-${quest.status}`}
-      title={`${quest.title}${step ? ` · now: ${step.text}` : ""} (${STATUS_WORDS[quest.status]})`}
-      aria-label={`Quest ${questProgressText(quest)}: ${quest.title}`}
+      title={t("quest.chipTitle", {
+        title: quest.title,
+        step: step?.text ?? "",
+        status: t(STATUS_KEYS[quest.status]),
+      })}
+      aria-label={t("quest.chipAria", {
+        progress: questProgressText(quest),
+        title: quest.title,
+      })}
       data-quest-source={quest.source}
     >
       <span aria-hidden="true">⚑</span>
@@ -60,6 +79,7 @@ export function QuestLog({
   quest: Quest | null | undefined;
   compact?: boolean;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(!compact);
   if (!quest) return null;
   const { done, total } = quest.progress;
@@ -67,7 +87,7 @@ export function QuestLog({
   return (
     <section
       className={`quest-log is-${quest.status}${compact ? " is-compact" : ""}`}
-      aria-label="Quest"
+      aria-label={t("quest.logAria")}
       data-quest-source={quest.source}
     >
       <button
@@ -89,7 +109,7 @@ export function QuestLog({
           aria-valuemin={0}
           aria-valuemax={total}
           aria-valuenow={done}
-          aria-label={`${done} of ${total} objectives done`}
+          aria-label={t("quest.progressAria", { done, total })}
         >
           <span style={{ width: `${percent}%` }} />
         </div>
@@ -109,7 +129,7 @@ export function QuestLog({
             </ol>
           ) : null}
           <p className="quest-log-meta">
-            {STATUS_WORDS[quest.status]} · {questOrigin(quest)}
+            {t(STATUS_KEYS[quest.status])} · {questOrigin(quest)}
           </p>
         </>
       ) : null}

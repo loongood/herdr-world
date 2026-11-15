@@ -1,3 +1,4 @@
+import { useT } from "../../../i18n";
 import { formatUiDateTime } from "../../../uiLocale";
 import { HISTORY_PREVIEW_CHARS } from "../../AgentHistoryCard";
 import "./command.css";
@@ -18,6 +19,7 @@ export function CommandReceipt({
   detail?: string;
   onDismiss?: () => void;
 }) {
+  const t = useT();
   return (
     <div
       className="agent-chat-command-receipt"
@@ -26,14 +28,16 @@ export function CommandReceipt({
     >
       <code>{text.slice(0, HISTORY_PREVIEW_CHARS)}</code>
       <span>
-        {observed ? "seen in the transcript" : (waiting ?? "sent, not checked")}
+        {observed
+          ? t("chat.seenInTranscript")
+          : (waiting ?? t("chat.sentNotChecked"))}
       </span>
       <time dateTime={at} title={at}>
         {formatUiDateTime(at)}
       </time>
       {onDismiss ? (
         <button type="button" onClick={onDismiss}>
-          Dismiss
+          {t("chat.dismiss")}
         </button>
       ) : null}
     </div>

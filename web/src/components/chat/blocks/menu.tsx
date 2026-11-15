@@ -1,5 +1,6 @@
 import { SquareTerminal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "../../../i18n";
 import type { PendingPrompt } from "../types";
 import "./ask.css";
 
@@ -39,6 +40,7 @@ export function MenuCard({
   onOpenTerminal?: () => void;
 }) {
   const { menu } = prompt;
+  const t = useT();
   const [text, setText] = useState("");
   // A draft belongs to the field it was typed for.
   useEffect(() => setText(""), [prompt.fingerprint]);
@@ -95,7 +97,7 @@ export function MenuCard({
     <section
       ref={cardRef}
       className="agent-chat-ask agent-chat-menu"
-      aria-label={`${agent} menu`}
+      aria-label={t("chat.menuAria", { agent })}
       // Keys reach the menu only while this card has focus, and a held key
       // repeats nothing.
       tabIndex={0}
@@ -138,18 +140,18 @@ export function MenuCard({
           }}
         >
           <label>
-            Field shows <q>{menu.field}</q>
+            {t("chat.fieldShows")} <q>{menu.field}</q>
             <input
               type="text"
               value={text}
               maxLength={500}
               disabled={pressing}
-              placeholder="Text to type into it"
+              placeholder={t("chat.fieldPlaceholder")}
               onChange={(event) => setText(event.target.value)}
             />
           </label>
           <button type="submit" disabled={pressing || !text}>
-            Type
+            {t("chat.typeButton")}
           </button>
         </form>
       ) : null}
@@ -157,7 +159,7 @@ export function MenuCard({
         <div
           className="agent-chat-ask-options"
           role="group"
-          aria-label="Options"
+          aria-label={t("chat.optionsAria")}
         >
           {prompt.options.map((option) => (
             <button
@@ -168,8 +170,8 @@ export function MenuCard({
               disabled={pressing || !option.key}
               title={
                 option.key
-                  ? `Press ${option.key}`
-                  : "Move the cursor here with ↑ and ↓"
+                  ? t("chat.pressKey", { key: option.key })
+                  : t("chat.cursorHereNote")
               }
               onClick={() => press(option.key)}
             >
@@ -187,7 +189,11 @@ export function MenuCard({
       {menu.after.map((line, index) => (
         <p key={index}>{line}</p>
       ))}
-      <div className="agent-chat-menu-keys" role="group" aria-label="Menu keys">
+      <div
+        className="agent-chat-menu-keys"
+        role="group"
+        aria-label={t("chat.menuKeysAria")}
+      >
         {menu.controls.map((control) => (
           <button
             key={control.key}
@@ -201,13 +207,10 @@ export function MenuCard({
         ))}
       </div>
       <p className="agent-chat-ask-fine">
-        Read from {agent}'s screen: <q>{menu.footer}</q>. Chat checks this menu
-        again before each key, but Herdr cannot hold it still: if it changes in
-        that instant, the key reaches what replaced it. With this card focused,
-        its keys work too.{" "}
+        {t("chat.menuNote", { agent, footer: menu.footer })}{" "}
         {onOpenTerminal ? (
           <button type="button" onClick={onOpenTerminal}>
-            <SquareTerminal size={13} /> Terminal
+            <SquareTerminal size={13} /> {t("chat.terminalButton")}
           </button>
         ) : null}
       </p>

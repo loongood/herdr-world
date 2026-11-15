@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useT } from "../../../i18n";
 import "./steps.css";
 
 // Mirrors server/src/agent/conversation-steps.ts.
@@ -46,6 +47,7 @@ export const StepRowEvidence = memo(function StepRowEvidence({
 }: {
   step: ConversationStep;
 }) {
+  const t = useT();
   const took = duration(step);
   return (
     <>
@@ -54,8 +56,8 @@ export const StepRowEvidence = memo(function StepRowEvidence({
           className={`agent-chat-step-badge ${step.test.failed ? "is-red" : "is-green"}`}
         >
           {step.test.failed
-            ? `${step.test.failed} failed`
-            : `${step.test.passed} passed`}
+            ? t("chat.testFailed", { count: step.test.failed })
+            : t("chat.testPassed", { count: step.test.passed })}
         </span>
       ) : null}
       {took ? <span className="agent-chat-step-time">{took}</span> : null}
@@ -73,6 +75,7 @@ export const StepDetailEvidence = memo(function StepDetailEvidence({
 }: {
   step: ConversationStep;
 }) {
+  const t = useT();
   if (!step.diff && !step.test) return null;
   return (
     <div className="agent-chat-step-body">
@@ -81,8 +84,10 @@ export const StepDetailEvidence = memo(function StepDetailEvidence({
           className={`agent-chat-step-strip ${step.test.failed ? "is-red" : "is-green"}`}
         >
           <span>
-            {step.test.failed ? "✗" : "✓"} {step.test.passed} passed
-            {step.test.failed ? ` · ${step.test.failed} failed` : ""}
+            {step.test.failed ? "✗" : "✓"}{" "}
+            {step.test.failed
+              ? `${t("chat.testPassed", { count: step.test.passed })}${t("chat.testStripTail", { count: step.test.failed })}`
+              : t("chat.testPassed", { count: step.test.passed })}
           </span>
           <span className="agent-chat-step-bar" aria-hidden="true">
             <i
@@ -99,7 +104,7 @@ export const StepDetailEvidence = memo(function StepDetailEvidence({
       {step.diff ? (
         <pre
           className="agent-chat-step-diff"
-          aria-label={`Changes to ${step.diff.file}`}
+          aria-label={t("chat.changesToAria", { file: step.diff.file })}
         >
           <span className="is-head">{step.diff.file}</span>
           {step.diff.removed.map((line, index) => (
@@ -114,8 +119,9 @@ export const StepDetailEvidence = memo(function StepDetailEvidence({
           ))}
           {step.diff.truncated ? (
             <span className="is-head">
-              … {step.diff.omitted} more{" "}
-              {step.diff.omitted === 1 ? "line" : "lines"}; see Changes
+              {step.diff.omitted === 1
+                ? t("chat.moreLinesOne")
+                : t("chat.moreLines", { count: step.diff.omitted })}
             </span>
           ) : null}
         </pre>

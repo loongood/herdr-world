@@ -4,6 +4,7 @@ import {
   mobileTerminalShortcutOption,
   type MobileTerminalShortcut,
 } from "../../mobileTerminalShortcuts";
+import { useT } from "../../i18n";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { chatKeyName } from "./chatKeys";
 
@@ -24,6 +25,7 @@ export function ChatComposerTools({
   onRunShortcut?: (shortcut: MobileTerminalShortcut) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const t = useT();
   // The popover renders outside the window, so it takes the Town skin of
   // the window its button is in.
   const [town, setTown] = useState(false);
@@ -40,8 +42,8 @@ export function ChatComposerTools({
           }
           type="button"
           className="terminal-composer-more"
-          aria-label="More composer controls"
-          title="More composer controls"
+          aria-label={t("chat.moreTools")}
+          title={t("chat.moreTools")}
           disabled={disabled}
         >
           <EllipsisVertical size={18} aria-hidden="true" />
@@ -51,7 +53,7 @@ export function ChatComposerTools({
         className={`chat-composer-tools-popover${
           town ? " is-town-skin town-skin-portal theme-scope-dark" : ""
         }`}
-        aria-label="Composer controls"
+        aria-label={t("chat.composerControlsAria")}
         side="top"
         align="end"
         sideOffset={6}
@@ -64,11 +66,15 @@ export function ChatComposerTools({
           }}
           disabled={!commandsAvailable}
         >
-          Browse commands <kbd>/</kbd>
+          {t("chat.browseCommands")} <kbd>/</kbd>
         </button>
         {keys.length ? (
           // The popover stays open so a menu can be walked key by key.
-          <div className="chat-composer-keys" role="group" aria-label="Keys">
+          <div
+            className="chat-composer-keys"
+            role="group"
+            aria-label={t("chat.keysAria")}
+          >
             {keys.map((row, rowIndex) => (
               <div className="chat-composer-key-row" key={rowIndex}>
                 {row.map((shortcut, slot) => {
@@ -81,11 +87,11 @@ export function ChatComposerTools({
                     <button
                       key={shortcut.id}
                       type="button"
-                      aria-label={`Press ${label}`}
+                      aria-label={t("chat.pressKey", { key: label })}
                       title={
                         pressable
-                          ? `Press ${label} in the agent's terminal`
-                          : `Chat cannot press ${label}; use the Terminal`
+                          ? t("chat.pressKeyInTerminal", { label })
+                          : t("chat.cannotPress", { label })
                       }
                       disabled={!pressable}
                       onClick={() => onRunShortcut!(shortcut)}

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
+import { useT } from "../../../i18n";
 import { elapsed } from "./now";
-import { AskCard, UNCONFIRMED } from "./ask";
+import { AskCard, UNCONFIRMED_KEYS } from "./ask";
 import { MenuCard } from "./menu";
 import { TrustCard } from "./trust";
 import type { AnswerResult, PendingPrompt, TrustChoice } from "../types";
@@ -51,6 +52,7 @@ export function ChatAfterBlocks({
   onTrust?: (choice: TrustChoice) => void;
   renderPromptMessage?: (message: ReactNode) => ReactNode;
 }) {
+  const t = useT();
   return (
     <>
       {running ? (
@@ -70,7 +72,7 @@ export function ChatAfterBlocks({
       ) : null}
       {answered ? (
         <p className="agent-chat-answered" role="status">
-          {answered.acknowledged ? "You answered" : "Sent"}{" "}
+          {answered.acknowledged ? t("chat.youAnswered") : t("chat.sent")}{" "}
           <b>
             {answered.number} · {answered.label}
           </b>
@@ -82,7 +84,11 @@ export function ChatAfterBlocks({
           ) : null}
           {answered.acknowledged
             ? null
-            : ` · ${UNCONFIRMED[answered.unconfirmed_reason ?? "still_showing"]}`}
+            : ` · ${t(
+                UNCONFIRMED_KEYS[
+                  answered.unconfirmed_reason ?? "still_showing"
+                ],
+              )}`}
           <span className="agent-chat-answered-question">
             {answered.question.join(" ")}
           </span>
@@ -92,15 +98,12 @@ export function ChatAfterBlocks({
         <div
           className="agent-chat-ask agent-chat-menu"
           role="status"
-          aria-label="Terminal too small"
+          aria-label={t("chat.tooSmallAria")}
         >
-          <p>
-            The terminal is too small to show this menu — open or click Terminal
-            to fix.
-          </p>
+          <p>{t("chat.tooSmallBody")}</p>
           {onOpenTerminal ? (
             <button type="button" onClick={onOpenTerminal}>
-              Open Terminal
+              {t("chat.openTerminal")}
             </button>
           ) : null}
         </div>
@@ -146,7 +149,7 @@ export function ChatAfterBlocks({
           {notice}{" "}
           {onOpenTerminal ? (
             <button type="button" onClick={onOpenTerminal}>
-              Open Terminal
+              {t("chat.openTerminal")}
             </button>
           ) : null}
         </p>
