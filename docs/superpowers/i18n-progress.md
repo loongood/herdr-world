@@ -7,8 +7,8 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`a14cdbee`(批次 31e 第 3 部分,待推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **4185** 键,0 占位符不匹配
+- 最新提交:`4dba95e5`(批次 32,待推送)
+- 词典规模:en / zh-Hans / zh-Hant 各 **4204** 键,0 占位符不匹配
 - 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
@@ -63,6 +63,9 @@
 - 键帽与键盘表示:mobileTerminalShortcuts.ts 的 label(参与 `===` 等值比较,
   改动破坏行为)、SHORTCUT_PLATFORMS 值(macOS/Windows/Linux)、Ctrl+Alt+K 等键帽
 - git 记法 `path (status)`;命令面板搜索关键词保留英文(英文查询可命中)
+- 终端内置主题名(Solarized/Dracula/Nord/Tokyo Night/Catppuccin/GitHub Dark/
+  One Dark 等)属外部主题专名,保持英文;只有"自定义主题"默认名走 i18n
+- `web/src/world/browserInput.worker.ts` 无用户可见文案(仅内部协议字段),不翻译
 - 注意:shortcutCatalog 搜索用**译文**(匹配显示文本,当前语言自然可搜)——与命令面板不同
 
 ## 关键教训
@@ -147,45 +150,31 @@
 | 31e-1 | `7a538d59` | world 目录第 1 部分:AgentLauncherDialog、HarnessReadinessSummary、TerminalAppearanceEditor/Button、SpacesTerminalAppearance、WorldControlPlane(部分)、TraceOverlay、ConnectionRecoveryBanner、DeskView、DeskOtherHosts |
 | 31e-2 | `f1e8906c` | town 目录:新增 town4(16 键)/town5(10 键)、town.counts 子域、dragMoveToDesk 占位符修正;23 个 town 文件 + BoardView/board/BoardLenses(最小修复);新增 townLensLabels.ts(透镜名/提示类型化映射) |
 | 31e-3 | `a14cdbee` | board/windows 及 world 剩余:BoardFacts、BoardHub、BoardPeek、WorkLens、boardFactsText(新增 `Translate` 类型 + `tr` 参数)、workLensModel(新增 LANE_KEYS 映射)、WindowFrame、WindowSurface、WindowSwitcher、WorldPanel;world 顶层 10 个文件;新增 board.facts.summaryCounts 与 wordBusy/wordWaiting/wordDone/wordQuiet |
+| 31e-4 | `b292449a` | WorldInspectorConversation 的聊天等待提示(新增 world.chatWaitLabel/chatWaitLongerLabel/chatWaitDetail/chatWaitStay) |
+| 32 | `4dba95e5` | assistant.ts 15 条 Ranger 桥接错误(新增 assistant.errors 域)+ terminalThemes.ts 自定义主题默认名(复用 terminal.defaultCustomThemeName);内置主题名保持英文 |
 
 ---
 
 ## 待完成(按顺序执行;完成一批更新本文件一次)
 
-### 批次 31e(续):world 目录剩余文案
+### 批次 31e(续):world 目录剩余文案 —— **已完成**
 
-已完成:AgentLauncherDialog、HarnessReadinessSummary、TerminalAppearanceEditor/
-Button、SpacesTerminalAppearance、TraceOverlay、ConnectionRecoveryBanner、
-DeskView、DeskOtherHosts(31e-1);town 目录全部(31e-2)。
+31e-1 ~ 31e-4 全部完成(见上方已完成表)。
 
-剩余:
-- world/windows/WorldPanel.tsx(title="Drag to move" → 已有 common.dragToMove)
-- world/WorldControlPlane.tsx(Close Inspector 标题与消息、"Tab close failed"、
-  "World context"、第 491 行 `${view} view`、"Loading view…/Loading Town…/
-  Loading Board…")
-- world/board/(BoardFacts、BoardHub、BoardPeek、WorkLens)、
-  world/windows/(WindowFrame、WindowSwitcher)
-- world/(WorldSearchResults、WorldIntentProfile、WorldNavigator、WorldViewPicker、
-  WorldViewToolbar、WorldMobileNav、WorldFoundationApp、WorldStatus、
-  WorldInspectorConversation、WorldViewErrorBoundary、NeedsYouItem)
-- 6 处 `Tab \${tab.number}`:paneJump.ts:215、store/sessions.ts:328、
-  world/officeAgent.ts:71、world/SpacesTerminalAppearance.tsx:70、
-  world/useSpacesTabWindowArrangement.tsx:72 与 :261 —— 可复用既有
-  `shell.tabName`("Tab {number}")
-- `views` 域需新增 `back: "Back to {view}"`
-注意:`*.browser.ts(x)` 里的 `[aria-label="..."]` 选择器必须与 en 词典值逐字一致;
-已确认无需改动:LazyFilePreviewContent.tsx(已 useT 化)、
-components/ui/command.tsx(仅 displayName)、components/GlobalTooltip.tsx。
+### 批次 32:散点常量文件 —— **已完成**
 
-### 批次 32:散点常量文件
+assistant.ts(15 条)、terminalThemes.ts 已完成;browserInput.worker.ts **无需翻译**
+(经读文件确认:只有内部协议字段,无用户可见文案)。
 
-assistant.ts(15 条)、terminalThemes.ts(16 条,注意主题名是否属专名需逐条判断)、
-browserInput.worker(14 条)。
+### 批次 33:联动切换(当前)
 
-### 批次 33:联动切换
+AgentLauncherDialog + HarnessReadinessSummary + BoardView。重新 grep 确认:
+AgentLauncherDialog、HarnessReadinessSummary 已全部翻译(31e-1),
+故本批**仅剩 `web/src/world/BoardView.tsx`**(4898 行,约 100 条残余英文)。
 
-AgentLauncherDialog + HarnessReadinessSummary + BoardView(30c 前扫描确认仍含
-英文字面量,一次性切换;执行前重新 grep 确认残余量)。
+方案:新增顶层 `boardView` 域承载全部新键(便于审计),尽量复用既有键
+(`common.cancel`、`common.close`、`world.colourOf`、`chat.theAgentSentence`、
+`shell.tabName` 等)。en 值需与浏览器用例的 `[aria-label="..."]` 选择器逐字一致。
 
 ### 阶段 3(远期):服务端消息
 
