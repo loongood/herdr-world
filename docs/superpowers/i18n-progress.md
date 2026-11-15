@@ -7,7 +7,7 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`b416fb96`(进度跟踪文件,已推送)
+- 最新提交:`7741061c`(批次 31a,已推送)
 - 词典规模:en / zh-Hans / zh-Hant 各 **3352** 键,0 占位符不匹配
 - 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
@@ -121,7 +121,7 @@
 | 30b | `20cd4de3` | outbox 49/wsRows 38/gitHistory 35 键 + AnswerDeliveries、WorkspaceRows、WorkspaceAgentRows、GitCommitHistory |
 | 30c | `dd06dfce` | shortcuts 121 键 + shortcutCatalog 键化重写、shortcutCheatSheet、ShortcutCheatSheet、ShortcutLookupDialog |
 | 30d | `2aec6ccd` | shortcuts 20 键(绑定校验错误、保留组合警告、预设校验错误、存储/离线通知、导入错误)+ shortcutBindings、shortcutPreferences 两文件模块级 t 化 |
-| 31a | (本次) | 新增 common(11 键)+ toasts(12 键)域与 interest.saveFailed;CloseButton 默认 label、ModalDialogs(保存/取消/确认/确定)、ThemedSelect 空态、UpdateToast、StaleBuildToast、AppToasts、AgentInterestButton |
+| 31a | `7741061c` | 新增 common(11 键)+ toasts(12 键)域与 interest.saveFailed;CloseButton 默认 label、ModalDialogs(保存/取消/确认/确定)、ThemedSelect 空态、UpdateToast、StaleBuildToast、AppToasts、AgentInterestButton |
 
 ---
 
