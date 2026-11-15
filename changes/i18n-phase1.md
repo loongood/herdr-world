@@ -79,7 +79,13 @@
   new-agent buttons, the inspector and annotations toggles, agent status
   markers, and the shared tab-name helper that the mobile surfaces reuse;
   the tab-pins module now serves its block reasons through the same
-  dictionary. The built-in slash-command catalog
+  dictionary. The command palette follows as well: its trigger button,
+  search box and empty state, grouped actions (current workspace, files,
+  workspaces, worktrees, tabs, panes, agents, window arrangement and
+  help), the rename-workspace/rename-tab/new-worktree dialogs, the
+  close and remove-worktree confirmations, and the stale-selection
+  notice — the palette's search keywords stay English so English
+  queries keep matching. The built-in slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
   Remaining surfaces keep English

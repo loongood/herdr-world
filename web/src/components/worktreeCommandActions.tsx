@@ -1,4 +1,5 @@
 import { FolderOpen, GitBranch, GitCommitHorizontal, X } from "lucide-react";
+import { t } from "../i18n";
 import type { Workspace } from "../types";
 import type { ActionDefinition } from "./CommandCombobox";
 
@@ -23,7 +24,7 @@ export function worktreeCommandActions(
     {
       key: "current-open-worktree",
       icon: <FolderOpen size={15} />,
-      title: "Open worktree",
+      title: t("commands.openWorktree"),
       detail: workspaceName(workspace),
       keywords: ["existing worktree", "open existing", "checkout", "branch"],
       run: () => open.worktree(workspace.workspace_id),
@@ -31,7 +32,7 @@ export function worktreeCommandActions(
     {
       key: "current-worktree-location",
       icon: <FolderOpen size={15} />,
-      title: "Worktree location",
+      title: t("commands.worktreeLocation"),
       detail: workspaceName(workspace),
       keywords: [
         "worktree directory",
@@ -48,7 +49,7 @@ export function worktreeCommandActions(
     {
       key: "current-worktree-lifecycle",
       icon: <GitCommitHorizontal size={15} />,
-      title: "Open worktree lifecycle",
+      title: t("commands.openWorktreeLifecycle"),
       detail: worktree.repo_name,
       keywords: [
         "worktree center",
@@ -62,7 +63,7 @@ export function worktreeCommandActions(
     {
       key: "current-worktree-hooks",
       icon: <GitBranch size={15} />,
-      title: "Worktree hooks",
+      title: t("commands.worktreeHooks"),
       detail: worktree.repo_name,
       keywords: ["hook config", "hooks config", "paseo", "setup teardown"],
       run: () => open.hooks(workspace.workspace_id),
@@ -72,7 +73,7 @@ export function worktreeCommandActions(
     actions.push({
       key: "current-remove-worktree",
       icon: <X size={15} />,
-      title: "Remove worktree",
+      title: t("commands.removeWorktree"),
       detail: worktree.checkout_path,
       keywords: [
         "delete worktree",

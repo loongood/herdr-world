@@ -1,5 +1,6 @@
 import { useCreationProgress } from "../creationRequests";
 import { paneAgentListing, paneAgentTitle } from "../agentName";
+import { t, useT } from "../i18n";
 import { useCloseGlobalMenuForDialog } from "./useCloseGlobalMenuForDialog";
 import {
   ArrowDown,
@@ -117,7 +118,7 @@ function tabName(tab?: Tab) {
   if (!tab) return "";
   return tab.label && tab.label !== String(tab.number)
     ? tab.label
-    : `Tab ${tab.number}`;
+    : t("shell.tabName", { number: tab.number });
 }
 
 function workspaceName(workspace?: Workspace) {
@@ -278,6 +279,7 @@ function OwnedCommandCombobox({
   extension?: CommandExtension;
   onShowShortcuts?: () => void;
 }) {
+  const t = useT();
   useCreationProgress();
   const store = useOperationalStore();
   useShortcutPreferences();
@@ -470,25 +472,25 @@ function OwnedCommandCombobox({
   const textDialogProps =
     textAction?.type === "rename-workspace"
       ? {
-          title: "Rename Workspace",
-          label: "Name",
+          title: t("commands.renameWorkspaceTitle"),
+          label: t("tabbar.renameNameLabel"),
           initialValue: workspaceName(textAction.workspace),
-          submitLabel: "Rename",
+          submitLabel: t("tabbar.renameAction"),
         }
       : textAction?.type === "rename-tab"
         ? {
-            title: "Rename Tab",
-            label: "Name",
+            title: t("tabbar.renameTabTitle"),
+            label: t("tabbar.renameNameLabel"),
             initialValue: tabName(textAction.tab),
-            submitLabel: "Rename",
+            submitLabel: t("tabbar.renameAction"),
           }
         : textAction?.type === "create-worktree"
           ? {
-              title: "New Worktree",
-              label: "Branch",
+              title: t("commands.newWorktreeTitle"),
+              label: t("commands.branchLabel"),
               initialValue: luckyWorktreeBranchName,
-              placeholder: "my-branch",
-              submitLabel: "Create",
+              placeholder: t("commands.branchPlaceholder"),
+              submitLabel: t("commands.createAction"),
             }
           : null;
 
@@ -504,7 +506,7 @@ function OwnedCommandCombobox({
     currentActions.push({
       key: "current-new-worktree",
       icon: <GitBranch size={15} />,
-      title: "New worktree",
+      title: t("commands.newWorktree"),
       detail:
         focusedWorktreeSource.worktree?.checkout_path ??
         workspaceName(focusedWorktreeSource),
@@ -527,7 +529,7 @@ function OwnedCommandCombobox({
     currentActions.push({
       key: "current-file-explorer",
       icon: <FolderOpen size={15} />,
-      title: "Open file explorer",
+      title: t("commands.openFileExplorer"),
       detail:
         focusedWorkspace.worktree?.checkout_path ??
         focusedWorkspace.cwd ??
@@ -544,7 +546,7 @@ function OwnedCommandCombobox({
     currentActions.push({
       key: "current-diff-viewer",
       icon: <FileDiff size={15} />,
-      title: "Open Diff Viewer",
+      title: t("commands.openDiffViewer"),
       detail:
         focusedWorkspace.worktree?.checkout_path ??
         focusedWorkspace.cwd ??
@@ -575,7 +577,7 @@ function OwnedCommandCombobox({
     currentActions.push({
       key: "current-create-tab",
       icon: <PanelTop size={15} />,
-      title: "Create tab",
+      title: t("commands.createTab"),
       detail: workspaceName(focusedWorkspace),
       keywords: ["new tab", "add tab", "open tab"],
       disabledReason: endpointCreationReason(
@@ -590,7 +592,7 @@ function OwnedCommandCombobox({
     currentActions.push({
       key: "current-toggle-pane-zoom",
       icon: <Maximize2 size={15} />,
-      title: "Toggle pane zoom",
+      title: t("commands.togglePaneZoom"),
       detail: shortId(activePane.pane_id),
       keywords: ["maximize pane", "unmaximize pane", "zoom pane", "full pane"],
       run: () => store.zoomPane(activePane.pane_id),
@@ -604,7 +606,7 @@ function OwnedCommandCombobox({
           {
             key: `quick-open-path-${focusedWorkspace.workspace_id}-${directPathQuery}`,
             icon: <FileText size={15} />,
-            title: `Open path: ${pathLeaf(directPathQuery)}`,
+            title: t("commands.openPath", { path: pathLeaf(directPathQuery) }),
             detail: directPathQuery,
             keywords: [
               "quick open",
@@ -632,8 +634,8 @@ function OwnedCommandCombobox({
     {
       key: "create-workspace",
       icon: <FolderPlus size={15} />,
-      title: "Create workspace",
-      detail: "Open a new Herdr workspace",
+      title: t("commands.createWorkspace"),
+      detail: t("commands.createWorkspaceDetail"),
       keywords: ["new workspace", "add workspace", "open workspace"],
       run: () => setCreateWorkspaceOpen(true),
     },
@@ -642,7 +644,7 @@ function OwnedCommandCombobox({
           {
             key: "rename-workspace",
             icon: <PanelTop size={15} />,
-            title: "Rename workspace",
+            title: t("commands.renameWorkspace"),
             detail: workspaceName(focusedWorkspace),
             keywords: ["edit workspace", "workspace name"],
             run: () =>
@@ -654,7 +656,7 @@ function OwnedCommandCombobox({
           {
             key: "close-workspace",
             icon: <X size={15} />,
-            title: "Close workspace",
+            title: t("commands.closeWorkspace"),
             detail: workspaceName(focusedWorkspace),
             keywords: [
               "delete workspace",
@@ -669,7 +671,7 @@ function OwnedCommandCombobox({
     ...otherWorkspaces.map((workspace) => ({
       key: `focus-workspace-${workspace.workspace_id}`,
       icon: <PanelTop size={15} />,
-      title: `Focus workspace: ${workspaceName(workspace)}`,
+      title: t("commands.focusWorkspace", { name: workspaceName(workspace) }),
       detail: workspace.workspace_id,
       keywords: [
         "switch workspace",
@@ -691,7 +693,7 @@ function OwnedCommandCombobox({
       title:
         workspace.workspace_id === focusedWorkspace?.workspace_id
           ? "New worktree"
-          : `New worktree: ${workspaceName(workspace)}`,
+          : t("commands.newWorktreeFor", { name: workspaceName(workspace) }),
       detail: workspace.worktree?.checkout_path,
       keywords: [
         "create worktree",
@@ -719,7 +721,7 @@ function OwnedCommandCombobox({
       title:
         workspace.workspace_id === focusedWorkspace?.workspace_id
           ? "Open worktree"
-          : `Open worktree: ${workspaceName(workspace)}`,
+          : t("commands.openWorktreeFor", { name: workspaceName(workspace) }),
       detail: workspace.worktree?.checkout_path,
       keywords: [
         "existing worktree",
@@ -737,7 +739,7 @@ function OwnedCommandCombobox({
       title:
         workspace.workspace_id === focusedWorkspace?.workspace_id
           ? "Worktree hooks"
-          : `Worktree hooks: ${workspaceName(workspace)}`,
+          : t("commands.worktreeHooksFor", { name: workspaceName(workspace) }),
       detail: workspace.worktree?.repo_name,
       keywords: [
         "hook config",
@@ -754,7 +756,7 @@ function OwnedCommandCombobox({
     tabActions.push({
       key: "create-tab",
       icon: <PanelTop size={15} />,
-      title: "Create tab",
+      title: t("commands.createTab"),
       detail: workspaceName(focusedWorkspace),
       keywords: ["new tab", "add tab", "open tab"],
       disabledReason: endpointCreationReason(
@@ -768,7 +770,7 @@ function OwnedCommandCombobox({
       tabActions.push({
         key: `create-tab-${workspace.workspace_id}`,
         icon: <PanelTop size={15} />,
-        title: `Create tab: ${workspaceName(workspace)}`,
+        title: t("commands.createTabFor", { name: workspaceName(workspace) }),
         detail: workspace.workspace_id,
         keywords: ["new tab", "add tab", "open tab", workspaceName(workspace)],
         disabledReason: endpointCreationReason(
@@ -785,7 +787,7 @@ function OwnedCommandCombobox({
       {
         key: "rename-tab",
         icon: <PanelTop size={15} />,
-        title: "Rename tab",
+        title: t("commands.renameTab"),
         detail: tabName(activeTab),
         keywords: ["edit tab", "tab name"],
         run: () => setTextAction({ type: "rename-tab", tab: activeTab }),
@@ -793,7 +795,7 @@ function OwnedCommandCombobox({
       {
         key: "close-active-tab",
         icon: <X size={15} />,
-        title: "Close active tab",
+        title: t("commands.closeActiveTab"),
         detail: tabName(activeTab),
         keywords: ["delete tab", "remove tab"],
         danger: true,
@@ -808,7 +810,7 @@ function OwnedCommandCombobox({
     tabActions.push({
       key: `focus-tab-${tab.tab_id}`,
       icon: <PanelTop size={15} />,
-      title: `Focus tab: ${tabName(tab)}`,
+      title: t("commands.focusTab", { name: tabName(tab) }),
       detail: tab.tab_id,
       keywords: ["switch tab", "open tab", "go tab", tabName(tab)],
       run: () =>
@@ -823,7 +825,7 @@ function OwnedCommandCombobox({
     tabActions.push({
       key: `close-tab-${tab.tab_id}`,
       icon: <X size={15} />,
-      title: `Close tab: ${tabName(tab)}`,
+      title: t("commands.closeTabFor", { name: tabName(tab) }),
       detail: tab.tab_id,
       keywords: ["delete tab", "remove tab", tabName(tab)],
       danger: true,
@@ -838,7 +840,7 @@ function OwnedCommandCombobox({
         {
           key: "focus-pane-left",
           icon: <ArrowLeft size={15} />,
-          title: "Focus pane left",
+          title: t("commands.focusPaneLeft"),
           detail: shortId(activePane.pane_id),
           keywords: ["switch pane left", "select pane left"],
           run: () => store.focusPaneDirection(activePane.pane_id, "left"),
@@ -846,7 +848,7 @@ function OwnedCommandCombobox({
         {
           key: "focus-pane-right",
           icon: <ArrowRight size={15} />,
-          title: "Focus pane right",
+          title: t("commands.focusPaneRight"),
           detail: shortId(activePane.pane_id),
           keywords: ["switch pane right", "select pane right"],
           run: () => store.focusPaneDirection(activePane.pane_id, "right"),
@@ -854,7 +856,7 @@ function OwnedCommandCombobox({
         {
           key: "focus-pane-up",
           icon: <ArrowUp size={15} />,
-          title: "Focus pane up",
+          title: t("commands.focusPaneUp"),
           detail: shortId(activePane.pane_id),
           keywords: ["switch pane up", "select pane up"],
           run: () => store.focusPaneDirection(activePane.pane_id, "up"),
@@ -862,7 +864,7 @@ function OwnedCommandCombobox({
         {
           key: "focus-pane-down",
           icon: <ArrowDown size={15} />,
-          title: "Focus pane down",
+          title: t("commands.focusPaneDown"),
           detail: shortId(activePane.pane_id),
           keywords: ["switch pane down", "select pane down"],
           run: () => store.focusPaneDirection(activePane.pane_id, "down"),
@@ -870,7 +872,7 @@ function OwnedCommandCombobox({
         {
           key: "split-pane-right",
           icon: <SplitSquareHorizontal size={15} />,
-          title: "Split pane right",
+          title: t("commands.splitPaneRight"),
           detail: shortId(activePane.pane_id),
           keywords: ["new pane right", "create pane right", "vertical split"],
           run: () => store.splitPane(activePane.pane_id, "right"),
@@ -878,7 +880,7 @@ function OwnedCommandCombobox({
         {
           key: "split-pane-down",
           icon: <SplitSquareVertical size={15} />,
-          title: "Split pane down",
+          title: t("commands.splitPaneDown"),
           detail: shortId(activePane.pane_id),
           keywords: ["new pane down", "create pane down", "horizontal split"],
           run: () => store.splitPane(activePane.pane_id, "down"),
@@ -886,7 +888,7 @@ function OwnedCommandCombobox({
         {
           key: "move-pane-left",
           icon: <MoveLeft size={15} />,
-          title: "Move pane left",
+          title: t("commands.movePaneLeft"),
           detail: shortId(activePane.pane_id),
           keywords: ["swap pane left", "rearrange pane"],
           run: () => store.movePane(activePane.pane_id, "left"),
@@ -894,7 +896,7 @@ function OwnedCommandCombobox({
         {
           key: "move-pane-right",
           icon: <MoveRight size={15} />,
-          title: "Move pane right",
+          title: t("commands.movePaneRight"),
           detail: shortId(activePane.pane_id),
           keywords: ["swap pane right", "rearrange pane"],
           run: () => store.movePane(activePane.pane_id, "right"),
@@ -902,7 +904,7 @@ function OwnedCommandCombobox({
         {
           key: "move-pane-up",
           icon: <MoveUp size={15} />,
-          title: "Move pane up",
+          title: t("commands.movePaneUp"),
           detail: shortId(activePane.pane_id),
           keywords: ["swap pane up", "rearrange pane"],
           run: () => store.movePane(activePane.pane_id, "up"),
@@ -910,7 +912,7 @@ function OwnedCommandCombobox({
         {
           key: "move-pane-down",
           icon: <MoveDown size={15} />,
-          title: "Move pane down",
+          title: t("commands.movePaneDown"),
           detail: shortId(activePane.pane_id),
           keywords: ["swap pane down", "rearrange pane"],
           run: () => store.movePane(activePane.pane_id, "down"),
@@ -918,7 +920,7 @@ function OwnedCommandCombobox({
         {
           key: "toggle-pane-zoom",
           icon: <Maximize2 size={15} />,
-          title: "Toggle pane zoom",
+          title: t("commands.togglePaneZoom"),
           detail: shortId(activePane.pane_id),
           keywords: [
             "maximize pane",
@@ -931,7 +933,7 @@ function OwnedCommandCombobox({
         {
           key: "close-pane",
           icon: <X size={15} />,
-          title: "Close pane",
+          title: t("commands.closePane"),
           detail: shortId(activePane.pane_id),
           keywords: ["delete pane", "remove pane"],
           danger: true,
@@ -949,7 +951,7 @@ function OwnedCommandCombobox({
     agentActions.push({
       key: "close-active-agent-pane",
       icon: <X size={15} />,
-      title: "Close active agent pane",
+      title: t("commands.closeActiveAgentPane"),
       detail: paneAgentListing(activeAgent),
       keywords: ["close agent", "delete agent", "remove agent", "close pane"],
       danger: true,
@@ -964,7 +966,7 @@ function OwnedCommandCombobox({
     agentActions.push({
       key: `focus-agent-${pane.pane_id}`,
       icon: <AgentIcon agent={pane.agent} compact />,
-      title: `Focus agent: ${paneAgentListing(pane)}`,
+      title: t("commands.focusAgent", { name: paneAgentListing(pane) }),
       detail: pane.agent_status,
       keywords: [
         "switch agent",
@@ -981,8 +983,8 @@ function OwnedCommandCombobox({
         {
           key: "show-shortcut-cheatsheet",
           icon: <Keyboard size={15} />,
-          title: "Show shortcut cheat sheet",
-          detail: "Read-only overview of keyboard shortcuts",
+          title: t("app.showShortcuts"),
+          detail: t("commands.shortcutsDetail"),
           shortcut: shortcutLabel("shortcuts.show"),
           keywords: ["keyboard", "shortcuts", "keybindings", "hotkeys", "help"],
           run: onShowShortcuts,
@@ -1003,12 +1005,12 @@ function OwnedCommandCombobox({
               command === "fit-right" || command === "fit-left"
                 ? label
                 : command === "close-all"
-                  ? "Close all terminal windows"
+                  ? t("commands.closeAllWindows")
                   : command === "open-all"
-                    ? "Open all terminal windows"
+                    ? t("commands.openAllWindows")
                     : command === "restore"
-                      ? "Restore window positions"
-                      : `Arrange windows: ${label}`,
+                      ? t("commands.restoreWindowPositions")
+                      : t("commands.arrangeWindows", { label }),
             detail: description,
             shortcut: shortcut === "Unassigned" ? undefined : shortcut,
             keywords: ["layout", "tile", "windows", label],
@@ -1022,7 +1024,7 @@ function OwnedCommandCombobox({
     ...(!extension.groups.length || extension.context
       ? [
           {
-            heading: "Current",
+            heading: t("commands.headingCurrent"),
             actions: extension.groups.length
               ? currentActions.filter(
                   (action) =>
@@ -1035,24 +1037,30 @@ function OwnedCommandCombobox({
               : currentActions,
           },
           {
-            heading: "Files",
+            heading: t("commands.headingFiles"),
             actions: extension.groups.length ? [] : fileActions,
           },
-          { heading: "Workspaces", actions: workspaceActions },
-          { heading: "Worktrees", actions: worktreeActions },
-          { heading: "Tabs", actions: tabActions },
-          { heading: "Panes", actions: paneActions },
-          { heading: "Agents", actions: agentActions },
+          {
+            heading: t("commands.headingWorkspaces"),
+            actions: workspaceActions,
+          },
+          { heading: t("commands.headingWorktrees"), actions: worktreeActions },
+          { heading: t("commands.headingTabs"), actions: tabActions },
+          { heading: t("commands.headingPanes"), actions: paneActions },
+          { heading: t("commands.headingAgents"), actions: agentActions },
         ]
       : [
           {
-            heading: "Workspaces",
+            heading: t("commands.headingWorkspaces"),
             actions: workspaceActions.filter(
               (action) => action.key === "create-workspace",
             ),
           },
         ]),
-    { heading: "Arrange windows", actions: arrangementActions },
+    {
+      heading: t("commands.headingArrangeWindows"),
+      actions: arrangementActions,
+    },
     ...(search.trim() ? [extension.find?.(search)] : []).filter(
       (group): group is ActionGroupDefinition => Boolean(group),
     ),
@@ -1066,13 +1074,13 @@ function OwnedCommandCombobox({
           (group.heading === "Visual selection" || action.key === "visual-pin")
             ? {
                 ...action,
-                disabledReason: "Selection changed. Reopen Actions.",
+                disabledReason: t("commands.selectionStale"),
               }
             : action,
         ),
       }),
     ),
-    { heading: "Help", actions: helpActions },
+    { heading: t("commands.headingHelp"), actions: helpActions },
   ].filter((group) => group.actions.length > 0);
 
   const normalizedSearch = normalizeSearchText(search);
@@ -1111,7 +1119,10 @@ function OwnedCommandCombobox({
     ...(rankedActions.length > 0
       ? [
           {
-            heading: rankedActions.length === 1 ? "Top result" : "Top results",
+            heading:
+              rankedActions.length === 1
+                ? t("commands.topResultOne")
+                : t("commands.topResultMany"),
             actions: rankedActions.map((entry) => entry.action),
           },
         ]
@@ -1178,11 +1189,11 @@ function OwnedCommandCombobox({
             type="button"
             disabled={!operationalShortcutsEnabled}
             className={`topbar-button command-trigger ${open ? "is-active" : ""}`}
-            aria-label="Open command menu"
-            title={shortcutTitle("Open command menu", "command.menu")}
+            aria-label={t("commands.openCommandMenu")}
+            title={shortcutTitle(t("commands.openCommandMenu"), "command.menu")}
           >
             <Keyboard size={15} />
-            <span>Actions</span>
+            <span>{t("commands.actionsLabel")}</span>
             <ChevronsUpDown size={14} />
           </button>
         </PopoverTrigger>
@@ -1215,11 +1226,11 @@ function OwnedCommandCombobox({
               value={search}
               onValueChange={setSearch}
               placeholder={
-                extension.placeholder ?? "Search actions or enter file path..."
+                extension.placeholder ?? t("commands.searchPlaceholder")
               }
             />
             <CommandList>
-              <CommandEmpty>No actions found.</CommandEmpty>
+              <CommandEmpty>{t("commands.noActions")}</CommandEmpty>
               {displayedActionGroups.map((group) => (
                 <CommandGroup key={group.heading} heading={group.heading}>
                   {group.actions.map((action) => (
@@ -1278,20 +1289,23 @@ function OwnedCommandCombobox({
       />
       <ConfirmDialog
         open={operationalShortcutsEnabled && !!pendingCloseWorkspace}
-        title="Close Workspace"
+        title={t("commands.closeWorkspaceTitle")}
         message={
           pendingCloseWorkspace
-            ? `Close workspace "${workspaceName(pendingCloseWorkspace)}"?${composerDraftWarningFor(
+            ? t("commands.closeWorkspaceNamed", {
+                name: workspaceName(pendingCloseWorkspace),
+              }) +
+              composerDraftWarningFor(
                 s.panes
                   .filter(
                     (pane) =>
                       pane.workspace_id === pendingCloseWorkspace.workspace_id,
                   )
                   .map((pane) => pane.pane_id),
-              )}`
-            : "Close this workspace?"
+              )
+            : t("commands.closeWorkspaceThis")
         }
-        confirmLabel="Close"
+        confirmLabel={t("tabbar.closeConfirm")}
         danger
         onClose={() => setPendingCloseWorkspace(null)}
         onConfirm={() => {
@@ -1310,17 +1324,18 @@ function OwnedCommandCombobox({
       />
       <ConfirmDialog
         open={operationalShortcutsEnabled && !!pendingCloseTab}
-        title="Close Tab"
+        title={t("tabbar.closeTabTitle")}
         message={
           pendingCloseTab
-            ? `Close "${tabName(pendingCloseTab)}"?${composerDraftWarningFor(
+            ? t("tabbar.closeTabNamed", { name: tabName(pendingCloseTab) }) +
+              composerDraftWarningFor(
                 s.panes
                   .filter((pane) => pane.tab_id === pendingCloseTab.tab_id)
                   .map((pane) => pane.pane_id),
-              )}`
-            : "Close this tab?"
+              )
+            : t("tabbar.closeTabThis")
         }
-        confirmLabel="Close"
+        confirmLabel={t("tabbar.closeConfirm")}
         danger
         onClose={() => setPendingCloseTab(null)}
         onConfirm={() => {
@@ -1336,15 +1351,15 @@ function OwnedCommandCombobox({
       />
       <ConfirmDialog
         open={operationalShortcutsEnabled && !!pendingClosePane}
-        title="Close Pane"
+        title={t("tabbar.closePaneTitle")}
         message={
           pendingClosePane
-            ? `Close pane "${shortId(pendingClosePane.pane_id)}"?${composerDraftWarningFor(
-                [pendingClosePane.pane_id],
-              )}`
-            : "Close this pane?"
+            ? t("commands.closePaneNamed", {
+                id: shortId(pendingClosePane.pane_id),
+              }) + composerDraftWarningFor([pendingClosePane.pane_id])
+            : t("commands.closePaneThis")
         }
-        confirmLabel="Close"
+        confirmLabel={t("tabbar.closeConfirm")}
         danger
         onClose={() => setPendingClosePane(null)}
         onConfirm={() => {
@@ -1356,13 +1371,15 @@ function OwnedCommandCombobox({
       />
       <ConfirmDialog
         open={operationalShortcutsEnabled && !!pendingRemoveWorktree}
-        title="Remove Worktree"
+        title={t("commands.removeWorktreeTitle")}
         message={
           pendingRemoveWorktree
-            ? `Remove worktree "${workspaceName(pendingRemoveWorktree)}"?`
-            : "Remove this worktree?"
+            ? t("commands.removeWorktreeNamed", {
+                name: workspaceName(pendingRemoveWorktree),
+              })
+            : t("commands.removeWorktreeThis")
         }
-        confirmLabel="Remove"
+        confirmLabel={t("commands.removeAction")}
         danger
         onClose={() => setPendingRemoveWorktree(null)}
         onConfirm={() => {
