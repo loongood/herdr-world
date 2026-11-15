@@ -55,7 +55,10 @@
   row, timeline turns and step rows), the message detail dialog (roles,
   copy and view toggles) and the agent integrations settings (states,
   install/update/uninstall flows with their confirmations, versions and
-  connection states). The built-in slash-command catalog keeps
+  connection states). The review annotations follow too: the panel (cards,
+  locations, delivery targets and the clear confirmation), the composer
+  popover and the shared line-label helpers that also feed the compiled
+  feedback message. The built-in slash-command catalog keeps
   its English descriptions: they document external CLIs, not World's own
   copy.
   Remaining surfaces keep English

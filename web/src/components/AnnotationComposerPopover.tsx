@@ -4,6 +4,7 @@ import {
   shortcutLabel,
   useShortcutPreferences,
 } from "../shortcutPreferences";
+import { useT } from "../i18n";
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import "./AnnotationComposerPopover.css";
@@ -31,6 +32,7 @@ export function AnnotationComposerPopover({
   suspendOnFileTabNavigation?: boolean;
 }) {
   useShortcutPreferences();
+  const t = useT();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -128,7 +130,7 @@ export function AnnotationComposerPopover({
       className="annotation-composer-popover"
       style={{ left: position.x, top: position.y }}
       role="dialog"
-      aria-label="Add review comment"
+      aria-label={t("annotations.composerAria")}
       onSubmit={submit}
       onKeyDown={(event) => {
         event.stopPropagation();
@@ -159,25 +161,29 @@ export function AnnotationComposerPopover({
       }}
     >
       <strong>{draft.title}</strong>
-      <blockquote>{draft.quote || "Blank line"}</blockquote>
+      <blockquote>{draft.quote || t("annotations.blankLine")}</blockquote>
       <textarea
         ref={textareaRef}
         value={comment}
         onChange={(event) => setComment(event.currentTarget.value)}
-        aria-label="Review comment"
-        placeholder="Add a review comment"
+        aria-label={t("annotations.commentFieldAria")}
+        placeholder={t("annotations.composerPlaceholder")}
         rows={3}
         maxLength={10_000}
       />
       <div className="annotation-composer-actions">
         <button type="button" className="ghost" onClick={close}>
-          Cancel
+          {t("history.cancel")}
         </button>
         <button type="submit" disabled={!comment.trim()}>
-          Add comment
+          {t("annotations.addButton")}
         </button>
       </div>
-      <small>{shortcutLabel("annotation.submit")} to add</small>
+      <small>
+        {t("annotations.addHint", {
+          shortcut: shortcutLabel("annotation.submit"),
+        })}
+      </small>
     </form>,
     document.body,
   );

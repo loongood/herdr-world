@@ -1,5 +1,6 @@
 import { connectionStorageKey } from "./connectionStorage";
 import { paneAgentTitle } from "./agentName";
+import { t } from "./i18n";
 import type { GitDiffKind, Pane } from "./types";
 import { resourceOwnerKey, type ResourceScope } from "./workspaceResource";
 
@@ -481,13 +482,27 @@ export function diffReviewLineLabel(
     "side" | "line" | "endSide" | "endLine"
   >,
 ) {
+  const sideLabel = (side: ReviewAnnotationSide) =>
+    t(side === "old" ? "annotations.sideOld" : "annotations.sideNew");
   if (annotation.endLine === undefined) {
-    return `${annotation.side} line ${annotation.line}`;
+    return t("annotations.diffLineOne", {
+      side: sideLabel(annotation.side),
+      line: annotation.line,
+    });
   }
   const endSide = annotation.endSide ?? annotation.side;
   return endSide === annotation.side
-    ? `${annotation.side} lines ${annotation.line}–${annotation.endLine}`
-    : `${annotation.side} line ${annotation.line} → ${endSide} line ${annotation.endLine}`;
+    ? t("annotations.diffLineRange", {
+        side: sideLabel(annotation.side),
+        start: annotation.line,
+        end: annotation.endLine,
+      })
+    : t("annotations.diffLineCross", {
+        fromSide: sideLabel(annotation.side),
+        fromLine: annotation.line,
+        toSide: sideLabel(endSide),
+        toLine: annotation.endLine,
+      });
 }
 
 function chooseNearestLine<T extends { line: number }>(
@@ -679,8 +694,11 @@ export function fileReviewLineLabel(
 ) {
   return annotation.endLine !== undefined &&
     annotation.endLine !== annotation.line
-    ? `lines ${annotation.line}-${annotation.endLine}`
-    : `line ${annotation.line}`;
+    ? t("annotations.fileLineRange", {
+        start: annotation.line,
+        end: annotation.endLine,
+      })
+    : t("annotations.fileLineOne", { line: annotation.line });
 }
 
 export function reanchorFileReviewAnnotations(
@@ -814,5 +832,5 @@ export function removeDeliveredReviewAnnotations(
 }
 
 export function terminalAnnotationTitle(pane: Pane): string {
-  return `${paneAgentTitle(pane) || "Terminal"} · ${pane.pane_id.slice(0, 8)}`;
+  return `${paneAgentTitle(pane) || t("annotations.terminalFallback")} · ${pane.pane_id.slice(0, 8)}`;
 }

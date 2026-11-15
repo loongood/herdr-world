@@ -22,23 +22,36 @@ import {
   shortcutTitle,
   useShortcutPreferences,
 } from "../shortcutPreferences";
+import { type TranslationKey, useT } from "../i18n";
 import type { Pane } from "../types";
 import { ConfirmDialog } from "./ModalDialogs";
 import { ThemedSelect } from "./ThemedSelect";
 import "./AnnotationPanel.css";
 
-function annotationLocation(annotation: ReviewAnnotation) {
+function annotationLocation(
+  annotation: ReviewAnnotation,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+) {
   if (annotation.source === "terminal")
-    return `Terminal · ${annotation.title} · selected passage`;
+    return t("annotations.locationTerminal", { title: annotation.title });
   if (annotation.source === "diff") {
-    return `Diff · ${annotation.path} · ${diffReviewLineLabel(annotation)}`;
+    return t("annotations.locationDiff", {
+      path: annotation.path,
+      lines: diffReviewLineLabel(annotation),
+    });
   }
   if (annotation.anchor === "line") {
-    return `File · ${annotation.path} · ${fileReviewLineLabel(annotation)}`;
+    return t("annotations.locationFile", {
+      path: annotation.path,
+      lines: fileReviewLineLabel(annotation),
+    });
   }
   return annotation.section.length
-    ? `Markdown · ${annotation.path} · ${annotation.section.join(" › ")}`
-    : `Markdown · ${annotation.path} · selected passage`;
+    ? t("annotations.locationMarkdownSection", {
+        path: annotation.path,
+        section: annotation.section.join(" › "),
+      })
+    : t("annotations.locationMarkdownSelection", { path: annotation.path });
 }
 
 function paneLabel(pane: Pane) {
@@ -81,6 +94,7 @@ export function AnnotationPanel({
   onGoToAgent?: () => void;
 }) {
   useShortcutPreferences();
+  const t = useT();
   const copyShortcut = shortcutLabel("annotations.copy");
   const prefillShortcut = shortcutLabel("annotations.prefill");
   const hasFeedback = annotations.some((annotation) =>
@@ -125,7 +139,7 @@ export function AnnotationPanel({
   return (
     <aside
       className={`annotation-panel ${floating ? "is-floating" : ""}`}
-      aria-label="Review annotations"
+      aria-label={t("annotations.panelAria")}
       onKeyDown={(event) => {
         if (
           event.defaultPrevented ||
@@ -149,18 +163,28 @@ export function AnnotationPanel({
     >
       <header className="annotation-panel-head">
         <div>
-          <strong>Review feedback</strong>
+          <strong>{t("annotations.panelTitle")}</strong>
           <span>
-            {annotations.length} comment
-            {annotations.length === 1 ? "" : "s"}
+            {t(
+              annotations.length === 1
+                ? "annotations.commentsOne"
+                : "annotations.commentsMany",
+              { count: annotations.length },
+            )}
           </span>
         </div>
         {onToggleFloating ? (
           <button
             type="button"
             className="annotation-icon-button annotation-mode-button"
-            aria-label={floating ? "Pin annotations" : "Float annotations"}
-            title={floating ? "Fixed layout" : "Floating layout"}
+            aria-label={
+              floating ? t("annotations.pinAria") : t("annotations.floatAria")
+            }
+            title={
+              floating
+                ? t("annotations.layoutFixedTitle")
+                : t("annotations.layoutFloatingTitle")
+            }
             aria-pressed={!floating}
             onClick={onToggleFloating}
           >
@@ -170,8 +194,8 @@ export function AnnotationPanel({
         <button
           type="button"
           className="annotation-icon-button"
-          aria-label="Close review feedback"
-          title="Close"
+          aria-label={t("annotations.closeAria")}
+          title={t("annotations.closeTitle")}
           onClick={onClose}
         >
           <X size={16} />
@@ -182,11 +206,8 @@ export function AnnotationPanel({
         {annotations.length === 0 ? (
           <div className="annotation-panel-empty">
             <MessageSquareText size={24} />
-            <strong>No review comments yet</strong>
-            <span>
-              Click or drag across diff line numbers or a source gutter, or
-              select rendered Markdown or terminal text.
-            </span>
+            <strong>{t("annotations.emptyTitle")}</strong>
+            <span>{t("annotations.emptyHint")}</span>
           </div>
         ) : (
           annotations.map((annotation, index) => (
@@ -198,28 +219,32 @@ export function AnnotationPanel({
               }`}
             >
               <div className="annotation-card-head">
-                <strong title={annotationLocation(annotation)}>
-                  {index + 1}. {annotationLocation(annotation)}
+                <strong title={annotationLocation(annotation, t)}>
+                  {index + 1}. {annotationLocation(annotation, t)}
                 </strong>
                 {annotation.stale ? (
                   <span>
                     {annotation.source === "terminal"
-                      ? "Pane unavailable"
-                      : "Stale anchor"}
+                      ? t("annotations.stalePane")
+                      : t("annotations.staleAnchor")}
                   </span>
                 ) : null}
               </div>
               <blockquote
                 tabIndex={0}
-                aria-label={`Selected text for comment ${index + 1}`}
+                aria-label={t("annotations.quoteAria", {
+                  number: index + 1,
+                })}
               >
-                {annotation.quote || "Blank line"}
+                {annotation.quote || t("annotations.blankLine")}
               </blockquote>
               <textarea
                 value={annotation.comment}
                 rows={3}
                 maxLength={10_000}
-                aria-label={`Comment ${index + 1}`}
+                aria-label={t("annotations.commentAria", {
+                  number: index + 1,
+                })}
                 onChange={(event) =>
                   onUpdateComment(annotation.id, event.currentTarget.value)
                 }
@@ -229,8 +254,10 @@ export function AnnotationPanel({
                   type="button"
                   className="annotation-icon-button"
                   disabled={index === 0}
-                  aria-label={`Move comment ${index + 1} up`}
-                  title="Move up"
+                  aria-label={t("annotations.moveUpAria", {
+                    number: index + 1,
+                  })}
+                  title={t("annotations.moveUpTitle")}
                   onClick={() => onMove(annotation.id, -1)}
                 >
                   <ArrowUp size={14} />
@@ -239,8 +266,10 @@ export function AnnotationPanel({
                   type="button"
                   className="annotation-icon-button"
                   disabled={index === annotations.length - 1}
-                  aria-label={`Move comment ${index + 1} down`}
-                  title="Move down"
+                  aria-label={t("annotations.moveDownAria", {
+                    number: index + 1,
+                  })}
+                  title={t("annotations.moveDownTitle")}
                   onClick={() => onMove(annotation.id, 1)}
                 >
                   <ArrowDown size={14} />
@@ -248,8 +277,10 @@ export function AnnotationPanel({
                 <button
                   type="button"
                   className="annotation-icon-button is-danger"
-                  aria-label={`Delete comment ${index + 1}`}
-                  title="Delete"
+                  aria-label={t("annotations.deleteAria", {
+                    number: index + 1,
+                  })}
+                  title={t("annotations.deleteTitle")}
                   onClick={() => onDelete(annotation.id)}
                 >
                   <Trash2 size={14} />
@@ -263,9 +294,9 @@ export function AnnotationPanel({
       <footer className="annotation-panel-footer">
         {agentPanes.length > 1 ? (
           <label className="annotation-target-picker">
-            <span>Agent pane</span>
+            <span>{t("annotations.agentPaneLabel")}</span>
             <ThemedSelect
-              aria-label="Agent pane"
+              aria-label={t("annotations.agentPaneLabel")}
               value={targetPaneId}
               options={agentPanes.map((pane) => ({
                 value: pane.pane_id,
@@ -276,11 +307,13 @@ export function AnnotationPanel({
           </label>
         ) : agentPanes.length === 1 ? (
           <div className="annotation-target-summary">
-            Agent pane: {paneLabel(agentPanes[0])}
+            {t("annotations.agentPaneSummary", {
+              pane: paneLabel(agentPanes[0]),
+            })}
           </div>
         ) : (
           <div className="annotation-target-summary">
-            No agent pane; Send uses the clipboard.
+            {t("annotations.noAgentPane")}
           </div>
         )}
         <div className="annotation-delivery-actions">
@@ -289,9 +322,12 @@ export function AnnotationPanel({
             className="ghost"
             disabled={busy || !hasFeedback}
             onClick={onCopy}
-            title={shortcutTitle("Copy review feedback", "annotations.copy")}
+            title={shortcutTitle(
+              t("annotations.copyFeedbackTitle"),
+              "annotations.copy",
+            )}
           >
-            <Clipboard size={14} /> Copy
+            <Clipboard size={14} /> {t("annotations.copyButton")}
             {copyShortcut !== "Unassigned" ? <kbd>{copyShortcut}</kbd> : null}
           </button>
           <button
@@ -299,12 +335,16 @@ export function AnnotationPanel({
             disabled={busy || !hasFeedback}
             onClick={() => onSend(targetPaneId || null)}
             title={shortcutTitle(
-              agentPanes.length ? "Pre-fill agent" : "Copy feedback",
+              agentPanes.length
+                ? t("annotations.prefillAgent")
+                : t("annotations.copyFeedback"),
               "annotations.prefill",
             )}
           >
             {agentPanes.length ? <Send size={14} /> : <Clipboard size={14} />}
-            {agentPanes.length ? "Pre-fill agent" : "Copy feedback"}
+            {agentPanes.length
+              ? t("annotations.prefillAgent")
+              : t("annotations.copyFeedback")}
             {prefillShortcut !== "Unassigned" ? (
               <kbd>{prefillShortcut}</kbd>
             ) : null}
@@ -312,7 +352,7 @@ export function AnnotationPanel({
         </div>
         {onGoToAgent ? (
           <button type="button" className="ghost" onClick={onGoToAgent}>
-            Go to agent
+            {t("annotations.goToAgent")}
           </button>
         ) : null}
         <button
@@ -321,14 +361,14 @@ export function AnnotationPanel({
           disabled={busy || annotations.length === 0}
           onClick={() => setConfirmClear(true)}
         >
-          Clear draft
+          {t("annotations.clearDraft")}
         </button>
       </footer>
       <ConfirmDialog
         open={confirmClear}
-        title="Clear review feedback?"
-        message="This removes every unsent review comment from this draft."
-        confirmLabel="Clear feedback"
+        title={t("annotations.confirmTitle")}
+        message={t("annotations.confirmBody")}
+        confirmLabel={t("annotations.confirmAction")}
         danger
         onConfirm={onClear}
         onClose={() => setConfirmClear(false)}
