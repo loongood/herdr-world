@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { t } from "./i18n";
 import {
   buildGitFileMenuItems,
   buildGitRepoMenuItems,
@@ -16,10 +17,10 @@ function entry(kind: GitDiffEntry["kind"]): GitDiffEntry {
 describe("buildGitFileMenuItems", () => {
   test("untracked files get stage and delete", () => {
     expect(buildGitFileMenuItems([entry("untracked")])).toEqual([
-      { action: "stage", label: "Stage file" },
+      { action: "stage", label: t("worktree.stageFile") },
       {
         action: "delete_untracked",
-        label: "Delete untracked file…",
+        label: t("worktree.deleteUntracked"),
         danger: true,
         destructive: true,
       },
@@ -28,10 +29,10 @@ describe("buildGitFileMenuItems", () => {
 
   test("unstaged files get stage and discard", () => {
     expect(buildGitFileMenuItems([entry("unstaged")])).toEqual([
-      { action: "stage", label: "Stage changes" },
+      { action: "stage", label: t("worktree.stageChanges") },
       {
         action: "discard_unstaged",
-        label: "Discard unstaged changes…",
+        label: t("worktree.discardUnstaged"),
         danger: true,
         destructive: true,
       },
@@ -40,18 +41,18 @@ describe("buildGitFileMenuItems", () => {
 
   test("staged files get unstage only", () => {
     expect(buildGitFileMenuItems([entry("staged")])).toEqual([
-      { action: "unstage", label: "Unstage changes" },
+      { action: "unstage", label: t("worktree.unstageChanges") },
     ]);
   });
 
   test("staged + unstaged files get both parts covered", () => {
     expect(buildGitFileMenuItems([entry("staged"), entry("unstaged")])).toEqual(
       [
-        { action: "stage", label: "Stage changes" },
-        { action: "unstage", label: "Unstage changes" },
+        { action: "stage", label: t("worktree.stageChanges") },
+        { action: "unstage", label: t("worktree.unstageChanges") },
         {
           action: "discard_unstaged",
-          label: "Discard unstaged changes…",
+          label: t("worktree.discardUnstaged"),
           danger: true,
           destructive: true,
         },
@@ -61,7 +62,7 @@ describe("buildGitFileMenuItems", () => {
 
   test("conflicted files get mark resolved", () => {
     expect(buildGitFileMenuItems([entry("conflicted")])).toEqual([
-      { action: "stage", label: "Mark resolved" },
+      { action: "stage", label: t("worktree.markResolved") },
     ]);
   });
 
@@ -72,17 +73,17 @@ describe("buildGitFileMenuItems", () => {
         true,
       ),
     ).toEqual([
-      { action: "stage", label: "Stage files" },
-      { action: "unstage", label: "Unstage all changes" },
+      { action: "stage", label: t("worktree.stageFiles") },
+      { action: "unstage", label: t("worktree.unstageAllChanges") },
       {
         action: "discard_unstaged",
-        label: "Discard all unstaged changes…",
+        label: t("worktree.discardAllUnstaged"),
         danger: true,
         destructive: true,
       },
       {
         action: "delete_untracked",
-        label: "Delete untracked files…",
+        label: t("worktree.deleteUntrackedFiles"),
         danger: true,
         destructive: true,
       },
@@ -129,31 +130,36 @@ describe("confirm copy", () => {
   test("only destructive file actions confirm", () => {
     expect(gitFileConfirmCopy("stage", "a.ts")).toBeNull();
     expect(gitFileConfirmCopy("discard_unstaged", "a.ts")).toMatchObject({
-      confirmLabel: "Discard",
+      confirmLabel: t("worktree.confirmDiscard"),
     });
     expect(gitFileConfirmCopy("delete_untracked", "a.ts")).toMatchObject({
-      confirmLabel: "Delete",
+      confirmLabel: t("worktree.confirmDelete"),
     });
   });
 
   test("repo confirmations mention kept work", () => {
     expect(gitRepoConfirmCopy("stage_all", 3)).toBeNull();
-    expect(gitRepoConfirmCopy("discard_all_unstaged", 2)?.message).toContain(
-      "Staged changes are kept",
+    expect(gitRepoConfirmCopy("discard_all_unstaged", 2)?.message).toBe(
+      t("worktree.discardRepoMessage", {
+        files: t("worktree.fileCount", { count: 2 }),
+      }),
     );
     expect(gitRepoConfirmCopy("delete_all_untracked", 1)?.message).toContain(
-      "1 file",
+      t("worktree.oneFile"),
     );
   });
 
   test("folder confirmations name the directory and file count", () => {
     expect(gitFolderConfirmCopy("stage", "src", 2)).toBeNull();
     const copy = gitFolderConfirmCopy("discard_unstaged", "src/app", 3);
-    expect(copy?.message).toContain('under "src/app"');
-    expect(copy?.message).toContain("3 files");
-    expect(copy?.message).toContain("staged versions are kept");
+    expect(copy?.message).toBe(
+      t("worktree.discardFolderMessage", {
+        files: t("worktree.fileCount", { count: 3 }),
+        path: "src/app",
+      }),
+    );
     expect(
       gitFolderConfirmCopy("delete_untracked", "src", 1)?.message,
-    ).toContain("1 file");
+    ).toContain(t("worktree.oneFile"));
   });
 });

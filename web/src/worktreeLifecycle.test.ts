@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { t } from "./i18n";
 import type { Workspace, WorktreeList } from "./types";
 import {
   buildWorktreeLifecycleRows,
@@ -150,7 +151,7 @@ describe("worktree lifecycle rows", () => {
   });
 
   test("describes automatic default-branch synchronization explicitly", () => {
-    expect(lifecycleAutoSyncLabel()).toBe("Default branch auto-sync off");
+    expect(lifecycleAutoSyncLabel()).toBe(t("worktree.autoSyncOff"));
     expect(
       lifecycleAutoSyncLabel({
         workspace_id: "w1",
@@ -158,7 +159,7 @@ describe("worktree lifecycle rows", () => {
         interval_minutes: 15,
         running: false,
       }),
-    ).toBe("Sync origin's default branch every 15 min");
+    ).toBe(t("worktree.autoSyncInterval", { minutes: 15 }));
   });
 });
 
@@ -206,7 +207,7 @@ describe("temporary workspace removal", () => {
           closed.push(workspaceId);
         },
       }),
-    ).rejects.toThrow("Worktree removal did not complete.");
+    ).rejects.toThrow(t("worktree.removalIncomplete"));
     expect(closed).toEqual(["temporary"]);
   });
 
@@ -223,7 +224,7 @@ describe("temporary workspace removal", () => {
         },
       }),
     ).rejects.toThrow(
-      "remove failed\nTemporary workspace cleanup failed: close failed",
+      `remove failed\n${t("worktree.cleanupFailed", { message: "close failed" })}`,
     );
   });
 

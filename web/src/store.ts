@@ -1840,7 +1840,13 @@ export const store = {
         setForConnection(lease, {
           notice: {
             kind: "success",
-            message: `${gitFileActionSuccessMessage(gitAction)} (${completed} ${completed === 1 ? "file" : "files"})`,
+            message: t("worktree.batchNotice", {
+              message: gitFileActionSuccessMessage(gitAction),
+              files:
+                completed === 1
+                  ? t("worktree.oneFile")
+                  : t("worktree.fileCount", { count: completed }),
+            }),
             autoDismissMs: 5000,
           },
         });

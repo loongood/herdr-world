@@ -110,7 +110,11 @@
   panels' headers, changed-file trees and empty states, the comparison
   scope and branch selectors, the hunk navigation and file search
   controls, image previews, the copy-path and reveal context menus, and
-  their copy confirmations. The built-in
+  their copy confirmations. The worktree foundations follow: the shared
+  Git action menus, stage/discard/delete confirmations and success
+  notices (including the batch counts), the worktree lifecycle summaries
+  (git status lines, auto-sync labels, removal errors) and the batch
+  action notices in the store. The built-in
   slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
