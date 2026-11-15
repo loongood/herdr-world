@@ -73,7 +73,13 @@
   terminal clipboard notices, and the workspace-resource and Ranger-source
   errors. The more sheet's popover anchor now targets a stable attribute
   instead of the translated button label, so it stays positioned in every
-  language. The built-in slash-command catalog
+  language. The tab strip follows too: its rename and close confirmations,
+  the tab context menu (focus, rename, pin, create and close with their
+  block reasons), the pinned marker and close controls, the create-tab and
+  new-agent buttons, the inspector and annotations toggles, agent status
+  markers, and the shared tab-name helper that the mobile surfaces reuse;
+  the tab-pins module now serves its block reasons through the same
+  dictionary. The built-in slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
   Remaining surfaces keep English

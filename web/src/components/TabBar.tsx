@@ -14,11 +14,12 @@ import { requestAgentLaunch } from "../world/agentProfiles";
 import type { Tab } from "../types";
 import {
   orderTabsForDisplay,
-  PINNED_TAB_CLOSE_REASON,
+  pinnedTabCloseReason,
   setTabPinned,
   useTabPins,
 } from "../tabPins";
 import { AgentStatusIcon } from "./AgentStatusIcon";
+import { agentStateWord } from "../world/agentMarks";
 import { ConfirmDialog, TextInputDialog } from "./ModalDialogs";
 import {
   terminalComposerCloseWarning,
@@ -30,6 +31,7 @@ import {
   type WindowArrangementControl,
 } from "./WindowArrangementMenu";
 import { tabMoveInsertIndex } from "../tabReorder";
+import { t, useT } from "../i18n";
 import { useTabReorderDrag } from "./useTabReorderDrag";
 import { useTabStripScroll } from "./useTabStripScroll";
 import { useLayer } from "../layerStack";
@@ -68,7 +70,7 @@ export function tabName(tab?: Tab) {
   if (!tab) return "";
   return tab.label && tab.label !== String(tab.number)
     ? tab.label
-    : `Tab ${tab.number}`;
+    : t("shell.tabName", { number: tab.number });
 }
 
 /**
@@ -130,6 +132,7 @@ export function TabBar({
   tabColors?: TabColorControl;
 }) {
   const store = useOperationalStore();
+  const t = useT();
   useShortcutPreferences();
   const s = useStoreSelector(
     (state) => ({
@@ -161,7 +164,7 @@ export function TabBar({
     focusedWs?.workspace_id,
   );
   const tabs = orderTabsForDisplay(
-    s.tabs.filter((t) => t.workspace_id === focusedWs?.workspace_id),
+    s.tabs.filter((tab) => tab.workspace_id === focusedWs?.workspace_id),
     pinnedTabIds,
   );
   const reorder = useTabReorderDrag({
@@ -185,7 +188,9 @@ export function TabBar({
     activeTabId: tabs.find((tab) => tab.focused)?.tab_id,
     tabsKey: tabs.map((tab) => tab.tab_id).join(" "),
   });
-  const pendingCloseTab = s.tabs.find((t) => t.tab_id === pendingCloseTabId);
+  const pendingCloseTab = s.tabs.find(
+    (tab) => tab.tab_id === pendingCloseTabId,
+  );
   const pendingCloseTabName = tabName(pendingCloseTab);
   const pendingCloseTabPaneIds = s.panes
     .filter((pane) => pane.tab_id === pendingCloseTabId)
@@ -327,13 +332,13 @@ export function TabBar({
       />
       <ConfirmDialog
         open={!!pendingCloseTabId}
-        title="Close Tab"
+        title={t("tabbar.closeTabTitle")}
         message={`${
           pendingCloseTabName
-            ? `Close "${pendingCloseTabName}"?`
-            : "Close this tab?"
+            ? t("tabbar.closeTabNamed", { name: pendingCloseTabName })
+            : t("tabbar.closeTabThis")
         }${pendingCloseDraftWarning}`}
-        confirmLabel="Close"
+        confirmLabel={t("tabbar.closeConfirm")}
         danger
         onClose={() => setPendingCloseTabId(null)}
         onConfirm={() => {
@@ -344,9 +349,9 @@ export function TabBar({
       />
       <ConfirmDialog
         open={!!pendingClosePane}
-        title="Close Pane"
-        message={`Close this terminal pane?${pendingClosePaneDraftWarning}`}
-        confirmLabel="Close"
+        title={t("tabbar.closePaneTitle")}
+        message={`${t("tabbar.closePaneMessage")}${pendingClosePaneDraftWarning}`}
+        confirmLabel={t("tabbar.closeConfirm")}
         danger
         onClose={() => setPendingClosePaneId(null)}
         onConfirm={() => {
@@ -356,10 +361,10 @@ export function TabBar({
       />
       <TextInputDialog
         open={!!pendingRenameTab}
-        title="Rename Tab"
-        label="Name"
+        title={t("tabbar.renameTabTitle")}
+        label={t("tabbar.renameNameLabel")}
         initialValue={tabName(pendingRenameTab ?? undefined)}
-        submitLabel="Rename"
+        submitLabel={t("tabbar.renameAction")}
         onClose={() => setPendingRenameTab(null)}
         onSubmit={(label) => {
           const value = label.trim();
@@ -389,47 +394,44 @@ export function TabBar({
             data-overflow-start={stripScroll.overflow.start || undefined}
             data-overflow-end={stripScroll.overflow.end || undefined}
           >
-            {tabs.map((t) => {
-              const name =
-                t.label && t.label !== String(t.number)
-                  ? t.label
-                  : `Tab ${t.number}`;
-              const agentSummary = summarizeTabAgents(s.panes, t.tab_id);
+            {tabs.map((tab) => {
+              const name = tabName(tab);
+              const agentSummary = summarizeTabAgents(s.panes, tab.tab_id);
               const selectedPane =
                 s.panes.find(
-                  (pane) => pane.tab_id === t.tab_id && pane.focused,
-                ) ?? s.panes.find((pane) => pane.tab_id === t.tab_id);
+                  (pane) => pane.tab_id === tab.tab_id && pane.focused,
+                ) ?? s.panes.find((pane) => pane.tab_id === tab.tab_id);
               const custom = selectedPane
                 ? leafAppearance(
                     appearance,
                     {
                       connectionId: s.activeConnectionId,
-                      tabId: t.tab_id,
+                      tabId: tab.tab_id,
                       nativeId: selectedPane.pane_id,
                       terminalId: selectedPane.terminal_id,
                       stale: s.status !== "connected" || !s.catalogueReady,
                       actionable: s.status === "connected" && s.catalogueReady,
                     },
                     s.panes
-                      .filter((pane) => pane.tab_id === t.tab_id)
+                      .filter((pane) => pane.tab_id === tab.tab_id)
                       .map((pane) => pane.terminal_id),
                   )
                 : undefined;
-              const pinned = pinnedTabIds.has(t.tab_id);
-              const reorderHandlers = reorder.handlers(t.tab_id);
-              const color = colorOf(t);
+              const pinned = pinnedTabIds.has(tab.tab_id);
+              const reorderHandlers = reorder.handlers(tab.tab_id);
+              const color = colorOf(tab);
               return (
                 <div
-                  key={t.tab_id}
-                  data-tab-id={t.tab_id}
-                  ref={reorder.register(t.tab_id)}
+                  key={tab.tab_id}
+                  data-tab-id={tab.tab_id}
+                  ref={reorder.register(tab.tab_id)}
                   {...reorderHandlers}
                   onPointerDown={
                     s.tabMoveSupported
                       ? reorderHandlers.onPointerDown
                       : undefined
                   }
-                  className={`tabbar-tab ${t.focused ? "is-active" : ""} ${
+                  className={`tabbar-tab ${tab.focused ? "is-active" : ""} ${
                     pinned ? "is-pinned" : ""
                   }`}
                   data-color={color?.id}
@@ -439,7 +441,7 @@ export function TabBar({
                       : undefined
                   }
                   onClick={() => {
-                    void focusTab(t);
+                    void focusTab(tab);
                   }}
                   onDoubleClick={(e) => {
                     if (
@@ -448,26 +450,25 @@ export function TabBar({
                     )
                       return;
                     e.preventDefault();
-                    setPendingRenameTab(t);
+                    setPendingRenameTab(tab);
                   }}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    setMenu({ tab: t, x: e.clientX, y: e.clientY });
+                    setMenu({ tab, x: e.clientX, y: e.clientY });
                   }}
-                  title={[tabName(t), custom?.status]
-                    .filter(Boolean)
-                    .join(" · ")}
+                  title={[name, custom?.status].filter(Boolean).join(" · ")}
                 >
                   {tabColors && color ? (
                     <span onClick={(event) => event.stopPropagation()}>
                       <SpacesTerminalAppearance
                         connectionId={s.activeConnectionId}
                         generation={s.serverRuntimeGeneration ?? -1}
-                        tab={t}
+                        tab={tab}
                         color={{
                           palette: tabColors.palette,
                           current: { id: color.id, custom: color.custom },
-                          onColor: (id) => tabColors.onColor(colorOwner, t, id),
+                          onColor: (id) =>
+                            tabColors.onColor(colorOwner, tab, id),
                         }}
                       />
                     </span>
@@ -475,14 +476,15 @@ export function TabBar({
                   {agentSummary ? (
                     <span
                       className="tabbar-agent-marker"
-                      title={`${agentSummary.primaryAgent} · ${agentSummary.status}${
+                      title={`${agentSummary.primaryAgent} · ${agentStateWord(agentSummary.status)}${
                         agentSummary.additionalAgents > 0
-                          ? ` · ${agentSummary.additionalAgents} more agent${
-                              agentSummary.additionalAgents === 1 ? "" : "s"
-                            }`
+                          ? ` · ${t("tabbar.moreAgents", { count: agentSummary.additionalAgents })}`
                           : ""
                       }`}
-                      aria-label={`${agentSummary.primaryAgent}, status ${agentSummary.status}`}
+                      aria-label={t("shell.agentStatusAria", {
+                        agent: agentSummary.primaryAgent,
+                        status: agentStateWord(agentSummary.status),
+                      })}
                     >
                       <AgentStatusIcon
                         agent={agentSummary.primaryAgent}
@@ -496,8 +498,8 @@ export function TabBar({
                     </span>
                   ) : null}
                   <TabLongPressTarget
-                    tab={t}
-                    onOpenMenu={(x, y) => setMenu({ tab: t, x, y })}
+                    tab={tab}
+                    onOpenMenu={(x, y) => setMenu({ tab, x, y })}
                   >
                     <span className="tabbar-name">{name}</span>
                   </TabLongPressTarget>
@@ -506,16 +508,16 @@ export function TabBar({
                       className="tabbar-pin"
                       size={11}
                       fill="currentColor"
-                      aria-label="Pinned"
+                      aria-label={t("tabbar.pinned")}
                     />
                   ) : (
                     <button
                       className="tabbar-close"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setPendingCloseTabId(t.tab_id);
+                        setPendingCloseTabId(tab.tab_id);
                       }}
-                      title="Close tab"
+                      title={t("tabbar.closeTab")}
                     >
                       ×
                     </button>
@@ -531,16 +533,18 @@ export function TabBar({
               store.createTab(focusedWs.workspace_id);
             }}
             disabled={!!createReason}
-            title={createReason ?? shortcutTitle("New tab", "tab.create")}
+            title={
+              createReason ?? shortcutTitle(t("tabbar.newTab"), "tab.create")
+            }
           >
             +
           </button>
           <button
             type="button"
             className="tabbar-add tabbar-add-agent"
-            aria-label="New agent"
+            aria-label={t("tabbar.newAgent")}
             disabled={!!createReason || s.serverRuntimeGeneration === null}
-            title={createReason ?? "New agent from a profile or a kind"}
+            title={createReason ?? t("tabbar.newAgentHint")}
             onClick={() => {
               if (s.serverRuntimeGeneration === null) return;
               requestAgentLaunch({
@@ -561,14 +565,14 @@ export function TabBar({
                 aria-expanded={inspectorOpen}
                 title={shortcutTitle(
                   inspectorOpen
-                    ? "Close Workspace Inspector"
-                    : "Open Workspace Inspector",
+                    ? t("tabbar.closeInspector")
+                    : t("tabbar.openInspector"),
                   "inspector.toggle",
                 )}
                 onClick={onToggleInspector}
               >
                 <PanelRight size={14} />
-                <span>Inspector</span>
+                <span>{t("tabbar.inspectorLabel")}</span>
                 {changedCount > 0 ? (
                   <span className="tabbar-change-count">{changedCount}</span>
                 ) : null}
@@ -579,13 +583,15 @@ export function TabBar({
               className={annotationsOpen ? "is-active" : ""}
               aria-expanded={annotationsOpen}
               title={shortcutTitle(
-                annotationsOpen ? "Close Annotations" : "Open Annotations",
+                annotationsOpen
+                  ? t("tabbar.closeAnnotations")
+                  : t("tabbar.openAnnotations"),
                 "annotations.toggle",
               )}
               onClick={onToggleAnnotations}
             >
               <MessageSquareText size={14} />
-              <span>Annotations</span>
+              <span>{t("tabbar.annotationsLabel")}</span>
               {annotationCount > 0 ? (
                 <span className="tabbar-change-count">{annotationCount}</span>
               ) : null}
@@ -690,16 +696,17 @@ function TabContextMenu({
   createReason: string | null;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   // Keep the floating menu tied to the current interaction.
   useLayer(state !== null, onClose, { element: () => ref.current });
   useEffect(() => {
     if (!state) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       window.addEventListener("scroll", onClose, true);
     }, 0);
     return () => {
-      clearTimeout(t);
+      clearTimeout(timer);
       window.removeEventListener("scroll", onClose, true);
     };
   }, [state, onClose]);
@@ -707,18 +714,22 @@ function TabContextMenu({
   if (!state) return null;
 
   const items = [
-    { label: "Focus tab", action: () => onFocus(state.tab) },
-    { label: "Rename tab...", action: () => onRename(state.tab) },
+    { label: t("tabbar.menuFocusTab"), action: () => onFocus(state.tab) },
+    { label: t("tabbar.menuRenameTab"), action: () => onRename(state.tab) },
     {
-      label: pinned ? "Unpin tab" : "Pin tab",
+      label: pinned ? t("tabbar.menuUnpinTab") : t("tabbar.menuPinTab"),
       action: () => onTogglePin(state.tab, !pinned),
     },
-    { label: "Create tab", action: onCreateTab, reason: createReason },
     {
-      label: "Close tab",
+      label: t("tabbar.menuCreateTab"),
+      action: onCreateTab,
+      reason: createReason,
+    },
+    {
+      label: t("tabbar.menuCloseTab"),
       danger: true,
       action: () => onCloseTab(state.tab),
-      reason: pinned ? PINNED_TAB_CLOSE_REASON : null,
+      reason: pinned ? pinnedTabCloseReason() : null,
     },
   ];
   const menuMargin = 8;
@@ -760,7 +771,7 @@ function TabContextMenu({
           <ColorSwatches
             palette={color.palette}
             current={color.current}
-            label="Tab colour"
+            label={t("tabbar.tabColor")}
             onColor={(id) => {
               onClose();
               color.onColor(state.tab, id);

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { worldLocalStorage, subscribeLocalStorage } from "./browserStorage";
 import { connectionStorageKey } from "./connectionStorage";
+import { t } from "./i18n";
 import type { Pane, Tab } from "./types";
 
 export const TAB_PINS_STORAGE_KEY = "tabPins.v1";
@@ -9,9 +10,15 @@ const MAX_TAB_PINS = 256;
 const MAX_TAB_ID_LENGTH = 512;
 const EMPTY_TAB_PINS: ReadonlySet<string> = new Set();
 
-export const PINNED_TAB_CLOSE_REASON = "Unpin this tab before closing it.";
-export const PINNED_TAB_LAST_PANE_CLOSE_REASON =
-  "This is the last pane of a pinned tab. Unpin the tab before closing it.";
+/** The tab strip shows this when a pin blocks closing the tab. */
+export function pinnedTabCloseReason(): string {
+  return t("tabbar.pinnedCloseReason");
+}
+
+/** Shown when closing the last pane of a pinned tab is blocked. */
+export function pinnedLastPaneCloseReason(): string {
+  return t("tabbar.pinnedLastPaneCloseReason");
+}
 
 export function parseTabPins(raw: string | null): string[] {
   if (!raw) return [];
@@ -72,7 +79,7 @@ export function tabCloseBlockReason(
   tabId: string,
   pinnedTabIds: ReadonlySet<string>,
 ): string | null {
-  return pinnedTabIds.has(tabId) ? PINNED_TAB_CLOSE_REASON : null;
+  return pinnedTabIds.has(tabId) ? pinnedTabCloseReason() : null;
 }
 
 /** Closing the only pane of a tab closes the tab, so a pin protects it too. */
@@ -86,7 +93,7 @@ export function paneCloseBlockReason(
   const hasSibling = panes.some(
     (pane) => pane.pane_id !== paneId && pane.tab_id === target.tab_id,
   );
-  return hasSibling ? null : PINNED_TAB_LAST_PANE_CLOSE_REASON;
+  return hasSibling ? null : pinnedLastPaneCloseReason();
 }
 
 // Herdr saves tab ids with its session, so pins survive restarts of both Herdr

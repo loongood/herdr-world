@@ -5,8 +5,8 @@ import {
   orderTabsForDisplay,
   paneCloseBlockReason,
   parseTabPins,
-  PINNED_TAB_CLOSE_REASON,
-  PINNED_TAB_LAST_PANE_CLOSE_REASON,
+  pinnedLastPaneCloseReason,
+  pinnedTabCloseReason,
   setTabPinned,
   tabCloseBlockReason,
   tabPinsFor,
@@ -74,7 +74,7 @@ describe("tab pin close guards", () => {
   ];
 
   test("blocks closing a pinned tab only", () => {
-    expect(tabCloseBlockReason("w1:t1", pinned)).toBe(PINNED_TAB_CLOSE_REASON);
+    expect(tabCloseBlockReason("w1:t1", pinned)).toBe(pinnedTabCloseReason());
     expect(tabCloseBlockReason("w1:t2", pinned)).toBeNull();
   });
 
@@ -86,7 +86,7 @@ describe("tab pin close guards", () => {
   test("blocks closing the last pane of a pinned tab", () => {
     const lastPane = panes.filter((pane) => pane.pane_id !== "p2");
     expect(paneCloseBlockReason("p1", lastPane, pinned)).toBe(
-      PINNED_TAB_LAST_PANE_CLOSE_REASON,
+      pinnedLastPaneCloseReason(),
     );
   });
 
