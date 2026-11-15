@@ -171,7 +171,7 @@ import {
 } from "../terminalPaste";
 import {
   TerminalRecoveryBudget,
-  TERMINAL_NO_FRAME_MESSAGE,
+  terminalNoFrameMessage,
 } from "../terminalRecovery";
 import {
   rememberTerminalRelayViewport,
@@ -3410,7 +3410,7 @@ export function TerminalView({
               detachOwnedTerminal(terminalId);
               if (recovery === "unavailable") {
                 setTerminalLoading(false);
-                setTerminalAttachError(TERMINAL_NO_FRAME_MESSAGE);
+                setTerminalAttachError(terminalNoFrameMessage());
                 return;
               }
               setAttachRetry((value) => value + 1);

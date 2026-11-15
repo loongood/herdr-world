@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import type { IBufferRange, Terminal } from "@xterm/xterm";
 import type { TerminalPresentationFrame } from "./terminalEndpointPresentation";
 
@@ -273,14 +274,12 @@ export class TerminalHistorySelection {
     this.pending = direction;
     const request = ++this.request;
     this.timeout = setTimeout(
-      () => this.stop("Scrolling paused. Finish this selection and try again."),
+      () => this.stop(t("terminal.selectionScrollPaused")),
       3000,
     );
     this.options.scroll(direction, lines).catch(() => {
       if (request === this.request && this.pending)
-        this.stop(
-          "Unable to scroll this selection. Finish selecting and try again.",
-        );
+        this.stop(t("terminal.selectionScrollFailed"));
     });
   }
 
@@ -300,9 +299,7 @@ export class TerminalHistorySelection {
       next.revision !== this.viewport.revision ||
       next.total !== this.viewport.total
     ) {
-      this.stop(
-        "Terminal output changed. Finish this selection before scrolling further.",
-      );
+      this.stop(t("terminal.selectionOutputChanged"));
       return false;
     }
     const delta = next.top - this.viewport.top;

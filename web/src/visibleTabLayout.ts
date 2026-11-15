@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { useEffect, useMemo, useState } from "react";
 import {
   shallowEqual,
@@ -312,7 +313,7 @@ export function useVisibleTabLayoutState(
         const result = read.value as { layout?: unknown } | null;
         const next = (result?.layout ?? null) as PaneLayout | null;
         if (!tabLayoutMatchesSnapshot(next, requestIdentity, store.get())) {
-          setError("Tab layout is unavailable.");
+          setError(t("app.tabLayoutUnavailable"));
           return;
         }
         rememberTabLayout(
@@ -325,7 +326,7 @@ export function useVisibleTabLayoutState(
         setError(null);
       })
       .catch(() => {
-        if (!cancelled) setError("Tab layout is unavailable.");
+        if (!cancelled) setError(t("app.tabLayoutUnavailable"));
       });
     return () => {
       cancelled = true;
@@ -350,7 +351,7 @@ export function useVisibleTabLayoutState(
     error: layout
       ? null
       : observedLayout
-        ? "Tab layout is unavailable."
+        ? t("app.tabLayoutUnavailable")
         : error,
   };
 }

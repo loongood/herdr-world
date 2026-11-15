@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import type { UploadProgress } from "./terminalImageUpload";
 
@@ -102,7 +103,10 @@ async function run(scope: string, id: string, retry = false) {
   } catch (error) {
     patch(scope, id, {
       status: "failed",
-      error: error instanceof Error ? error.message : "Upload failed",
+      error:
+        error instanceof Error
+          ? error.message
+          : t("attachments.uploadFailedMessage"),
     });
   }
 }
@@ -145,7 +149,7 @@ export async function startAttachmentUploads(
       ...current,
       {
         id,
-        name: file.name || "pasted file",
+        name: file.name || t("attachments.pastedFile"),
         size: file.size,
         loaded: 0,
         status: "uploading",

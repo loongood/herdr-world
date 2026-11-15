@@ -73,7 +73,7 @@ import { AssistantChatControls } from "./AssistantChatControls";
 import {
   sameAssistantSelection,
   thinkingForModel,
-  thinkingLabels,
+  thinkingLabel,
   thinkingOptions,
 } from "../assistantModels";
 import { AssistantTasks, TaskProposalCard } from "./AssistantTasks";
@@ -435,7 +435,7 @@ function AssistantModelForm({
                     <input
                       type="checkbox"
                       aria-label={t("assistant.supportThinkingAria", {
-                        label: thinkingLabels[level],
+                        label: thinkingLabel(level),
                       })}
                       checked={supportedLevels.includes(level)}
                       onChange={(event) =>
@@ -448,7 +448,7 @@ function AssistantModelForm({
                         )
                       }
                     />
-                    <span>{thinkingLabels[level]}</span>
+                    <span>{thinkingLabel(level)}</span>
                   </label>
                 ))}
               </div>
@@ -2033,10 +2033,9 @@ export function AssistantPanel({
                           placeholder={
                             selectedModel?.default_thinking_level
                               ? t("assistant.thinkingDefaultPlaceholder", {
-                                  label:
-                                    thinkingLabels[
-                                      selectedModel.default_thinking_level
-                                    ],
+                                  label: thinkingLabel(
+                                    selectedModel.default_thinking_level,
+                                  ),
                                 })
                               : t("assistant.noAdjustableThinking")
                           }

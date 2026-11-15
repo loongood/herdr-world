@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import type { ConnectionClient } from "./api";
 import type { ConnectionClientScope } from "./useConnectionClient";
 
@@ -22,7 +23,7 @@ export function resourcePresentationClient(
       bound()
         ? client.call(method, params, timeout)
         : Promise.reject(
-            new Error("Resource is awaiting current worktree admission"),
+            new Error(t("worktree.awaitingAdmission")),
           )) as ConnectionClient["call"],
   };
   // A new owner must never inherit another owner's display cache.

@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 export type AgentIntegration = {
   target: string;
   label: string;
@@ -35,7 +36,7 @@ export function parseAgentIntegrations(result: unknown): AgentIntegration[] {
       return true;
     })
   )
-    throw new Error("Invalid integration list received from Herdr.");
+    throw new Error(t("agents.invalidIntegrationList"));
   return items;
 }
 

@@ -463,7 +463,7 @@ export async function sendTerminalComposerText(
   wait: (ms: number) => Promise<void> = (ms) =>
     new Promise((resolve) => setTimeout(resolve, ms)),
 ): Promise<void> {
-  if (!paneId) throw new Error("No active pane");
+  if (!paneId) throw new Error(t("terminal.noActivePane"));
   const pieces = uploadedPathPieces(text);
   const imageOnly = pieces.every((piece) => piece.path || !piece.text.trim());
   if (!pieces.some((piece) => piece.path) || (!submit && imageOnly)) {

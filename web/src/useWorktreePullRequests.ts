@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { useEffectCallback } from "./useEffectCallback";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -311,8 +312,7 @@ function usePullRequestSummaries(
                   })
                   .catch(() => ({
                     state: "error",
-                    message:
-                      "PR/MR status request failed. Check the connection.",
+                    message: t("pr.statusRequestFailed"),
                     retryable: true,
                     refreshedAt: new Date().toISOString(),
                   }));
@@ -392,10 +392,10 @@ function usePullRequestSummaries(
         ...lastGood,
         stale: {
           message: !ready
-            ? "Waiting for the connection to recover."
+            ? t("pr.waitingForConnection")
             : !target.queryable
-              ? "Git branch status is temporarily unavailable."
-              : "Refreshing PR/MR status.",
+              ? t("pr.branchStatusUnavailable")
+              : t("pr.refreshingStatus"),
         },
       };
     }

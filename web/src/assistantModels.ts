@@ -1,4 +1,6 @@
+import { t } from "./i18n/core";
 import { CLAUDE_CODE_PROVIDER } from "../../shared/assistant";
+import type { TranslationKey } from "./i18n/en";
 import type {
   AssistantChatSelection,
   AssistantConfig,
@@ -6,15 +8,20 @@ import type {
   AssistantThinkingLevel,
 } from "../../shared/assistant";
 
-export const thinkingLabels: Record<AssistantThinkingLevel, string> = {
-  off: "Off",
-  minimal: "Minimal",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  xhigh: "Extra high",
-  max: "Maximum",
+const thinkingLabelKeys: Record<AssistantThinkingLevel, TranslationKey> = {
+  off: "assistant.thinkingOff",
+  minimal: "assistant.thinkingMinimal",
+  low: "assistant.thinkingLow",
+  medium: "assistant.thinkingMedium",
+  high: "assistant.thinkingHigh",
+  xhigh: "assistant.thinkingExtraHigh",
+  max: "assistant.thinkingMaximum",
 };
+
+/** The thinking level's display name in the active language. */
+export function thinkingLabel(level: AssistantThinkingLevel): string {
+  return t(thinkingLabelKeys[level]);
+}
 
 export function assistantChatSelection(
   snapshot: AssistantSnapshot,
@@ -61,9 +68,11 @@ export function thinkingOptions(
     ? [
         {
           value: "default",
-          label: `Default (${thinkingLabels[model.default_thinking_level]})`,
+          label: t("assistant.thinkingDefaultOption", {
+            label: thinkingLabel(model.default_thinking_level),
+          }),
         },
-        ...levels.map((value) => ({ value, label: thinkingLabels[value] })),
+        ...levels.map((value) => ({ value, label: thinkingLabel(value) })),
       ]
     : [];
 }
@@ -73,12 +82,12 @@ export function credentialStatus(
 ) {
   if (provider.id === CLAUDE_CODE_PROVIDER)
     return provider.configured
-      ? "Uses the sign-in of claude on the bridge"
-      : "The claude command was not found on the bridge";
-  if (!provider.configured) return "No saved credentials";
+      ? t("assistant.credentialBridgeSignIn")
+      : t("assistant.credentialBridgeCommandMissing");
+  if (!provider.configured) return t("assistant.credentialNone");
   return provider.credential_method === "oauth"
-    ? "Saved login (OAuth)"
+    ? t("assistant.credentialOauth")
     : provider.credential_method === "api_key"
-      ? "API key saved"
-      : "Credentials saved";
+      ? t("assistant.credentialApiKey")
+      : t("assistant.credentialSaved");
 }

@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { worldLocalStorage } from "./browserStorage";
 
 export function defaultAgentLaunchCommand(agent: string, command: string) {
@@ -24,7 +25,7 @@ export function readAgentLaunchCommand(
 
 export function validateAgentLaunchCommand(command: string) {
   if (!command.trim() || /[\x00-\x1f\x7f]/.test(command))
-    throw new Error("Enter a single-line launch command.");
+    throw new Error(t("agents.launchCommandInvalid"));
 }
 
 export function saveAgentLaunchCommand(

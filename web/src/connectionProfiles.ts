@@ -117,20 +117,18 @@ export function localConnectionProfilePayload(value: {
     id.length > 128 ||
     id === "startup-default"
   ) {
-    throw new Error(
-      "ID must start with a letter or number and use only letters, numbers, dot, colon, underscore, or hyphen.",
-    );
+    throw new Error(t("connections.validationId"));
   }
   if (
     !label ||
     label.length > 80 ||
     /[\u0000-\u001f\u007f-\u009f]/.test(label)
   ) {
-    throw new Error("Label must be 1-80 printable characters.");
+    throw new Error(t("connections.validationLabel"));
   }
   for (const [field, path] of [
-    ["Control socket", controlSocketPath],
-    ["Render socket", clientSocketPath],
+    [t("connections.fieldControlSocket"), controlSocketPath],
+    [t("connections.fieldRenderSocket"), clientSocketPath],
   ] as const) {
     const isAbsoluteSocketPath =
       path.startsWith("/") ||
@@ -142,9 +140,7 @@ export function localConnectionProfilePayload(value: {
       path.split(/[\\/]/).includes("..") ||
       path.length > 4096
     ) {
-      throw new Error(
-        `${field} path must be an absolute socket path without parent traversal.`,
-      );
+      throw new Error(t("connections.validationSocketPath", { field }));
     }
   }
   return {
@@ -178,26 +174,30 @@ export function sshConnectionProfilePayload(value: {
     id.length > 128 ||
     id === "startup-default"
   ) {
-    throw new Error(
-      "ID must start with a letter or number and use only letters, numbers, dot, colon, underscore, or hyphen.",
-    );
+    throw new Error(t("connections.validationId"));
   }
   if (
     !label ||
     label.length > 80 ||
     /[\u0000-\u001f\u007f-\u009f]/.test(label)
   ) {
-    throw new Error("Label must be 1-80 printable characters.");
+    throw new Error(t("connections.validationLabel"));
   }
   validateSshDestination(sshDestination);
-  validateRemoteSocketPath(remoteControlSocketPath, "Remote control socket");
-  validateRemoteSocketPath(remoteClientSocketPath, "Remote render socket");
+  validateRemoteSocketPath(
+    remoteControlSocketPath,
+    t("connections.fieldRemoteControlSocket"),
+  );
+  validateRemoteSocketPath(
+    remoteClientSocketPath,
+    t("connections.fieldRemoteRenderSocket"),
+  );
   if (
     remoteControlSocketPath &&
     remoteClientSocketPath &&
     remoteControlSocketPath === remoteClientSocketPath
   ) {
-    throw new Error("Remote control and render socket paths must differ.");
+    throw new Error(t("connections.validationRemoteSocketPathsDiffer"));
   }
   const payload: SshConnectionProfileInput = {
     id,

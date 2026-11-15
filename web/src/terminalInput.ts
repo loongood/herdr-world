@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { type ConnectionClient, UncertainRequestError } from "./api";
 import { store } from "./store";
 
@@ -57,13 +58,11 @@ export async function runTerminalInput<T>(
       store.notify({
         kind: "error",
         message: uncertain
-          ? "Terminal input outcome is uncertain"
-          : "Terminal input was not sent",
-        detail:
-          label +
-          (uncertain
-            ? ": the input may have reached its original runtime. It was not replayed. Refresh and verify that exact terminal before deciding whether to retry."
-            : ": refresh the original terminal before trying again."),
+          ? t("terminal.inputOutcomeUncertain")
+          : t("terminal.inputNotSent"),
+        detail: uncertain
+          ? t("terminal.inputUncertainDetail", { label })
+          : t("terminal.inputNotSentDetail", { label }),
       });
     }
     throw error;

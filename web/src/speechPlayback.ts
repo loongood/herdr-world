@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { chunkSpeech } from "./markdownToSpeech";
 import type { SpeechPreferences } from "./speechPreferences";
 
@@ -78,9 +79,7 @@ export class SpeechPlayback {
     this.stop();
     const generation = this.generation;
     const base = { owner, messageId, error: "" };
-    const fail = (
-      error = "Speech playback failed. Try another voice or try again.",
-    ) => {
+    const fail = (error = t("speech.playbackFailed")) => {
       if (generation !== this.generation) return;
       this.stop();
       this.publish({ ...base, status: "failed", error });
@@ -88,12 +87,12 @@ export class SpeechPlayback {
     this.runtime = this.getRuntime();
     const runtime = this.runtime;
     if (!runtime) {
-      fail("Speech is not supported by this browser.");
+      fail(t("speech.notSupported"));
       return;
     }
     const chunks = chunkSpeech(text);
     if (!chunks.length) {
-      fail("This message has no readable text.");
+      fail(t("speech.noReadableText"));
       return;
     }
     this.publish({ ...base, status: "speaking" });
@@ -118,9 +117,7 @@ export class SpeechPlayback {
           voices.find((item) => item.voiceURI === preferences.voiceURI) ??
           voices.find((item) => item.localService);
         if (!voice) {
-          fail(
-            "No on-device voice is available. Choose a voice in Settings; a network voice sends the reply text to the browser vendor.",
-          );
+          fail(t("speech.noOnDeviceVoice"));
           return;
         }
         utterance.voice = voice;

@@ -1,4 +1,5 @@
 // Quick pastes should finish before the loading overlay becomes visible.
+import { t } from "./i18n/core";
 const PASTE_LOADING_DELAY_MS = 200;
 
 /** Recognize browser paste gestures, including plain-text paste on PCs. */
@@ -19,7 +20,11 @@ export function isNativeTerminalPasteShortcut(
 }
 
 export function terminalPasteUnavailableMessage(applePlatform: boolean) {
-  return `This paste shortcut needs HTTPS or localhost. Use ${applePlatform ? "⌘V" : "Ctrl+V"} to paste, drag and drop files, or open World over HTTPS or localhost.`;
+  return t("terminal.pasteUnavailable", {
+    shortcut: applePlatform
+      ? t("terminal.pasteShortcutApple")
+      : t("terminal.pasteShortcutWindows"),
+  });
 }
 
 /** One runner per terminal effect; dispose it when that effect tears down. */

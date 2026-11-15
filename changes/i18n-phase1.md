@@ -262,6 +262,23 @@
   the Inspector (its rows, its selection and its terminal notices), the
   Board's facts and its economy lines, the host and agent rows, the command
   box, the world routes, the pane and desk stores and the runtime stores.
+  The top-level Web modules follow too: the API client's failure notices, the
+  agent integrations and launcher (their invalid lists, unknown agents and
+  launch commands), the agent ordering and worktree client (their detached
+  heads, host-unavailable notes and admission states), the assistant models
+  (their thinking levels, credential states and default option), the
+  attachment uploads, the connection profiles and their SSH validation (their
+  field labels and every validation message), the copy helper, the endpoint
+  availability probe, the markdown-to-speech conversion (its spoken
+  preambles, its omissions and its playback failures), the speech playback,
+  the resource presentation client, the store's session notices, the task
+  notifications and push (their worker and update failures), the terminal
+  composer and its commands, the terminal history and touch selections (their
+  uncertain-input and output-changed notes), the terminal image upload, the
+  terminal input, the terminal paste (its unavailable shortcut), the terminal
+  recovery, the visible tab layout, the worktree lifecycle, the workspace
+  tree badges (their pull request titles and provider links) and the pull
+  request hook (its status, branch and refresh notices).
   Remaining surfaces keep English
   until their phase lands.
 

@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import type { AgentWorktreeObservation } from "../../shared/agentWorktree";
 
 /**
@@ -31,7 +32,7 @@ export function worktreeChangeTrial(
   return {
     ...observation,
     state: "stale",
-    reason: "Testing: the worktree changed while the agent worked.",
+    reason: t("worktree.trialChanged"),
   };
 }
 

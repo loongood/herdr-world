@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import {
   normalizeAgentName,
   SESSION_AGENTS,
@@ -141,11 +142,7 @@ export async function prepareTaskNotifications(): Promise<ServiceWorkerRegistrat
             const stateChanged = () => {
               if (worker.state === "activated") resolve();
               else if (worker.state === "redundant")
-                reject(
-                  new Error(
-                    "The notification service worker could not activate.",
-                  ),
-                );
+                reject(new Error(t("notifications.workerNotActivated")));
             };
             worker.addEventListener("statechange", stateChanged, {
               signal: lifecycle.signal,
@@ -155,9 +152,7 @@ export async function prepareTaskNotifications(): Promise<ServiceWorkerRegistrat
         }
         if (!registration.active) await serviceWorker.ready;
         if (registration.active?.scriptURL !== workerURL) {
-          throw new Error(
-            "The notification service worker could not activate.",
-          );
+          throw new Error(t("notifications.workerNotActivated"));
         }
         return typeof registration.showNotification === "function"
           ? registration
@@ -165,12 +160,7 @@ export async function prepareTaskNotifications(): Promise<ServiceWorkerRegistrat
       })(),
       new Promise<never>((_, reject) => {
         timer = setTimeout(
-          () =>
-            reject(
-              new Error(
-                "The notification service worker did not become ready. Check the connection and try again.",
-              ),
-            ),
+          () => reject(new Error(t("notifications.workerNotReady"))),
           10_000,
         );
       }),

@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { useMemo } from "react";
 import type { ConnectionSummary } from "./api";
 import { withAgentActivity } from "./agentOrder";
@@ -62,7 +63,11 @@ export async function openServerSession(
       // Picked from a list on screen: shown at once, checked after.
       { fromKnownList: true },
     ));
-  if (!opened) store.notify({ kind: "error", message: "Session unavailable." });
+  if (!opened)
+    store.notify({
+      kind: "error",
+      message: t("agents.sessionUnavailableNotice"),
+    });
   return opened;
 }
 
@@ -175,9 +180,17 @@ export function useAllServerAgentSessions(enabled: boolean) {
     [connected, state.connections, snapshots],
   );
   const messages = !connected
-    ? [state.paused ? "Connection paused." : "Connect to load sessions."]
+    ? [
+        state.paused
+          ? t("agents.connectionPausedNotice")
+          : t("agents.connectToLoadSessions"),
+      ]
     : failed
-      ? [`Could not load sessions: ${world.error ?? "unavailable"}`]
+      ? [
+          t("agents.sessionLoadFailed", {
+            detail: world.error ?? t("common.unavailable"),
+          }),
+        ]
       : [];
   return { panes, snapshots, loading, messages };
 }

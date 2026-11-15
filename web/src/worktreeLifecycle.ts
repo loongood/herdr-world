@@ -60,7 +60,7 @@ function normalizedCheckoutPath(path: string): string {
 
 export function lifecycleWorktreeTitle(worktree: ExistingWorktree): string {
   if (worktree.branch) return worktree.branch;
-  if (worktree.is_detached) return "Detached HEAD";
+  if (worktree.is_detached) return t("worktree.detachedHead");
   if (worktree.is_bare) return t("worktree.bareRepository");
   return worktree.label || worktree.path;
 }

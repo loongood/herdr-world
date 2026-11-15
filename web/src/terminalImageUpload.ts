@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import type { ConnectionClient } from "./api";
 import { connectionHttpPath } from "./connectionHttp";
 
@@ -85,8 +86,9 @@ function postWithProgress(
         }),
       );
     };
-    xhr.onerror = () => reject(new TypeError("Upload failed: network error"));
-    xhr.onabort = () => reject(new TypeError("Upload cancelled"));
+    xhr.onerror = () =>
+      reject(new TypeError(t("terminal.uploadNetworkFailed")));
+    xhr.onabort = () => reject(new TypeError(t("terminal.uploadCancelled")));
     xhr.send(file);
   });
 }
@@ -139,7 +141,9 @@ async function uploadTerminalPayload(
       }
     }
     throw new Error(
-      detail || res.statusText || `Upload failed (${res.status})`,
+      detail ||
+        res.statusText ||
+        t("terminal.uploadFailedStatus", { status: res.status }),
     );
   }
 

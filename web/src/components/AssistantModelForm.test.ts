@@ -6,7 +6,8 @@ import {
   type AssistantModelConnection,
   type AssistantThinkingLevel,
 } from "../../../shared/assistant";
-import { thinkingLabels } from "../assistantModels";
+import { thinkingLabel } from "../assistantModels";
+import { t } from "../i18n";
 
 // Radix/cmdk need DOM globals before loading, isolated from other hook spies.
 if (process.env.HERDR_WORLD_MODEL_FORM_DOM_TEST !== "1") {
@@ -255,7 +256,9 @@ async function registerDomTests() {
       await act(async () => browser.happyDOM.whenAsyncComplete());
     };
     const thinkingInput = (level: AssistantThinkingLevel) =>
-      input(`Support ${thinkingLabels[level]} thinking`) as HTMLInputElement;
+      input(
+        t("assistant.supportThinkingAria", { label: thinkingLabel(level) }),
+      ) as HTMLInputElement;
     const selectedLevels = () =>
       ASSISTANT_THINKING_LEVELS.filter((level) => thinkingInput(level).checked);
     const toggle = async (level: AssistantThinkingLevel) =>

@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { createConnectionBackgroundLanes, type RpcLane } from "./rpcLanes";
 import { isBridgeHello } from "./bridgeHello";
 import type { BridgeControlMsg } from "./bridgeControl";
@@ -123,11 +124,11 @@ export function parseConnectionSummary(
       const destination = validateSshDestination(item.ssh_destination);
       const controlPath = validateRemoteSocketPath(
         item.remote_control_socket_path,
-        "Remote control socket",
+        t("connections.fieldRemoteControlSocket"),
       );
       const clientPath = validateRemoteSocketPath(
         item.remote_client_socket_path,
-        "Remote render socket",
+        t("connections.fieldRemoteRenderSocket"),
       );
       if (
         (controlPath && clientPath && controlPath === clientPath) ||
@@ -303,7 +304,7 @@ export async function logoutBrowserSession(): Promise<void> {
     credentials: "same-origin",
     headers: { "x-herdr-world-logout": "1", "x-roamgate-logout": "1" },
   });
-  if (!response.ok) throw new Error("Could not log out. Please try again.");
+  if (!response.ok) throw new Error(t("app.logoutFailed"));
   location.replace("/login");
 }
 

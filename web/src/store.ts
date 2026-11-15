@@ -2115,9 +2115,7 @@ export const store = {
             message: enabled
               ? t("status.autoSyncEnabled")
               : t("status.autoSyncDisabled"),
-            detail: enabled
-              ? "A sync will run now, then every 10 minutes while this workspace remains open."
-              : undefined,
+            detail: enabled ? t("status.autoSyncDetail") : undefined,
             autoDismissMs: 5000,
           },
         });

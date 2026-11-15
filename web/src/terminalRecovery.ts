@@ -1,5 +1,8 @@
+import { t } from "./i18n/core";
 /** Exhausted local attach recovery keeps the app and last frame available. */
-export const TERMINAL_NO_FRAME_MESSAGE = "Terminal is not receiving output";
+export function terminalNoFrameMessage(): string {
+  return t("terminal.noOutput");
+}
 
 /** Three acknowledged attaches without output exhaust one local recovery budget. */
 export class TerminalRecoveryBudget {

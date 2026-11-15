@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import type { Workspace } from "./types";
 import type { PullRequestSummary } from "../../shared/pullRequest";
 
@@ -14,22 +15,27 @@ export function workspacePullRequest(status?: PullRequestSummary) {
         : null;
   if (!state) return null;
   const label = {
-    open: "Open",
-    draft: "Draft",
-    merged: "Merged",
-    closed: "Closed without merge",
+    open: t("worktree.prOpen"),
+    draft: t("worktree.prDraft"),
+    merged: t("worktree.prMerged"),
+    closed: t("worktree.prClosedNoMerge"),
   }[state];
   const github = status.provider === "github";
   const stale = status.stale
-    ? `\nLast known status from ${new Date(status.refreshedAt).toLocaleString()}; ${status.stale.failedAt ? "refresh failed." : (status.stale.message ?? "awaiting refresh.")}`
+    ? `\n${t("pr.lastKnownStatus", {
+        time: new Date(status.refreshedAt).toLocaleString(),
+        detail: status.stale.failedAt
+          ? t("pr.refreshFailed")
+          : (status.stale.message ?? t("pr.awaitingRefresh")),
+      })}`
     : "";
   return {
     request,
     state,
     stale: !!status.stale,
     id: `${github ? "#" : "!"}${request.number}`,
-    title: `${github ? "PR #" : "MR !"}${request.number}: ${label}\n${request.title}${stale}`,
-    openLabel: github ? "Open PR on GitHub" : "Open MR on GitLab",
+    title: `${github ? t("pr.numberPrefixGithub") : t("pr.numberPrefixGitlab")}${request.number}: ${label}\n${request.title}${stale}`,
+    openLabel: github ? t("pr.openPrOnGithub") : t("pr.openMrOnGitlab"),
   } as const;
 }
 

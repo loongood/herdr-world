@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import type { Pane } from "./types";
 import { activityIdentity, activityKey } from "../../shared/agentActivity";
 
@@ -240,16 +241,16 @@ export function groupOrderedAgentPanes<
       grouping === "workspace"
         ? (workspaceLabels.get(key) ?? key)
         : grouping === "agent"
-          ? pane.agent?.trim() || "Unknown agent"
+          ? pane.agent?.trim() || t("agents.unknownAgent")
           : grouping === "status"
             ? {
-                blocked: "Blocked",
-                done: "Done",
-                idle: "Idle",
-                working: "Working",
-                unknown: "Unknown",
+                blocked: t("marks.blocked"),
+                done: t("marks.done"),
+                idle: t("marks.idle"),
+                working: t("marks.working"),
+                unknown: t("marks.unknown"),
               }[status]
-            : "All agents";
+            : t("agents.allAgents");
     const group = groups.get(key);
     if (group) group.panes.push(pane);
     else groups.set(key, { key, label, panes: [pane] });

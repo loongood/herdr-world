@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import { marked, type MarkedToken, type Token, type Tokens } from "marked";
 
 // These are presentation limits, not attempts to summarize technical content.
@@ -27,14 +28,16 @@ function spokenText(text: string, decodeEntities = true): string {
   return decoded
     .replace(/https?:\/\/[^\s<>]+/gi, (url) => {
       try {
-        return `link to ${new URL(url).hostname}`;
+        return t("speech.linkTo", { host: new URL(url).hostname });
       } catch {
-        return "link";
+        return t("speech.link");
       }
     })
-    .replace(/\b[\da-f]{24,}\b/gi, "long hash omitted")
-    .replace(/[!-~]{100,}/g, "long value omitted")
-    .replace(/([^\s])\1{9,}/gu, "$1 repeated")
+    .replace(/\b[\da-f]{24,}\b/gi, t("speech.longHashOmitted"))
+    .replace(/[!-~]{100,}/g, t("speech.longValueOmitted"))
+    .replace(/([^\s])\1{9,}/gu, (_, character: string) =>
+      t("speech.repeated", { character }),
+    )
     .replace(/[\t ]+/g, " ");
 }
 
@@ -60,7 +63,7 @@ function tokenToSpeech(value: Token): string {
       return inline(token.tokens);
     case "image": {
       const description = inline(token.tokens).trim();
-      return description ? `Image: ${description}.` : "";
+      return description ? t("speech.image", { description }) : "";
     }
     case "br":
       return "\n";
@@ -71,8 +74,8 @@ function tokenToSpeech(value: Token): string {
         .map((item, index) => {
           const prefix = item.task
             ? item.checked
-              ? "Completed. "
-              : "Not completed. "
+              ? t("speech.completed")
+              : t("speech.notCompleted")
             : token.ordered
               ? `${Number(token.start) + index}. `
               : "";
@@ -82,8 +85,12 @@ function tokenToSpeech(value: Token): string {
     case "code": {
       const language = token.lang?.split(/\s+/)[0] ?? "";
       if (language.toLowerCase() === "mermaid")
-        return "Mermaid diagram omitted.";
-      return `${language ? `${spokenText(language)} code` : "Code"} block omitted.`;
+        return t("speech.mermaidOmitted");
+      return language
+        ? t("speech.languageCodeBlockOmitted", {
+            language: spokenText(language),
+          })
+        : t("speech.codeBlockOmitted");
     }
     case "table":
       return table(token);
@@ -103,18 +110,16 @@ function table(token: Tokens.Table): string {
     ) ||
     cells.flat().reduce((size, cell) => size + cell.text.length, 0) > 2000
   ) {
-    return "Table omitted.";
+    return t("speech.tableOmitted");
   }
   const headers = token.header.map((cell) => inline(cell.tokens).trim());
   return [
-    "Table.",
+    t("speech.table"),
     ...token.rows.map((row) =>
       row
         .map((cell, index) => {
-          const value = inline(cell.tokens).trim();
-          return headers[index]
-            ? `${headers[index]}: ${value || "empty"}.`
-            : `${value || "empty"}.`;
+          const value = inline(cell.tokens).trim() || t("speech.empty");
+          return headers[index] ? `${headers[index]}: ${value}.` : `${value}.`;
         })
         .join(" "),
     ),
@@ -137,7 +142,7 @@ function omitRepeatedLines(text: string): string {
     while (line.trim() && lines[end] === line) end += 1;
     const count = end - index;
     if (count >= 4)
-      result.push(line, `Repeated line omitted ${count - 1} times.`);
+      result.push(line, t("speech.repeatedLineOmitted", { count: count - 1 }));
     else result.push(...lines.slice(index, end));
     index = end;
   }

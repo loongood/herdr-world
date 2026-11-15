@@ -1,4 +1,5 @@
 /// <reference lib="es2022.intl" />
+import { t } from "./i18n/core";
 import type { Terminal } from "@xterm/xterm";
 
 export const TERMINAL_LONG_PRESS_MS = 450;
@@ -235,7 +236,7 @@ export class TerminalTouchSelection {
         : value % this.term.cols;
       return {
         index: index as 0 | 1,
-        label: end ? "Selection end" : "Selection start",
+        label: end ? t("terminal.selectionEnd") : t("terminal.selectionStart"),
         x: rect.left + (col * rect.width) / this.term.cols,
         markerY:
           rect.top + ((row + (end ? 1 : 0)) * rect.height) / this.term.rows,

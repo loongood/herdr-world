@@ -2,7 +2,7 @@ import type { AssistantSnapshot } from "../../../shared/assistant";
 import {
   assistantChatSelection,
   thinkingForModel,
-  thinkingLabels,
+  thinkingLabel,
   thinkingOptions,
 } from "../assistantModels";
 import { useT } from "../i18n";
@@ -111,11 +111,11 @@ export function AssistantChatControls({
         placeholder={
           staleEffort
             ? t("assistant.effortUnavailable", {
-                label: thinkingLabels[config.thinking_level!],
+                label: thinkingLabel(config.thinking_level!),
               })
             : effective
               ? t("assistant.effortPrefix", {
-                  label: thinkingLabels[effective],
+                  label: thinkingLabel(effective),
                 })
               : t("assistant.effortUnavailableShort")
         }

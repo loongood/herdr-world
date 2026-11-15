@@ -1,494 +1,541 @@
+import { getCurrentLocale, t } from "./i18n";
+import type { TranslationKey } from "./i18n/en";
+import type { Locale } from "./i18n/locales";
+
 export type ComposerCommand = {
   name: string;
   description: string;
   arguments?: string;
 };
 
+/** A catalog entry: the description is a dictionary key, read when shown. */
+type ComposerCommandEntry = {
+  name: string;
+  descriptionKey: TranslationKey;
+  arguments?: string;
+};
+
 // Built-in input-assistance catalogs, not live capability lists or validators.
 // Availability depends on agent version/configuration. Argument hints are
 // display-only; plugins and unlisted commands remain freely editable/sendable.
-const catalogs: Record<string, readonly ComposerCommand[]> = {
+const catalogs: Record<string, readonly ComposerCommandEntry[]> = {
   // https://code.claude.com/docs/en/commands
   claude: [
-    { name: "/help", description: "Show help and available commands" },
+    { name: "/help", descriptionKey: "composerCommands.claude.help" },
     {
       name: "/compact",
-      description: "Summarize the conversation to free context",
+      descriptionKey: "composerCommands.claude.compact",
       arguments: "[instructions]",
     },
     {
       name: "/clear",
-      description: "Start a new conversation with empty context",
+      descriptionKey: "composerCommands.claude.clear",
       arguments: "[name]",
     },
     {
       name: "/model",
-      description: "Choose or switch the AI model",
+      descriptionKey: "composerCommands.claude.model",
       arguments: "[model]",
     },
     {
       name: "/resume",
-      description: "Resume a conversation or open the session picker",
+      descriptionKey: "composerCommands.claude.resume",
       arguments: "[session]",
     },
     {
       name: "/status",
-      description: "Show version, model, account, and connectivity",
+      descriptionKey: "composerCommands.claude.status",
     },
-    { name: "/config", description: "Open settings and preferences" },
+    { name: "/config", descriptionKey: "composerCommands.claude.config" },
     {
       name: "/add-dir",
-      description: "Add a working directory for session file access",
+      descriptionKey: "composerCommands.claude.addDir",
       arguments: "<path>",
     },
     {
       name: "/context",
-      description: "Show context usage and optimization tips",
+      descriptionKey: "composerCommands.claude.context",
     },
     {
       name: "/usage",
-      description: "Show session cost, usage limits, and activity",
+      descriptionKey: "composerCommands.claude.usage",
     },
-    { name: "/memory", description: "Edit CLAUDE.md and manage auto memory" },
-    { name: "/permissions", description: "Manage tool permission rules" },
-    { name: "/mcp", description: "Manage MCP servers and authentication" },
-    { name: "/skills", description: "List and manage available skills" },
-    { name: "/plugin", description: "Browse and manage plugins" },
-    { name: "/reload-plugins", description: "Reload active plugins" },
+    { name: "/memory", descriptionKey: "composerCommands.claude.memory" },
+    {
+      name: "/permissions",
+      descriptionKey: "composerCommands.claude.permissions",
+    },
+    { name: "/mcp", descriptionKey: "composerCommands.claude.mcp" },
+    { name: "/skills", descriptionKey: "composerCommands.claude.skills" },
+    { name: "/plugin", descriptionKey: "composerCommands.claude.plugin" },
+    {
+      name: "/reload-plugins",
+      descriptionKey: "composerCommands.claude.reloadPlugins",
+    },
     {
       name: "/reload-skills",
-      description: "Reload skill and command directories",
+      descriptionKey: "composerCommands.claude.reloadSkills",
     },
-    { name: "/init", description: "Create a CLAUDE.md project guide" },
+    { name: "/init", descriptionKey: "composerCommands.claude.init" },
     {
       name: "/plan",
-      description: "Enter plan mode before making changes",
+      descriptionKey: "composerCommands.claude.plan",
       arguments: "[description]",
     },
-    { name: "/review", description: "Review changes for correctness issues" },
-    { name: "/diff", description: "Review working-tree changes" },
+    { name: "/review", descriptionKey: "composerCommands.claude.review" },
+    { name: "/diff", descriptionKey: "composerCommands.claude.diff" },
     {
       name: "/rewind",
-      description: "Rewind conversation or code to an earlier point",
+      descriptionKey: "composerCommands.claude.rewind",
     },
     {
       name: "/rename",
-      description: "Rename the current session",
+      descriptionKey: "composerCommands.claude.rename",
       arguments: "[name]",
     },
     {
       name: "/copy",
-      description: "Copy an assistant response to the clipboard",
+      descriptionKey: "composerCommands.claude.copy",
     },
     {
       name: "/export",
-      description: "Export the conversation as plain text",
+      descriptionKey: "composerCommands.claude.export",
       arguments: "[filename]",
     },
-    { name: "/hooks", description: "View tool-event hook configurations" },
-    { name: "/tasks", description: "View and manage background work" },
-    { name: "/doctor", description: "Diagnose installation and project setup" },
-    { name: "/theme", description: "Choose the terminal color theme" },
-    { name: "/keybindings", description: "Open keyboard shortcut settings" },
-    { name: "/release-notes", description: "Browse release notes" },
-    { name: "/login", description: "Sign in to your Anthropic account" },
-    { name: "/logout", description: "Sign out of your Anthropic account" },
+    { name: "/hooks", descriptionKey: "composerCommands.claude.hooks" },
+    { name: "/tasks", descriptionKey: "composerCommands.claude.tasks" },
+    { name: "/doctor", descriptionKey: "composerCommands.claude.doctor" },
+    { name: "/theme", descriptionKey: "composerCommands.claude.theme" },
+    {
+      name: "/keybindings",
+      descriptionKey: "composerCommands.claude.keybindings",
+    },
+    {
+      name: "/release-notes",
+      descriptionKey: "composerCommands.claude.releaseNotes",
+    },
+    { name: "/login", descriptionKey: "composerCommands.claude.login" },
+    { name: "/logout", descriptionKey: "composerCommands.claude.logout" },
     {
       name: "/btw",
-      description: "Ask a side question outside the main conversation",
+      descriptionKey: "composerCommands.claude.btw",
       arguments: "[question]",
     },
     {
       name: "/branch",
-      description: "Branch the conversation and switch to the new branch",
+      descriptionKey: "composerCommands.claude.branch",
       arguments: "[name]",
     },
-    { name: "/effort", description: "Choose the model reasoning effort" },
+    { name: "/effort", descriptionKey: "composerCommands.claude.effort" },
     {
       name: "/exit",
-      description: "Exit the CLI or detach a background session",
+      descriptionKey: "composerCommands.claude.exit",
     },
   ],
   // https://github.com/openai/codex/blob/main/codex-rs/tui/src/slash_command.rs
   codex: [
-    { name: "/model", description: "Choose the model and reasoning effort" },
-    { name: "/new", description: "Start a new chat" },
-    { name: "/resume", description: "Resume a saved chat" },
+    { name: "/model", descriptionKey: "composerCommands.codex.model" },
+    { name: "/new", descriptionKey: "composerCommands.codex.new" },
+    { name: "/resume", descriptionKey: "composerCommands.codex.resume" },
     {
       name: "/compact",
-      description: "Summarize the conversation to free context",
+      descriptionKey: "composerCommands.codex.compact",
     },
-    { name: "/diff", description: "Show git diff, including untracked files" },
+    { name: "/diff", descriptionKey: "composerCommands.codex.diff" },
     {
       name: "/status",
-      description: "Show session configuration and token usage",
+      descriptionKey: "composerCommands.codex.status",
     },
-    { name: "/permissions", description: "Choose what Codex is allowed to do" },
-    { name: "/review", description: "Review current changes and find issues" },
-    { name: "/plan", description: "Switch to plan mode" },
-    { name: "/init", description: "Create an AGENTS.md project guide" },
-    { name: "/skills", description: "Browse available skills" },
-    { name: "/mcp", description: "List configured MCP servers and tools" },
-    { name: "/plugins", description: "Browse plugins" },
-    { name: "/fork", description: "Fork the current conversation" },
+    {
+      name: "/permissions",
+      descriptionKey: "composerCommands.codex.permissions",
+    },
+    { name: "/review", descriptionKey: "composerCommands.codex.review" },
+    { name: "/plan", descriptionKey: "composerCommands.codex.plan" },
+    { name: "/init", descriptionKey: "composerCommands.codex.init" },
+    { name: "/skills", descriptionKey: "composerCommands.codex.skills" },
+    { name: "/mcp", descriptionKey: "composerCommands.codex.mcp" },
+    { name: "/plugins", descriptionKey: "composerCommands.codex.plugins" },
+    { name: "/fork", descriptionKey: "composerCommands.codex.fork" },
     {
       name: "/rename",
-      description: "Rename the current conversation",
+      descriptionKey: "composerCommands.codex.rename",
       arguments: "[name]",
     },
-    { name: "/copy", description: "Copy the last response or part of it" },
-    { name: "/export", description: "Export the conversation as Markdown" },
-    { name: "/mention", description: "Choose a file to mention" },
-    { name: "/ps", description: "List background terminals" },
-    { name: "/stop", description: "Stop all background terminals" },
-    { name: "/clear", description: "Clear the terminal and start a new chat" },
-    { name: "/theme", description: "Choose a syntax highlighting theme" },
-    { name: "/statusline", description: "Configure status-line items" },
+    { name: "/copy", descriptionKey: "composerCommands.codex.copy" },
+    { name: "/export", descriptionKey: "composerCommands.codex.export" },
+    { name: "/mention", descriptionKey: "composerCommands.codex.mention" },
+    { name: "/ps", descriptionKey: "composerCommands.codex.ps" },
+    { name: "/stop", descriptionKey: "composerCommands.codex.stop" },
+    { name: "/clear", descriptionKey: "composerCommands.codex.clear" },
+    { name: "/theme", descriptionKey: "composerCommands.codex.theme" },
+    {
+      name: "/statusline",
+      descriptionKey: "composerCommands.codex.statusline",
+    },
     {
       name: "/debug-config",
-      description: "Show configuration layers and sources",
+      descriptionKey: "composerCommands.codex.debugConfig",
     },
-    { name: "/feedback", description: "Send feedback and logs to maintainers" },
-    { name: "/logout", description: "Sign out of Codex" },
+    { name: "/feedback", descriptionKey: "composerCommands.codex.feedback" },
+    { name: "/logout", descriptionKey: "composerCommands.codex.logout" },
     {
       name: "/cd",
-      description: "Change the working directory",
+      descriptionKey: "composerCommands.codex.cd",
       arguments: "<path>",
     },
-    { name: "/pwd", description: "Show the current working directory" },
-    { name: "/usage", description: "View account usage and limits" },
-    { name: "/hooks", description: "View and manage lifecycle hooks" },
-    { name: "/quit", description: "Exit Codex" },
+    { name: "/pwd", descriptionKey: "composerCommands.codex.pwd" },
+    { name: "/usage", descriptionKey: "composerCommands.codex.usage" },
+    { name: "/hooks", descriptionKey: "composerCommands.codex.hooks" },
+    { name: "/quit", descriptionKey: "composerCommands.codex.quit" },
   ],
   // https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/slash-commands.md
   pi: [
     {
       name: "/model",
-      description: "Select a model",
+      descriptionKey: "composerCommands.pi.model",
       arguments: "[provider/model]",
     },
-    { name: "/settings", description: "Open settings" },
-    { name: "/new", description: "Start a new session" },
-    { name: "/resume", description: "Switch to another saved session" },
+    { name: "/settings", descriptionKey: "composerCommands.pi.settings" },
+    { name: "/new", descriptionKey: "composerCommands.pi.new" },
+    { name: "/resume", descriptionKey: "composerCommands.pi.resume" },
     {
       name: "/compact",
-      description: "Compact the current context",
+      descriptionKey: "composerCommands.pi.compact",
       arguments: "[instructions]",
     },
     {
       name: "/session",
-      description: "Show session information and statistics",
+      descriptionKey: "composerCommands.pi.session",
     },
-    { name: "/tree", description: "Navigate the session tree" },
+    { name: "/tree", descriptionKey: "composerCommands.pi.tree" },
     {
       name: "/thinking",
-      description: "Set the model thinking level",
+      descriptionKey: "composerCommands.pi.thinking",
       arguments: "[level]",
     },
     {
       name: "/scoped-models",
-      description: "Choose models for interactive cycling",
+      descriptionKey: "composerCommands.pi.scopedModels",
     },
     {
       name: "/login",
-      description: "Add provider authentication",
+      descriptionKey: "composerCommands.pi.login",
       arguments: "[provider]",
     },
-    { name: "/logout", description: "Remove provider authentication" },
+    { name: "/logout", descriptionKey: "composerCommands.pi.logout" },
     {
       name: "/llama",
-      description: "Manage models on the configured llama.cpp router",
+      descriptionKey: "composerCommands.pi.llama",
     },
     {
       name: "/name",
-      description: "Show or set the session display name",
+      descriptionKey: "composerCommands.pi.name",
       arguments: "[name]",
     },
     {
       name: "/fork",
-      description: "Start a new session from an earlier message",
+      descriptionKey: "composerCommands.pi.fork",
     },
     {
       name: "/clone",
-      description: "Duplicate the session at its current position",
+      descriptionKey: "composerCommands.pi.clone",
     },
     {
       name: "/import",
-      description: "Import and resume a JSONL session",
+      descriptionKey: "composerCommands.pi.import",
       arguments: "<path>",
     },
-    { name: "/copy", description: "Copy the last assistant message" },
+    { name: "/copy", descriptionKey: "composerCommands.pi.copy" },
     {
       name: "/export",
-      description: "Export the session as HTML or JSONL",
+      descriptionKey: "composerCommands.pi.export",
       arguments: "[path]",
     },
     {
       name: "/share",
-      description: "Upload the session and return a viewer link",
+      descriptionKey: "composerCommands.pi.share",
     },
     {
       name: "/bug",
-      description: "Prepare a private bug report for Pi developers",
+      descriptionKey: "composerCommands.pi.bug",
       arguments: "[description]",
     },
-    { name: "/trust", description: "Save a project trust decision" },
+    { name: "/trust", descriptionKey: "composerCommands.pi.trust" },
     {
       name: "/reload",
-      description: "Reload extensions, skills, themes, and context",
+      descriptionKey: "composerCommands.pi.reload",
     },
-    { name: "/hotkeys", description: "Show active keyboard shortcuts" },
-    { name: "/changelog", description: "Show changelog entries" },
-    { name: "/quit", description: "Exit Pi" },
+    { name: "/hotkeys", descriptionKey: "composerCommands.pi.hotkeys" },
+    { name: "/changelog", descriptionKey: "composerCommands.pi.changelog" },
+    { name: "/quit", descriptionKey: "composerCommands.pi.quit" },
   ],
   // https://moonshotai.github.io/kimi-cli/en/reference/slash-commands.html
   kimi: [
     {
       name: "/help",
-      description: "Show shortcuts, commands, and loaded skills",
+      descriptionKey: "composerCommands.kimi.help",
     },
-    { name: "/model", description: "Switch models and thinking mode" },
-    { name: "/new", description: "Create and switch to a new session" },
-    { name: "/sessions", description: "List and switch saved sessions" },
-    { name: "/clear", description: "Clear the current session context" },
+    { name: "/model", descriptionKey: "composerCommands.kimi.model" },
+    { name: "/new", descriptionKey: "composerCommands.kimi.new" },
+    { name: "/sessions", descriptionKey: "composerCommands.kimi.sessions" },
+    { name: "/clear", descriptionKey: "composerCommands.kimi.clear" },
     {
       name: "/compact",
-      description: "Compact context to reduce token usage",
+      descriptionKey: "composerCommands.kimi.compact",
       arguments: "[instructions]",
     },
-    { name: "/usage", description: "Show Kimi Code API usage and quota" },
-    { name: "/version", description: "Show the Kimi Code CLI version" },
-    { name: "/changelog", description: "Show recent release notes" },
+    { name: "/usage", descriptionKey: "composerCommands.kimi.usage" },
+    { name: "/version", descriptionKey: "composerCommands.kimi.version" },
+    { name: "/changelog", descriptionKey: "composerCommands.kimi.changelog" },
     {
       name: "/feedback",
-      description: "Submit feedback to Kimi Code maintainers",
+      descriptionKey: "composerCommands.kimi.feedback",
     },
-    { name: "/login", description: "Sign in or configure an API platform" },
-    { name: "/logout", description: "Sign out and remove stored credentials" },
+    { name: "/login", descriptionKey: "composerCommands.kimi.login" },
+    { name: "/logout", descriptionKey: "composerCommands.kimi.logout" },
     {
       name: "/editor",
-      description: "Choose an external editor for terminal input",
+      descriptionKey: "composerCommands.kimi.editor",
       arguments: "[command]",
     },
     {
       name: "/theme",
-      description: "Show or change the terminal theme",
+      descriptionKey: "composerCommands.kimi.theme",
       arguments: "[dark|light]",
     },
-    { name: "/reload", description: "Reload the configuration file" },
+    { name: "/reload", descriptionKey: "composerCommands.kimi.reload" },
     {
       name: "/debug",
-      description: "Inspect messages, tokens, and checkpoints",
+      descriptionKey: "composerCommands.kimi.debug",
     },
-    { name: "/mcp", description: "Show connected MCP servers and tools" },
-    { name: "/hooks", description: "Show configured lifecycle hooks" },
+    { name: "/mcp", descriptionKey: "composerCommands.kimi.mcp" },
+    { name: "/hooks", descriptionKey: "composerCommands.kimi.hooks" },
     {
       name: "/title",
-      description: "Show or set the current session title",
+      descriptionKey: "composerCommands.kimi.title",
       arguments: "[text]",
     },
     {
       name: "/undo",
-      description: "Fork from an earlier turn and edit its prompt",
+      descriptionKey: "composerCommands.kimi.undo",
     },
-    { name: "/fork", description: "Copy the conversation into a new session" },
+    { name: "/fork", descriptionKey: "composerCommands.kimi.fork" },
     {
       name: "/export",
-      description: "Export the session to a Markdown file",
+      descriptionKey: "composerCommands.kimi.export",
       arguments: "[path]",
     },
     {
       name: "/import",
-      description: "Import reference context from a file or session",
+      descriptionKey: "composerCommands.kimi.import",
       arguments: "<file_path|session_id>",
     },
     {
       name: "/add-dir",
-      description: "Add or list extra workspace directories",
+      descriptionKey: "composerCommands.kimi.addDir",
       arguments: "[path]",
     },
     {
       name: "/btw",
-      description: "Ask a side question without changing the conversation",
+      descriptionKey: "composerCommands.kimi.btw",
       arguments: "<question>",
     },
-    { name: "/init", description: "Analyze the project and create AGENTS.md" },
+    { name: "/init", descriptionKey: "composerCommands.kimi.init" },
     {
       name: "/plan",
-      description: "Toggle plan mode or inspect the current plan",
+      descriptionKey: "composerCommands.kimi.plan",
       arguments: "[on|off|view|clear]",
     },
-    { name: "/task", description: "View and manage background tasks" },
-    { name: "/web", description: "Continue the session in Kimi Web UI" },
-    { name: "/vis", description: "Open the agent tracing visualizer" },
-    { name: "/exit", description: "Exit Kimi Code CLI" },
+    { name: "/task", descriptionKey: "composerCommands.kimi.task" },
+    { name: "/web", descriptionKey: "composerCommands.kimi.web" },
+    { name: "/vis", descriptionKey: "composerCommands.kimi.vis" },
+    { name: "/exit", descriptionKey: "composerCommands.kimi.exit" },
   ],
   // https://docs.x.ai/build/modes-and-commands
   grok: [
-    { name: "/help", description: "Browse commands and keyboard shortcuts" },
+    { name: "/help", descriptionKey: "composerCommands.grok.help" },
     {
       name: "/model",
-      description: "Switch the active model",
+      descriptionKey: "composerCommands.grok.model",
       arguments: "<name>",
     },
-    { name: "/settings", description: "Open settings" },
-    { name: "/new", description: "Start a new session" },
-    { name: "/resume", description: "Resume a previous session" },
+    { name: "/settings", descriptionKey: "composerCommands.grok.settings" },
+    { name: "/new", descriptionKey: "composerCommands.grok.new" },
+    { name: "/resume", descriptionKey: "composerCommands.grok.resume" },
     {
       name: "/sessions",
-      description: "Switch, rename, or close active sessions",
+      descriptionKey: "composerCommands.grok.sessions",
     },
     {
       name: "/compact",
-      description: "Compact conversation history",
+      descriptionKey: "composerCommands.grok.compact",
       arguments: "[context]",
     },
-    { name: "/context", description: "Show current context usage" },
-    { name: "/session-info", description: "Show current session information" },
+    { name: "/context", descriptionKey: "composerCommands.grok.context" },
+    {
+      name: "/session-info",
+      descriptionKey: "composerCommands.grok.sessionInfo",
+    },
     {
       name: "/rename",
-      description: "Rename the current session",
+      descriptionKey: "composerCommands.grok.rename",
       arguments: "<title>",
     },
-    { name: "/fork", description: "Branch the session into a peer agent" },
-    { name: "/rewind", description: "Rewind to a previous turn" },
+    { name: "/fork", descriptionKey: "composerCommands.grok.fork" },
+    { name: "/rewind", descriptionKey: "composerCommands.grok.rewind" },
     {
       name: "/copy",
-      description: "Copy the last or Nth-latest response",
+      descriptionKey: "composerCommands.grok.copy",
       arguments: "[N]",
     },
     {
       name: "/export",
-      description: "Export the conversation to a file or clipboard",
+      descriptionKey: "composerCommands.grok.export",
     },
-    { name: "/share", description: "Share the current session via a URL" },
-    { name: "/find", description: "Search conversation scrollback" },
+    { name: "/share", descriptionKey: "composerCommands.grok.share" },
+    { name: "/find", descriptionKey: "composerCommands.grok.find" },
     {
       name: "/transcript",
-      description: "View the full transcript in your pager",
+      descriptionKey: "composerCommands.grok.transcript",
     },
     {
       name: "/effort",
-      description: "Set the current model's reasoning effort",
+      descriptionKey: "composerCommands.grok.effort",
     },
     {
       name: "/plan",
-      description: "Enter plan mode",
+      descriptionKey: "composerCommands.grok.plan",
       arguments: "[description]",
     },
-    { name: "/view-plan", description: "View the current plan" },
+    { name: "/view-plan", descriptionKey: "composerCommands.grok.viewPlan" },
     {
       name: "/btw",
-      description: "Ask a side question without interrupting",
+      descriptionKey: "composerCommands.grok.btw",
       arguments: "<question>",
     },
     {
       name: "/tasks",
-      description: "List background tasks, subagents, and schedules",
+      descriptionKey: "composerCommands.grok.tasks",
     },
-    { name: "/queue", description: "List queued prompts" },
-    { name: "/dashboard", description: "Open the agent dashboard" },
+    { name: "/queue", descriptionKey: "composerCommands.grok.queue" },
+    { name: "/dashboard", descriptionKey: "composerCommands.grok.dashboard" },
     {
       name: "/theme",
-      description: "Switch the color theme",
+      descriptionKey: "composerCommands.grok.theme",
       arguments: "[name]",
     },
-    { name: "/config-agents", description: "Manage agent definitions" },
-    { name: "/plugins", description: "Open the plugins manager" },
-    { name: "/skills", description: "Browse available skills" },
-    { name: "/mcps", description: "Manage MCP servers and tools" },
-    { name: "/hooks", description: "Browse hooks" },
-    { name: "/marketplace", description: "Browse extension marketplaces" },
+    {
+      name: "/config-agents",
+      descriptionKey: "composerCommands.grok.configAgents",
+    },
+    { name: "/plugins", descriptionKey: "composerCommands.grok.plugins" },
+    { name: "/skills", descriptionKey: "composerCommands.grok.skills" },
+    { name: "/mcps", descriptionKey: "composerCommands.grok.mcps" },
+    { name: "/hooks", descriptionKey: "composerCommands.grok.hooks" },
+    {
+      name: "/marketplace",
+      descriptionKey: "composerCommands.grok.marketplace",
+    },
     {
       name: "/create-workflow",
-      description: "Create and save a workflow",
+      descriptionKey: "composerCommands.grok.createWorkflow",
       arguments: "[description]",
     },
     {
       name: "/workflow",
-      description: "Launch or manage a saved workflow",
+      descriptionKey: "composerCommands.grok.workflow",
       arguments: "<name> [args]",
     },
-    { name: "/workflows", description: "Open the workflow run dashboard" },
-    { name: "/usage", description: "View credit usage and billing" },
+    { name: "/workflows", descriptionKey: "composerCommands.grok.workflows" },
+    { name: "/usage", descriptionKey: "composerCommands.grok.usage" },
     {
       name: "/privacy",
-      description: "Manage privacy and data-retention settings",
+      descriptionKey: "composerCommands.grok.privacy",
     },
     {
       name: "/feedback",
-      description: "Send feedback about the current session",
+      descriptionKey: "composerCommands.grok.feedback",
     },
-    { name: "/release-notes", description: "View release notes" },
-    { name: "/login", description: "Sign in to Grok Build" },
-    { name: "/logout", description: "Sign out of the current account" },
-    { name: "/quit", description: "Exit Grok Build" },
+    {
+      name: "/release-notes",
+      descriptionKey: "composerCommands.grok.releaseNotes",
+    },
+    { name: "/login", descriptionKey: "composerCommands.grok.login" },
+    { name: "/logout", descriptionKey: "composerCommands.grok.logout" },
+    { name: "/quit", descriptionKey: "composerCommands.grok.quit" },
   ],
   // https://antigravity.google/docs/cli/reference
   agy: [
-    { name: "/help", description: "Show commands and keyboard shortcuts" },
-    { name: "/model", description: "Choose the reasoning model" },
-    { name: "/config", description: "Open the settings editor" },
+    { name: "/help", descriptionKey: "composerCommands.agy.help" },
+    { name: "/model", descriptionKey: "composerCommands.agy.model" },
+    { name: "/config", descriptionKey: "composerCommands.agy.config" },
     {
       name: "/clear",
-      description: "Clear the terminal and reset conversation context",
+      descriptionKey: "composerCommands.agy.clear",
     },
-    { name: "/resume", description: "Open the conversation picker" },
+    { name: "/resume", descriptionKey: "composerCommands.agy.resume" },
     {
       name: "/fork",
-      description: "Clone the conversation into a parallel session",
+      descriptionKey: "composerCommands.agy.fork",
     },
-    { name: "/rewind", description: "Roll back to an earlier message" },
+    { name: "/rewind", descriptionKey: "composerCommands.agy.rewind" },
     {
       name: "/rename",
-      description: "Rename the current session",
+      descriptionKey: "composerCommands.agy.rename",
       arguments: "<name>",
     },
-    { name: "/context", description: "Show context usage" },
-    { name: "/planning", description: "Enable multi-turn planning mode" },
-    { name: "/fast", description: "Enable fast mode without reasoning plans" },
-    { name: "/diff", description: "Review changes, turns, and commits" },
-    { name: "/artifact", description: "Open the artifact review panel" },
+    { name: "/context", descriptionKey: "composerCommands.agy.context" },
+    { name: "/planning", descriptionKey: "composerCommands.agy.planning" },
+    { name: "/fast", descriptionKey: "composerCommands.agy.fast" },
+    { name: "/diff", descriptionKey: "composerCommands.agy.diff" },
+    { name: "/artifact", descriptionKey: "composerCommands.agy.artifact" },
     {
       name: "/agents",
-      description: "Manage agents and monitor background subagents",
+      descriptionKey: "composerCommands.agy.agents",
     },
-    { name: "/tasks", description: "Monitor background shell tasks" },
-    { name: "/mcp", description: "Manage MCP servers" },
-    { name: "/skills", description: "Browse loaded local and global skills" },
-    { name: "/hooks", description: "Browse active script hooks" },
-    { name: "/plugin", description: "Browse and manage plugins" },
-    { name: "/permissions", description: "Manage tool permissions" },
-    { name: "/keybindings", description: "Edit keyboard shortcuts" },
-    { name: "/statusline", description: "Customize the status bar" },
+    { name: "/tasks", descriptionKey: "composerCommands.agy.tasks" },
+    { name: "/mcp", descriptionKey: "composerCommands.agy.mcp" },
+    { name: "/skills", descriptionKey: "composerCommands.agy.skills" },
+    { name: "/hooks", descriptionKey: "composerCommands.agy.hooks" },
+    { name: "/plugin", descriptionKey: "composerCommands.agy.plugin" },
+    {
+      name: "/permissions",
+      descriptionKey: "composerCommands.agy.permissions",
+    },
+    {
+      name: "/keybindings",
+      descriptionKey: "composerCommands.agy.keybindings",
+    },
+    { name: "/statusline", descriptionKey: "composerCommands.agy.statusline" },
     {
       name: "/title",
-      description: "Configure terminal window title updates",
+      descriptionKey: "composerCommands.agy.title",
       arguments: "[on|off]",
     },
     {
       name: "/add-dir",
-      description: "Add a directory to the active workspace",
+      descriptionKey: "composerCommands.agy.addDir",
       arguments: "<path>",
     },
     {
       name: "/open",
-      description: "Open a path in the system editor",
+      descriptionKey: "composerCommands.agy.open",
       arguments: "<path>",
     },
     {
       name: "/btw",
-      description: "Ask a side question without interrupting",
+      descriptionKey: "composerCommands.agy.btw",
       arguments: "<query>",
     },
-    { name: "/copy", description: "Copy the last agent response" },
-    { name: "/usage", description: "Show model quota usage" },
-    { name: "/feedback", description: "Open the feedback panel" },
+    { name: "/copy", descriptionKey: "composerCommands.agy.copy" },
+    { name: "/usage", descriptionKey: "composerCommands.agy.usage" },
+    { name: "/feedback", descriptionKey: "composerCommands.agy.feedback" },
     {
       name: "/logout",
-      description: "Sign out and remove authentication tokens",
+      descriptionKey: "composerCommands.agy.logout",
     },
-    { name: "/exit", description: "Exit Antigravity CLI" },
+    { name: "/exit", descriptionKey: "composerCommands.agy.exit" },
   ],
 };
 
@@ -515,11 +562,34 @@ const aliases = new Map([
   ["antigravity cli", "agy"],
 ]);
 
+/**
+ * The catalogs in the reader's language. The result is kept per locale, so
+ * two calls in one language hand out the same commands.
+ */
+let localizedLocale: Locale | null = null;
+let localized: Record<string, readonly ComposerCommand[]> = {};
+
+function localizedCatalogs(): Record<string, readonly ComposerCommand[]> {
+  const locale = getCurrentLocale();
+  if (locale === localizedLocale) return localized;
+  localizedLocale = locale;
+  localized = {};
+  for (const [agent, entries] of Object.entries(catalogs)) {
+    localized[agent] = entries.map((entry) => ({
+      name: entry.name,
+      description: t(entry.descriptionKey),
+      ...(entry.arguments === undefined ? {} : { arguments: entry.arguments }),
+    }));
+  }
+  return localized;
+}
+
 export function terminalComposerCommands(
   agent?: string,
 ): readonly ComposerCommand[] {
   const identity = aliases.get(agent?.trim().toLowerCase() ?? "");
-  return identity ? catalogs[identity] : [];
+  if (!identity) return [];
+  return localizedCatalogs()[identity] ?? [];
 }
 
 export function filterComposerCommands(

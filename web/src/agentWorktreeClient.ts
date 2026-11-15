@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import type { ConnectionClient } from "./api";
 import type { AgentWorktreeTarget } from "../../shared/agentWorktree";
 
@@ -8,8 +9,7 @@ export function agentWorktreeClient(
   isBindingCurrent: () => boolean = () => true,
 ): ConnectionClient {
   const isResourceCurrent = () => base.isCurrent() && isBindingCurrent();
-  const changed = () =>
-    new Error("Worktree selection changed; refresh before reading.");
+  const changed = () => new Error(t("worktree.selectionChanged"));
   return {
     get connectionId() {
       return base.connectionId;
@@ -27,18 +27,10 @@ export function agentWorktreeClient(
       if (!method.startsWith("file.") && !method.startsWith("git."))
         return base.call(method, params, timeout);
       if (!base.isCurrent())
-        return Promise.reject(
-          new Error(
-            "Host is unavailable; refresh its worktree before reading.",
-          ),
-        );
+        return Promise.reject(new Error(t("worktree.hostUnavailableForRead")));
       if (!isBindingCurrent()) return Promise.reject(changed());
       if (!target)
-        return Promise.reject(
-          new Error(
-            "Choose a current agent worktree before reading Files or Changes.",
-          ),
-        );
+        return Promise.reject(new Error(t("worktree.chooseWorktreeToRead")));
       return base
         .call(method, { ...params, agent_worktree: target }, timeout)
         .then((value) => {
@@ -66,9 +58,7 @@ export function agentWorktreeHttpEndpoint(
 ) {
   if (client.agentWorktree === undefined) return endpoint;
   if (!client.agentWorktree)
-    throw new Error(
-      "Choose a current agent worktree before opening its files.",
-    );
+    throw new Error(t("worktree.chooseWorktreeToOpen"));
   const url = new URL(endpoint, "https://world.example.invalid");
   url.searchParams.set("agent_worktree", JSON.stringify(client.agentWorktree));
   return `${url.pathname}${url.search}`;

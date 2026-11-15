@@ -1,3 +1,4 @@
+import { t } from "./i18n/core";
 import {
   useCallback,
   useEffect,
@@ -86,7 +87,7 @@ export function useAgentWorktree(
       }));
       try {
         if (!client.isCurrent() || subject.generation < 0)
-          throw new Error("Host unavailable");
+          throw new Error(t("worktree.hostUnavailableShort"));
         const read = (await client.call("agent_worktree.get", {
           subject,
           refresh: force,
@@ -96,7 +97,7 @@ export function useAgentWorktree(
           JSON.stringify(read.subject) !== owner ||
           !Array.isArray(read.candidates)
         )
-          throw new Error("Worktree observation unavailable");
+          throw new Error(t("worktree.observationUnavailable"));
         const next = worktreeChangeTrial(read);
         if (alive && client.isCurrent())
           setRead((previous) => ({
@@ -123,7 +124,7 @@ export function useAgentWorktree(
                 ? {
                     ...previous.observation,
                     state: "stale",
-                    reason: "Worktree evidence could not be refreshed.",
+                    reason: t("worktree.evidenceRefreshFailed"),
                   }
                 : null,
           }));
@@ -193,7 +194,7 @@ export function useAgentWorktree(
             observation: {
               ...previous.observation,
               state: "stale",
-              reason: "Worktree binding changed; refreshing evidence.",
+              reason: t("worktree.bindingChanged"),
             },
           }
         : previous,
