@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { t } from "./i18n";
 import { UncertainRequestError } from "./api";
 
 export type CreationSource = {
@@ -116,17 +117,24 @@ export function creationPendingReason(
   );
   return request
     ? request.phase === "preparing"
-      ? "Preparing the source terminal…"
-      : `Creating ${kind}…`
+      ? t("creation.preparingTerminal")
+      : kind === "workspace"
+        ? t("creation.creatingWorkspace")
+        : t("creation.creatingTab")
     : null;
 }
 export function creationFailureMessage(
   error: unknown,
   kind: "Tab" | "Workspace",
 ) {
-  return error instanceof UncertainRequestError
-    ? `${kind} may have been created; check the destination before retrying`
-    : `${kind} creation failed`;
+  if (!(error instanceof UncertainRequestError)) {
+    return t(
+      kind === "Tab" ? "creation.tabFailed" : "creation.workspaceFailed",
+    );
+  }
+  return t(
+    kind === "Tab" ? "creation.tabUncertain" : "creation.workspaceUncertain",
+  );
 }
 
 export function subscribeCreations(listener: (event: CreationEvent) => void) {

@@ -1,5 +1,6 @@
 import type { ITheme } from "@xterm/xterm";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { t } from "../i18n";
 import { createPortal } from "react-dom";
 import { TabTerminalPaneLayout } from "../TabTerminalPaneLayout";
 import type {
@@ -211,8 +212,8 @@ function WorldInspectorTabTerminal({
         if (!event.defaultPrevented)
           store.notify({
             kind: "error",
-            message: "Cannot browse file",
-            detail: "The originating Inspector or pane is no longer available.",
+            message: t("terminalPortal.browseFailed"),
+            detail: t("terminalPortal.browseFailedDetail"),
           });
       }}
     />

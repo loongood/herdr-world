@@ -14,6 +14,7 @@ import {
   Shirt,
   Terminal,
 } from "lucide-react";
+import { useT } from "../i18n";
 import { openProfileEditor, requestAgentLaunch } from "./agentProfiles";
 import { openGroups } from "./groups/groupActions";
 import type { CommandExtension } from "../components/CommandCombobox";
@@ -32,6 +33,7 @@ import { type WorldInspectorController } from "./useWorldInspectorController";
 import { EMPTY_VISUAL_ACTION_EXTENSION } from "./worldControlPlaneContract";
 
 export function useWorldVisualActions(controller: WorldInspectorController) {
+  const t = useT();
   const {
     active,
     onVisualActionExtensionReady,
@@ -91,9 +93,7 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
         !resolved.node ||
         !visualRouteActionsForNode(resolved.node).includes(action)
       ) {
-        setIntentError(
-          resolved.reason ?? "The selected action is no longer available.",
-        );
+        setIntentError(resolved.reason ?? t("worldActions.actionUnavailable"));
         return;
       }
       if (action !== "spaces") {
@@ -121,8 +121,7 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
               : null,
         })
         .then((focused) => {
-          if (!focused)
-            throw new Error("The Spaces target is no longer available");
+          if (!focused) throw new Error(t("worldActions.spacesUnavailable"));
           if (intentRequestRef.current !== requestId) return;
           const owner = store
             .get()
@@ -163,12 +162,12 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
       selectedId: selected?.id ?? null,
     });
     const labels: Record<VisualRouteAction, string> = {
-      terminal: "Open Terminal",
-      files: "Open Files",
-      changes: "Open Changes",
-      commits: "Open Git History",
-      history: "Open Chat",
-      spaces: "Go to Spaces",
+      terminal: t("worldActions.openTerminal"),
+      files: t("worldActions.openFiles"),
+      changes: t("worldActions.openChanges"),
+      commits: t("worldActions.openCommits"),
+      history: t("worldActions.openChat"),
+      spaces: t("worldActions.goSpaces"),
     };
     const icons = {
       terminal: <Terminal size={15} />,
@@ -192,10 +191,10 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
             {
               key: "visual-select-target",
               icon: <LayoutGrid size={15} />,
-              title: "Select a visual entity for target actions",
+              title: t("worldActions.selectEntityTitle"),
               detail: resolved.reason ?? undefined,
               disabledReason:
-                resolved.reason ?? "Select a space, agent, or terminal first.",
+                resolved.reason ?? t("worldActions.selectEntityFirst"),
               run: () => {},
             },
           ];
@@ -209,14 +208,14 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
       {
         key: "visual-new-workspace",
         icon: <LayoutGrid size={15} />,
-        title: "New workspace",
-        detail: "Confirm a destination host",
+        title: t("worldActions.newWorkspace"),
+        detail: t("worldActions.newWorkspaceDetail"),
         keywords: ["new", "create", "workspace", "room"],
         disabledReason: operationalSnapshot.connections.some(
           (connection) => connection.state === "ready",
         )
           ? null
-          : "No destination host is ready.",
+          : t("worldActions.noDestinationHost"),
         run: () => {
           setWorkspaceCreationDestination(
             resolved.node
@@ -233,10 +232,10 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
       {
         key: "visual-new-tab",
         icon: <Terminal size={15} />,
-        title: "New tab",
+        title: t("worldActions.newTab"),
         detail: resolved.node
           ? visualRouteTargetLabel(resolved.node)
-          : "Select a workspace, agent or terminal",
+          : t("worldActions.selectForTab"),
         keywords: ["new", "create", "tab", "desk", "seat"],
         disabledReason:
           resolved.node && workspaceId
@@ -261,8 +260,7 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
                   ? resolved.node.nativeId
                   : undefined,
               ))
-            : (resolved.reason ??
-              "Select a workspace, agent or terminal first."),
+            : (resolved.reason ?? t("worldActions.selectFirst")),
         run: () => {
           const current = shellActionContext.current;
           const checked = resolveVisualRouteActionTarget(
@@ -275,7 +273,9 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
             },
           );
           if (!checked.node || checked.node.kind === "host") {
-            setIntentError(checked.reason ?? "Select a workspace first.");
+            setIntentError(
+              checked.reason ?? t("worldActions.selectWorkspaceFirst"),
+            );
             return;
           }
           const workspaceId =
@@ -310,10 +310,10 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
       {
         key: "visual-new-agent",
         icon: <Bot size={15} />,
-        title: "New agent",
+        title: t("worldActions.newAgent"),
         detail: resolved.node
           ? visualRouteTargetLabel(resolved.node)
-          : "From a profile or an agent kind",
+          : t("worldActions.newAgentDetail"),
         keywords: ["new", "start", "agent", "profile", "launch"],
         // The launcher names its own room, so it never needs a selection.
         run: () => {
@@ -336,16 +336,16 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
       {
         key: "visual-agent-profiles",
         icon: <Shirt size={15} />,
-        title: "Agent profiles",
-        detail: "Name, brain, skills, brief and look",
+        title: t("worldActions.agentProfiles"),
+        detail: t("worldActions.agentProfilesDetail"),
         keywords: ["profile", "persona", "character", "dress", "agent"],
         run: () => openProfileEditor(),
       },
       {
         key: "visual-groups",
         icon: <LayoutGrid size={15} />,
-        title: "Groups",
-        detail: "Pods, Teams, Rooms and Desks",
+        title: t("worldActions.groups"),
+        detail: t("worldActions.groupsDetail"),
         keywords: ["pod", "team", "groups", "roster"],
         run: () => openGroups(),
       },
@@ -369,11 +369,13 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
           {
             key: "visual-pin",
             icon: selectedPinned ? <PinOff size={15} /> : <Pin size={15} />,
-            title: selectedPinned ? "Unpin selected pane" : "Pin selected pane",
+            title: selectedPinned
+              ? t("worldActions.unpinSelected")
+              : t("worldActions.pinSelected"),
             detail: pinNode.label,
             disabledReason: watchlist.verified
               ? null
-              : (watchlist.error ?? "Watches unavailable while disconnected"),
+              : (watchlist.error ?? t("worldActions.watchesUnavailable")),
             run: () => {
               const current = shellActionContext.current;
               const checked = resolveVisualRouteActionTarget(
@@ -396,7 +398,7 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
                 !checked.node.terminalId
               ) {
                 setIntentError(
-                  checked.reason ?? "The selected pane is unavailable.",
+                  checked.reason ?? t("worldActions.paneUnavailable"),
                 );
                 return;
               }
@@ -437,16 +439,21 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
         ),
       placeholder: WORLD_COMMAND_PLACEHOLDER,
       groups: [
-        { heading: "Create", actions: creationActions },
-        { heading: "Visual selection", actions: targetActions },
+        { heading: t("worldActions.headingCreate"), actions: creationActions },
         {
-          heading: "Pinned panes",
+          heading: t("worldActions.headingVisual"),
+          actions: targetActions,
+        },
+        {
+          heading: t("worldActions.headingPinned"),
           actions: [
             ...pinAction,
             {
               key: "visual-pinned-only",
               icon: <Pin size={15} />,
-              title: pinnedOnly ? "Show all panes" : "Pinned only",
+              title: pinnedOnly
+                ? t("worldActions.showAllPanes")
+                : t("worldActions.pinnedOnly"),
               detail: watchStatus,
               run: () => setPinnedOnly((value) => !value),
             },
@@ -468,6 +475,7 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
     watchStatus,
     watchlistStore,
     runVisualResource,
+    t,
   ]);
   useLayoutEffect(() => {
     onVisualActionExtensionReady(

@@ -123,7 +123,12 @@
   desk pinning, snap targets and colours), the minimized-window dock, the
   window arrangement menu, the agent interest button, the workspace
   context menu with its confirmations, and the terminal arrangement
-  diagnostics. The built-in
+  diagnostics. The world navigator follows too: the hosts filter, the
+  workspace tree (layout, scope, sort and grouping controls, its empty
+  states and close-pane confirmation), the world command box's visual
+  selection and creation actions, the tab/workspace creation progress
+  and failure notices, and the terminal portal's file-browse error.
+  The built-in
   slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.

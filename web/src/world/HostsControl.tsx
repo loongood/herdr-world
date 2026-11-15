@@ -8,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../components/ui/popover";
+import { useT } from "../i18n";
 import type { HostsFilter } from "./hostsFilter";
 import { hostCount } from "./hostCount";
 
@@ -22,6 +23,7 @@ export function HostsControl({
   explanation: string;
   onChange(ids: HostsFilter): void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [managing, setManaging] = useState(false);
   const openingManager = useRef(false);
@@ -38,8 +40,8 @@ export function HostsControl({
           <button
             type="button"
             className="connection-switcher-trigger"
-            aria-label="Hosts"
-            title={`Hosts (${count})`}
+            aria-label={t("hosts.hostsAria")}
+            title={t("hosts.hostsTitle", { count })}
             aria-expanded={open}
           >
             <span className="world-hosts-icon" aria-hidden="true">
@@ -47,7 +49,9 @@ export function HostsControl({
               <span className="world-hosts-count">{count}</span>
             </span>
             <span className="connection-switcher-label">
-              {ids === null ? "All hosts" : `${selectedCount} hosts`}
+              {ids === null
+                ? t("hosts.allHosts")
+                : t("hosts.hostsCount", { count: selectedCount })}
             </span>
             <ChevronDown className="world-hosts-chevron" size={14} />
           </button>
@@ -55,7 +59,7 @@ export function HostsControl({
         <PopoverContent
           className="world-hosts-menu"
           role="group"
-          aria-label="Hosts filter"
+          aria-label={t("hosts.hostsFilterAria")}
           onCloseAutoFocus={(event) => {
             if (openingManager.current) {
               openingManager.current = false;
@@ -64,7 +68,7 @@ export function HostsControl({
           }}
         >
           <button type="button" onClick={() => onChange(null)}>
-            All hosts
+            {t("hosts.allHosts")}
           </button>
           {connections.map((connection) => (
             <label key={connection.id}>
@@ -87,9 +91,7 @@ export function HostsControl({
               {connection.label} · {connection.state}
             </label>
           ))}
-          {!connections.length ? (
-            <p>Add a connection profile to observe hosts.</p>
-          ) : null}
+          {!connections.length ? <p>{t("hosts.addProfileHint")}</p> : null}
           <button
             type="button"
             onClick={() => {
@@ -98,7 +100,7 @@ export function HostsControl({
               setManaging(true);
             }}
           >
-            Manage connections
+            {t("hosts.manageConnections")}
           </button>
         </PopoverContent>
       </Popover>

@@ -1,4 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
+import { t } from "./i18n";
 import { bridge, UncertainRequestError, type ConnectionClient } from "./api";
 import {
   creationSources,
@@ -538,8 +539,8 @@ test("an uncertain creation retains its destination, reports possible creation a
   } catch (error) {
     failure = error;
   }
-  expect(creationFailureMessage(failure, "Tab")).toContain(
-    "may have been created",
+  expect(creationFailureMessage(failure, "Tab")).toBe(
+    t("creation.tabUncertain"),
   );
   expect(String(failure)).toContain("Destination alpha (runtime 7)");
   expect(calls.filter((call) => call.method === "tab.create")).toHaveLength(1);

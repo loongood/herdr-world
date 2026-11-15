@@ -1,5 +1,6 @@
 import { subscribeLocalStorage } from "../browserStorage";
 import { worldLocalStorage } from "../browserStorage";
+import { useT } from "../i18n";
 import { shallowEqual, useOperationalStore, useStoreSelector } from "../store";
 import type { Pane, Tab, Workspace } from "../types";
 import { projectBrowserNavigation } from "../browserNavigation";
@@ -97,17 +98,18 @@ function AgentLayoutControl({
   value: WorkspaceAgentLayout;
   onChange: (value: WorkspaceAgentLayout) => void;
 }) {
+  const t = useT();
   return (
     <div className="workspace-agent-layout-control">
-      <span>Agents</span>
-      <div role="group" aria-label="Agent list layout">
+      <span>{t("worldTree.agentsWord")}</span>
+      <div role="group" aria-label={t("worldTree.layoutGroupAria")}>
         <button
           type="button"
           className={value === "compact" ? "is-active" : ""}
           aria-pressed={value === "compact"}
           onClick={() => onChange("compact")}
         >
-          Compact
+          {t("worldTree.layoutCompact")}
         </button>
         <button
           type="button"
@@ -115,7 +117,7 @@ function AgentLayoutControl({
           aria-pressed={value === "nested"}
           onClick={() => onChange("nested")}
         >
-          Nested
+          {t("worldTree.layoutNested")}
         </button>
         <button
           type="button"
@@ -123,7 +125,7 @@ function AgentLayoutControl({
           aria-pressed={value === "separate"}
           onClick={() => onChange("separate")}
         >
-          Separate
+          {t("worldTree.layoutSeparate")}
         </button>
       </div>
     </div>
@@ -155,6 +157,7 @@ export function WorkspaceTree({
   onReviewChangesForAgent?: (pane: Pane) => void;
   onViewAgentHistory?: (pane: Pane) => void;
 }) {
+  const t = useT();
   const session = useStoreSelector(
     (state) => ({
       activeConnectionId: state.activeConnectionId,
@@ -574,18 +577,18 @@ export function WorkspaceTree({
       tabIndex={-1}
     >
       <div className="panel-head">
-        <h2>Workspaces</h2>
+        <h2>{t("worldTree.workspacesHeading")}</h2>
         <div className="panel-actions">
           {/* Only the classic sidebar chooses a scope, and only when there
               is more than one connected server to choose. */}
           {!observedTopology && connectedServerCount > 1 ? (
             <ThemedSelect
               className="workspace-scope-control"
-              aria-label="Workspace server scope"
+              aria-label={t("worldTree.scopeAria")}
               value={allServers ? "all" : "current"}
               options={[
-                { value: "current", label: "Current" },
-                { value: "all", label: "All servers" },
+                { value: "current", label: t("worldTree.scopeCurrent") },
+                { value: "all", label: t("worldTree.scopeAllServers") },
               ]}
               onChange={(scope) => {
                 clearWorkspaceDrag();
@@ -600,8 +603,8 @@ export function WorkspaceTree({
             <button
               type="button"
               className="panel-add panel-action-icon"
-              title="Worktree lifecycle"
-              aria-label="Open worktree lifecycle"
+              title={t("commands.openWorktreeLifecycle")}
+              aria-label={t("commands.openWorktreeLifecycle")}
               onClick={() =>
                 setLifecycleWorkspaceId(focusedRepoWorkspace.workspace_id)
               }
@@ -611,7 +614,7 @@ export function WorkspaceTree({
           ) : null}
           <button
             className="panel-add panel-action-icon"
-            title="New workspace"
+            title={t("worldTree.newWorkspaceTitle")}
             onClick={() => setCreateOpen(true)}
           >
             <Plus size={14} />
@@ -621,7 +624,7 @@ export function WorkspaceTree({
       <div
         className="workspace-tree-content"
         role="tree"
-        aria-label="Workspaces and agents"
+        aria-label={t("worldTree.treeAria")}
       >
         {allServers ? (
           <>
@@ -680,8 +683,8 @@ export function WorkspaceTree({
         ) : s.workspaces.length === 0 ? (
           <p className="muted">
             {s.status === "connected"
-              ? "No workspaces."
-              : "Connect to the bridge to load workspaces."}
+              ? t("worldTree.noWorkspaces")
+              : t("worldTree.connectToLoad")}
           </p>
         ) : null}
         {!allServers &&
@@ -729,20 +732,35 @@ export function WorkspaceTree({
     agentLayout === "separate" ? (
       <div key="agents" className="panel agents-panel">
         <div className="panel-head">
-          <h2>Agents</h2>
+          <h2>{t("worldTree.agentsWord")}</h2>
           <div className="panel-actions agent-list-controls">
             <ThemedSelect
               className="agent-list-control"
               icon={<ArrowDownWideNarrow size={15} aria-hidden="true" />}
               align="end"
-              aria-label="Agent sort order"
-              title={`Sort agents: ${{ attention: "Attention first", workspace: "Workspace order", manual: "Manual order" }[agentSort]}`}
+              aria-label={t("worldTree.sortAria")}
+              title={t("worldTree.sortTitle", {
+                order:
+                  agentSort === "attention"
+                    ? t("worldTree.sortAttention")
+                    : agentSort === "workspace"
+                      ? t("worldTree.sortWorkspace")
+                      : t("worldTree.sortManual"),
+              })}
               value={agentSort}
               options={[
-                { value: "attention", label: "Attention first" },
-                { value: "workspace", label: "Workspace order" },
+                {
+                  value: "attention",
+                  label: t("worldTree.sortAttention"),
+                },
+                { value: "workspace", label: t("worldTree.sortWorkspace") },
                 ...(!allServers
-                  ? [{ value: "manual", label: "Manual order" }]
+                  ? [
+                      {
+                        value: "manual",
+                        label: t("worldTree.sortManual"),
+                      },
+                    ]
                   : []),
               ]}
               onChange={(sort) => {
@@ -757,14 +775,23 @@ export function WorkspaceTree({
               className={`agent-list-control ${agentListPreferences.grouping !== "none" ? "is-active" : ""}`}
               icon={<Layers size={15} aria-hidden="true" />}
               align="end"
-              aria-label="Agent grouping"
-              title={`Group agents: ${{ none: "No grouping", status: "Status", workspace: "Workspace", agent: "Agent type" }[agentListPreferences.grouping]}`}
+              aria-label={t("worldTree.groupAria")}
+              title={t("worldTree.groupTitle", {
+                grouping:
+                  agentListPreferences.grouping === "none"
+                    ? t("worldTree.groupNone")
+                    : agentListPreferences.grouping === "status"
+                      ? t("worldTree.groupStatus")
+                      : agentListPreferences.grouping === "workspace"
+                        ? t("worldTree.groupWorkspace")
+                        : t("worldTree.groupAgentType"),
+              })}
               value={agentListPreferences.grouping}
               options={[
-                { value: "none", label: "No grouping" },
-                { value: "status", label: "Status" },
-                { value: "workspace", label: "Workspace" },
-                { value: "agent", label: "Agent type" },
+                { value: "none", label: t("worldTree.groupNone") },
+                { value: "status", label: t("worldTree.groupStatus") },
+                { value: "workspace", label: t("worldTree.groupWorkspace") },
+                { value: "agent", label: t("worldTree.groupAgentType") },
               ]}
               onChange={(grouping) => {
                 clearAgentDrag();
@@ -892,8 +919,8 @@ export function WorkspaceTree({
           ) : (
             <p className="muted">
               {allServers && allServerSessions.loading
-                ? "Loading..."
-                : "No agent sessions."}
+                ? t("worldTree.loadingSessions")
+                : t("worldTree.noAgentSessions")}
             </p>
           )}
         </div>
@@ -945,19 +972,21 @@ export function WorkspaceTree({
       />
       <ConfirmDialog
         open={!!pendingClosePane}
-        title="Close Agent Pane"
+        title={t("worldTree.closePaneTitle")}
         message={
           pendingClosePane
-            ? `Close pane "${shortId(pendingClosePane.pane_id)}"?${terminalComposerCloseWarning(
+            ? `${t("commands.closePaneNamed", {
+                id: shortId(pendingClosePane.pane_id),
+              })}${terminalComposerCloseWarning(
                 terminalComposerDraftPaneIds(
                   s.activeConnectionId,
                   s.connectionGeneration,
                   [pendingClosePane.pane_id],
                 ).length,
               )}`
-            : "Close this pane?"
+            : t("commands.closePaneThis")
         }
-        confirmLabel="Close"
+        confirmLabel={t("contextMenu.closeAction")}
         danger
         onClose={() => setPendingClosePane(null)}
         onConfirm={() => {
