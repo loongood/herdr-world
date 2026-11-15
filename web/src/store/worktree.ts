@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { type Notice } from "./types";
 import { DEFAULT_NOTICE_AUTO_DISMISS_MS } from "./notifications";
 
@@ -27,13 +28,13 @@ export const WORKTREE_REMOVED_EVENT = "herdr-world:worktree-removed";
 function hookEventLabel(event: WorktreeHookEvent): string {
   switch (event) {
     case "worktree.before_remove":
-      return "Worktree teardown hook";
+      return t("storeNotices.worktreeHookTeardown");
     case "worktree.opened":
-      return "Worktree opened hook";
+      return t("storeNotices.worktreeHookOpened");
     case "worktree.removed":
-      return "Worktree removed hook";
+      return t("storeNotices.worktreeHookRemoved");
     case "worktree.created":
-      return "Worktree setup hook";
+      return t("storeNotices.worktreeHookCreated");
   }
 }
 
@@ -60,11 +61,19 @@ export function summarizeDirectHookResult(
     kind: result.status === "succeeded" ? "success" : "error",
     message:
       result.status === "succeeded"
-        ? `${hookEventLabel(result.event)} completed`
-        : `${hookEventLabel(result.event)} failed${exitSuffix}`,
+        ? t("storeNotices.hookCompleted", {
+            hook: hookEventLabel(result.event),
+          })
+        : `${t("storeNotices.hookFailed", {
+            hook: hookEventLabel(result.event),
+          })}${exitSuffix}`,
     detail: output ? output.slice(0, 1400) : undefined,
     detailMode: output ? "output" : undefined,
-    detailTitle: output ? `${hookEventLabel(result.event)} output` : undefined,
+    detailTitle: output
+      ? t("storeNotices.hookOutputTitle", {
+          hook: hookEventLabel(result.event),
+        })
+      : undefined,
     ...(result.status === "succeeded"
       ? { autoDismissMs: DEFAULT_NOTICE_AUTO_DISMISS_MS }
       : {}),
@@ -82,12 +91,19 @@ export function worktreeRemovalCompletionNotice(
   const stopped = Number(cleanup.terminated_processes ?? 0);
   const recoveryDetails = [
     stopped > 0
-      ? `Stopped ${stopped} process${stopped === 1 ? "" : "es"} still using the checkout.`
+      ? t(
+          stopped === 1
+            ? "storeNotices.stoppedProcessOne"
+            : "storeNotices.stoppedProcessesMany",
+          { count: stopped },
+        )
       : "",
     cleanup.preserved_path
-      ? `Stale files were preserved at ${cleanup.preserved_path}.`
+      ? t("storeNotices.staleFilesPreserved", {
+          path: cleanup.preserved_path,
+        })
       : cleanup.recovered_stale_checkout
-        ? "The checkout was already absent; stale Herdr state was reconciled."
+        ? t("storeNotices.checkoutAlreadyAbsent")
         : "",
     cleanup.warning ?? "",
   ].filter(Boolean);
@@ -99,7 +115,7 @@ export function worktreeRemovalCompletionNotice(
       kind: cleanupWarning ? "error" : removedHookNotice.kind,
       message:
         cleanupWarning && removedHookNotice.kind !== "error"
-          ? "Worktree removed with cleanup warning"
+          ? t("storeNotices.worktreeRemovedWithWarning")
           : removedHookNotice.message,
       detail: [
         cleanupWarning && removedHookNotice.kind !== "error"
@@ -112,7 +128,7 @@ export function worktreeRemovalCompletionNotice(
         .join("\n"),
       detailTitle:
         removedHookNotice.detail || cleanupWarning
-          ? "Worktree removal details"
+          ? t("storeNotices.worktreeRemovalDetails")
           : undefined,
     };
   }
@@ -120,8 +136,8 @@ export function worktreeRemovalCompletionNotice(
   return {
     kind: cleanup.warning ? "error" : "success",
     message: cleanup.warning
-      ? "Worktree removed with cleanup warning"
-      : "Worktree removed",
+      ? t("storeNotices.worktreeRemovedWithWarning")
+      : t("storeNotices.worktreeRemoved"),
     detail: recoveryDetails.join("\n"),
   };
 }

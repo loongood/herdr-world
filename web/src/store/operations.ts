@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   type QualifiedRuntimeTarget,
   type StoreConnectionLease,
@@ -75,9 +76,7 @@ function assertQualifiedLeaseCurrent(
     ? qualifiedLeaseIsCurrent(target, lease)
     : qualifiedRuntimeTargetIsCurrent(target);
   if (!current) {
-    throw new Error(
-      "The selected host changed before the Office action completed",
-    );
+    throw new Error(t("storeNotices.hostChangedBeforeOfficeAction"));
   }
 }
 
@@ -97,7 +96,7 @@ function notifyPinnedTabClose(reason: string) {
   set({
     notice: {
       kind: "info",
-      message: "Tab is pinned",
+      message: t("storeNotices.tabIsPinned"),
       detail: reason,
       autoDismissMs: 4000,
     },
@@ -113,7 +112,7 @@ function swapPanePositions(
   return action(
     async (lease) => {
       if (!leaseIsCurrent(lease))
-        throw new Error("Pane move owner is no longer available");
+        throw new Error(t("storeNotices.paneMoveOwnerGone"));
       const result = await lease.client.call("pane.swap", params);
       const swap = result?.swap ?? result;
       const layout = swap?.layout as PaneLayout | undefined;
@@ -179,7 +178,7 @@ function movePaneTo(
             setForConnection(lease, {
               notice: {
                 kind: "error",
-                message: "Pane moved to the other side",
+                message: t("storeNotices.paneMovedToOtherSide"),
                 detail: (error as Error).message,
               },
             });
@@ -192,7 +191,7 @@ function movePaneTo(
       refresh: "immediate",
       failureNotice: (error) => ({
         kind: "error",
-        message: "Pane move failed",
+        message: t("storeNotices.paneMoveFailed"),
         detail: error.message,
       }),
     },
@@ -223,7 +222,7 @@ export function operationalStore(context: OperationalContext) {
       refresh: "none",
       failureNotice: (error) => ({
         kind: "error",
-        message: "Command failed",
+        message: t("storeNotices.commandFailed"),
         detail: error.message,
       }),
     });
@@ -233,9 +232,7 @@ export function operationalStore(context: OperationalContext) {
     const result = await pending;
     assertQualifiedLeaseCurrent(context, lease);
     if (result === undefined)
-      throw new Error(
-        "Worktree operation returned no admitted result. Its outcome may be uncertain; it was not replayed.",
-      );
+      throw new Error(t("storeNotices.worktreeOperationUncertain"));
     return result;
   };
   return {
@@ -416,7 +413,7 @@ export function operationalStore(context: OperationalContext) {
           refresh: "none",
           failureNotice: (error) => ({
             kind: "error",
-            message: "Plugin action failed",
+            message: t("storeNotices.pluginActionFailed"),
             detail: error.message,
           }),
         },

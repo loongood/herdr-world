@@ -230,9 +230,10 @@ function reloadWhenUpdatedServerIsReady(
               pendingRestartVersion: null,
               notice: {
                 kind: "success",
-                message: `Herdr World ${expectedVersion} is running`,
-                detail:
-                  "Reloading the application to use the updated frontend.",
+                message: t("storeNotices.serverVersionRunning", {
+                  version: expectedVersion,
+                }),
+                detail: t("storeNotices.reloadingFrontend"),
                 loading: true,
               },
             });
@@ -251,8 +252,10 @@ function reloadWhenUpdatedServerIsReady(
       pendingRestartVersion: null,
       notice: {
         kind: "error",
-        message: "Updated server did not become ready",
-        detail: `Could not verify Herdr World ${expectedVersion}. Reload the page after checking the server process.`,
+        message: t("storeNotices.updatedServerNotReady"),
+        detail: t("storeNotices.verifyFailedDetail", {
+          version: expectedVersion,
+        }),
       },
     });
   })().finally(() => {
@@ -299,8 +302,8 @@ async function checkForUpdate(showErrors = false) {
       set({
         notice: {
           kind: "info",
-          message: "Connection is paused",
-          detail: "Resume the connection before checking for updates.",
+          message: t("storeNotices.connectionPaused"),
+          detail: t("storeNotices.resumeBeforeUpdateCheck"),
         },
       });
     }
@@ -326,7 +329,7 @@ async function checkForUpdate(showErrors = false) {
         set({
           notice: {
             kind: "error",
-            message: "Update check failed",
+            message: t("storeNotices.updateCheckFailed"),
             detail: body?.error ?? r.statusText,
           },
         });
@@ -353,10 +356,16 @@ async function checkForUpdate(showErrors = false) {
           showErrors && !firstNotification && !notificationStillOpen
             ? {
                 kind: "info",
-                message: "Update check complete",
+                message: t("storeNotices.updateCheckComplete"),
                 detail: info.can_auto_update
-                  ? `Herdr World ${info.latest_version} remains available. Open Menu → Upgrade to ${info.latest_version}.`
-                  : `Herdr World ${info.latest_version} remains available. ${info.reason ?? "Use its installation channel to upgrade."}`,
+                  ? t("storeNotices.upgradeViaMenu", {
+                      version: info.latest_version,
+                    })
+                  : t("storeNotices.remainsAvailableReason", {
+                      version: info.latest_version,
+                      reason:
+                        info.reason ?? t("storeNotices.useInstallationChannel"),
+                    }),
                 autoDismissMs: 5000,
               }
             : state.notice,
@@ -367,9 +376,11 @@ async function checkForUpdate(showErrors = false) {
         notice: showErrors
           ? {
               kind: "success",
-              message: "Herdr World is up to date",
+              message: t("storeNotices.upToDate"),
               detail: info.latest_version
-                ? `Current version: ${info.current_version}`
+                ? t("storeNotices.currentVersion", {
+                    version: info.current_version,
+                  })
                 : undefined,
             }
           : state.notice,
@@ -380,7 +391,7 @@ async function checkForUpdate(showErrors = false) {
       set({
         notice: {
           kind: "error",
-          message: "Update check failed",
+          message: t("storeNotices.updateCheckFailed"),
           detail: (e as Error).message,
         },
       });

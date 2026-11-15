@@ -4865,6 +4865,149 @@ export const en = {
       pink: "pink",
     },
   },
+  storeNotices: {
+    taskNotificationsUnavailable: "Task notifications are unavailable",
+    connectionPaused: "Connection is paused",
+    connectionPausedShort: "Connection paused",
+    resumeBeforeActions:
+      "Resume the connection before sending actions to Herdr.",
+    actionOutcomeUncertain: "Action outcome is uncertain",
+    actionChangeMayHaveCompleted:
+      "A change on {host} may have completed. {detail}",
+    browserReconnected: "Browser reconnected",
+    browserSyncResumed: "Browser sync resumed",
+    pauseSyncHint: "This browser will stop syncing until you resume it.",
+    reconnectingBrowser: "Reconnecting browser",
+    resumingBrowserSync: "Resuming browser sync",
+    pausedOtherBrowserOne: "Paused 1 other browser",
+    pausedOtherBrowsers: "Paused {count} other browsers",
+    pausedByOtherClient:
+      "Another Herdr World client paused this connection. Resume when you want this browser to sync again.",
+    tabNamingFailed: "Tab created, but naming failed",
+    tabMoveOwnerGone: "Tab move owner is no longer available",
+    tabReorderUnsupported:
+      "This Herdr connection does not support tab reordering.",
+    notificationTargetUnavailable: "Notification target is unavailable",
+    notificationOwnerChanged:
+      "The owning runtime, workspace, pane or agent session changed.",
+    workspaceInGroup: "Workspace belongs to a group",
+    workspaceInGroupDetail:
+      "Nothing was closed. To close this workspace and its linked workspaces, explicitly close the group in the Herdr CLI with --group.",
+    workspaceCloseFailed: "Workspace close failed",
+    gitPullRunning: "Running git pull",
+    gitPullCompleted: "Git pull completed",
+    gitPullUpToDate: "Already up to date.",
+    gitPullFailed: "Git pull failed",
+    gitActionFailed: "Git action failed",
+    commandTitle: "Command",
+    removingWorktree: "Removing worktree",
+    teardownHookHint: "Running teardown hook if configured.",
+    worktreeRemovedFallback: "Worktree removed without the remove command",
+    worktreeRemoved: "Worktree removed",
+    worktreeRemoveFailed: "Failed to remove worktree",
+    notificationSyncFailed: "Background notification sync failed",
+    notificationPreferenceNotSaved: "Notification preference was not saved",
+    notificationRevocationFailed: "Notification revocation failed",
+    taskNotificationsDisabled: "Task notifications disabled",
+    notificationsUnsupported: "Browser notifications are not supported",
+    notificationsUnsupportedDetail:
+      "This browser or deployment context does not expose the Notification API.",
+    notificationPermissionFailed: "Notification permission failed",
+    herdrUpdating: "Updating Herdr for this release",
+    herdrUpgrading: "Upgrading Herdr",
+    herdrUpgradeDetail:
+      "Bringing Herdr, its harness integrations and the Herdr World plugin up to this release.",
+    herdrUpgradeRestarted: "Herdr World restarted before the upgrade finished.",
+    herdrUpgradeIncomplete: "Herdr upgrade incomplete",
+    herdrUpgradedRestartNeeded: "Herdr upgraded; restart needed",
+    herdrUpToDate: "Herdr is up to date",
+    herdrUpgradeTitle: "Herdr upgrade",
+    herdrUpgradeNoResult: "The Herdr upgrade did not report a result in time.",
+    herdrUpgradeFailed: "Herdr upgrade failed",
+    resumeBeforeUpdates: "Resume the connection before installing updates.",
+    restartingProcess: "Restarting the Herdr World process",
+    binaryUpdatedWaiting:
+      "The binary was updated. Waiting for the external process supervisor to start the new version.",
+    restartToUseVersion:
+      "Restart the Herdr World process to use the new version.",
+    installedVersion: "Herdr World {version} installed",
+    alreadyUpToDate: "Herdr World is already up to date",
+    updateInstallFailed: "Update install failed",
+    // Worktree hooks and removal.
+    worktreeHookTeardown: "Worktree teardown hook",
+    worktreeHookOpened: "Worktree opened hook",
+    worktreeHookRemoved: "Worktree removed hook",
+    worktreeHookCreated: "Worktree setup hook",
+    hookCompleted: "{hook} completed",
+    hookFailed: "{hook} failed",
+    hookOutputTitle: "{hook} output",
+    stoppedProcessOne: "Stopped 1 process still using the checkout.",
+    stoppedProcessesMany: "Stopped {count} processes still using the checkout.",
+    staleFilesPreserved: "Stale files were preserved at {path}.",
+    checkoutAlreadyAbsent:
+      "The checkout was already absent; stale Herdr state was reconciled.",
+    worktreeRemovedWithWarning: "Worktree removed with cleanup warning",
+    worktreeRemovalDetails: "Worktree removal details",
+    creatingWorktree: "Creating worktree",
+    updatingOriginBeforeCreate:
+      "Updating origin's default branch before creating {branch}.",
+    worktreeCreatedFallback: "Worktree created without the worktree command",
+    worktreeCreated: "Worktree created",
+    worktreeStartsFromCommit: "{branch} starts from {base} at {commit}.",
+    worktreeStartsFromLatest: "{branch} starts from the latest {base}.",
+    worktreeCreateFailed: "Failed to create worktree",
+    // Update checks.
+    serverVersionRunning: "Herdr World {version} is running",
+    reloadingFrontend: "Reloading the application to use the updated frontend.",
+    updatedServerNotReady: "Updated server did not become ready",
+    verifyFailedDetail:
+      "Could not verify Herdr World {version}. Reload the page after checking the server process.",
+    resumeBeforeUpdateCheck:
+      "Resume the connection before checking for updates.",
+    updateCheckFailed: "Update check failed",
+    updateCheckComplete: "Update check complete",
+    upgradeViaMenu:
+      "Herdr World {version} remains available. Open Menu → Upgrade to {version}.",
+    remainsAvailableReason: "Herdr World {version} remains available. {reason}",
+    useInstallationChannel: "Use its installation channel to upgrade.",
+    upToDate: "Herdr World is up to date",
+    currentVersion: "Current version: {version}",
+    // Pane moves and commands.
+    hostChangedBeforeOfficeAction:
+      "The selected host changed before the Office action completed",
+    tabIsPinned: "Tab is pinned",
+    paneMoveOwnerGone: "Pane move owner is no longer available",
+    paneMovedToOtherSide: "Pane moved to the other side",
+    paneMoveFailed: "Pane move failed",
+    commandFailed: "Command failed",
+    worktreeOperationUncertain:
+      "Worktree operation returned no admitted result. Its outcome may be uncertain; it was not replayed.",
+    pluginActionFailed: "Plugin action failed",
+    // Browser notifications.
+    agentFallbackName: "Agent",
+    workspaceBody: "workspace {label}",
+    tabBody: "tab {label}",
+    sessionIdentityUnavailable:
+      "Original agent session identity is unavailable; this notification cannot navigate to a replacement.",
+    openAgent: "Open agent",
+    openWorkspace: "Open workspace",
+    openRangerTask: "Open Ranger task",
+    unverifiedSuffix: " (unverified)",
+    // Workspace creation from a terminal.
+    noSourceTerminal:
+      "No current source terminal is available in this workspace.",
+    endpointAvailabilityLoading:
+      "Endpoint availability is loading. Preparing the source terminal.",
+    noDestinationSourceTerminal:
+      "No current source terminal is available in the destination workspace.",
+    sourceTerminalTimeout:
+      "Source terminal preparation timed out; nothing was created.",
+    destinationHostChanged:
+      "The destination host changed during terminal preparation.",
+    sourceTerminalMoved: "The source terminal moved or closed before creation.",
+    preparedSourceChanged:
+      "The prepared source changed before dispatch; nothing was created.",
+  },
 } as const;
 
 // The translation contract: the English key structure with every leaf

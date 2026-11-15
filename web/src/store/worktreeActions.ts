@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { type ConnectionClient } from "../api";
 import { action, leaseSnapshot, setForConnection, state } from "../store";
 import { refreshNow } from "./refresh";
@@ -41,8 +42,8 @@ export function createWorktree(
       setForConnection(lease, {
         notice: {
           kind: "info",
-          message: "Creating worktree",
-          detail: `Updating origin's default branch before creating ${branch}.`,
+          message: t("storeNotices.creatingWorktree"),
+          detail: t("storeNotices.updatingOriginBeforeCreate", { branch }),
           loading: true,
         },
       });
@@ -73,7 +74,7 @@ export function createWorktree(
         setForConnection(lease, {
           notice: {
             kind: "info",
-            message: "Worktree created without the worktree command",
+            message: t("storeNotices.worktreeCreatedFallback"),
             detail: fallback,
           },
         });
@@ -85,10 +86,14 @@ export function createWorktree(
         setForConnection(lease, {
           notice: {
             kind: "success",
-            message: "Worktree created",
+            message: t("storeNotices.worktreeCreated"),
             detail: commit
-              ? `${branch} starts from ${base} at ${commit}.`
-              : `${branch} starts from the latest ${base}.`,
+              ? t("storeNotices.worktreeStartsFromCommit", {
+                  branch,
+                  base,
+                  commit,
+                })
+              : t("storeNotices.worktreeStartsFromLatest", { branch, base }),
             autoDismissMs: 5000,
           },
         });
@@ -99,7 +104,7 @@ export function createWorktree(
       client,
       failureNotice: (error) => ({
         kind: "error",
-        message: "Failed to create worktree",
+        message: t("storeNotices.worktreeCreateFailed"),
         detail: error.message,
       }),
     },

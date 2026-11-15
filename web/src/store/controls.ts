@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { installUiSettings } from "./uiSettings";
 import {
   activityEntries,
@@ -58,8 +59,7 @@ function handleAgentActivity(control: BridgeControlMsg): void {
 export function handleStoreControl(control: BridgeControlMsg): void {
   if (control.type === "pause_connection") {
     store.pauseConnection(
-      control.reason ??
-        "Another Herdr World client paused this connection. Resume when you want this browser to sync again.",
+      control.reason ?? t("storeNotices.pausedByOtherClient"),
     );
   } else if (
     sharedAcquisitionEnabled() &&

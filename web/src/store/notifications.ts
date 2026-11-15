@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   type Notice,
   type TaskNotificationTarget,
@@ -194,9 +195,11 @@ function taskNotificationBody(
   );
   const tab = tabs.find((t) => t.tab_id === pane.tab_id);
   const parts = [
-    pane.agent ?? "Agent",
-    workspace?.label ? `workspace ${workspace.label}` : null,
-    tab?.label ? `tab ${tab.label}` : null,
+    pane.agent ?? t("storeNotices.agentFallbackName"),
+    workspace?.label
+      ? t("storeNotices.workspaceBody", { label: workspace.label })
+      : null,
+    tab?.label ? t("storeNotices.tabBody", { label: tab.label }) : null,
   ].filter((part): part is string => !!part);
   return parts.join(" · ");
 }
@@ -328,7 +331,7 @@ function notifyTaskCompleted(
   const sessionKnown = !pane.agent || Boolean(target.agentSessionId);
   const detail = sessionKnown
     ? body
-    : `${body} · Original agent session identity is unavailable; this notification cannot navigate to a replacement.`;
+    : `${body} · ${t("storeNotices.sessionIdentityUnavailable")}`;
   set({
     notice: {
       kind: blocked ? "info" : "success",
@@ -336,7 +339,9 @@ function notifyTaskCompleted(
       detail: burstDetail(announcement, detail),
       ...(sessionKnown
         ? {
-            actionLabel: pane.agent ? "Open agent" : "Open workspace",
+            actionLabel: pane.agent
+              ? t("storeNotices.openAgent")
+              : t("storeNotices.openWorkspace"),
             actionConnectionId: connectionId,
             actionRuntimeGeneration: runtimeGeneration,
             actionWorkspaceId: pane.workspace_id,
@@ -393,7 +398,9 @@ export function notifyWorldAsk(ask: WorldAsk) {
       kind: "message",
       title: question,
       body: question,
-      agent: `${askerName(ask)}${actor.verified ? "" : " (unverified)"}`,
+      agent: `${askerName(ask)}${
+        actor.verified ? "" : t("storeNotices.unverifiedSuffix")
+      }`,
       agentKnown: true,
       sender: actor.agent
         ? { known: true, agent: actor.agent }
@@ -461,7 +468,7 @@ function notifyHerdrTask(
   const message = notification.kind === "message";
   const text = notification.body ?? (message ? "" : notification.title);
   const detail = notification.sessionIdentityUnavailable
-    ? `${text} · Original agent session identity is unavailable; this notification cannot navigate to a replacement.`
+    ? `${text} · ${t("storeNotices.sessionIdentityUnavailable")}`
     : text;
   const pane = paneId
     ? snapshot.panes.find((candidate) => candidate.pane_id === paneId)
@@ -484,7 +491,7 @@ function notifyHerdrTask(
       detail: burstDetail(announcement, detail),
       ...(target
         ? {
-            actionLabel: "Open agent",
+            actionLabel: t("storeNotices.openAgent"),
             actionConnectionId: connectionId,
             actionRuntimeGeneration: runtimeGeneration,
             actionWorkspaceId: target.workspaceId,
@@ -539,7 +546,7 @@ function notifyRangerTask(notification: AssistantTaskNotification) {
             : "info",
       message: notification.title,
       detail: notification.body,
-      actionLabel: "Open Ranger task",
+      actionLabel: t("storeNotices.openRangerTask"),
       actionRangerTaskId: target.taskId,
       actionRangerRunId: target.runId,
       autoDismissMs: TASK_COMPLETED_TOAST_DISMISS_MS,

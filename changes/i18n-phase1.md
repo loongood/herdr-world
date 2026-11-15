@@ -232,5 +232,9 @@
   tray of detached strings, the pane chooser, the new-tab dialog (its
   workspace picker, the kinds it starts and the tab name) and the move
   dialog.
+  The store notices follow too: the connection and recovery notices, the
+  action-outcome warnings, the update and Herdr upgrade progress, the git
+  and worktree lifecycle notices, the notification bodies and their actions,
+  and the pane-move and command failures.
   Remaining surfaces keep English
   until their phase lands.

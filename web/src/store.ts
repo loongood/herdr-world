@@ -345,7 +345,7 @@ function reportTaskNotificationFailure(error: unknown, version: number) {
     taskNotificationPermission: notificationPermission(),
     notice: {
       kind: "error",
-      message: "Task notifications are unavailable",
+      message: t("storeNotices.taskNotificationsUnavailable"),
       detail: error instanceof Error ? error.message : String(error),
     },
   });
@@ -658,8 +658,8 @@ async function action<T>(
     set({
       notice: {
         kind: "info",
-        message: "Connection is paused",
-        detail: "Resume the connection before sending actions to Herdr.",
+        message: t("storeNotices.connectionPaused"),
+        detail: t("storeNotices.resumeBeforeActions"),
       },
     });
     return undefined;
@@ -712,8 +712,11 @@ async function action<T>(
       set({
         notice: {
           kind: "error",
-          message: "Action outcome is uncertain",
-          detail: `A change on ${hostLabel} may have completed. ${options.failureNotice?.(error).detail ?? error.message}`,
+          message: t("storeNotices.actionOutcomeUncertain"),
+          detail: t("storeNotices.actionChangeMayHaveCompleted", {
+            host: hostLabel,
+            detail: options.failureNotice?.(error).detail ?? error.message,
+          }),
         },
       });
       return undefined;
@@ -764,8 +767,8 @@ function handleBridgeStatus(s: ConnectionStatus) {
   if (s === "connected") connectionRecoveryIntent = null;
   const completedRecoveryMessage =
     completedRecovery === "reconnect"
-      ? "Browser reconnected"
-      : "Browser sync resumed";
+      ? t("storeNotices.browserReconnected")
+      : t("storeNotices.browserSyncResumed");
   set(
     completedRecovery
       ? {
@@ -1016,8 +1019,8 @@ export const store = {
       if (s === "connected") connectionRecoveryIntent = null;
       const completedRecoveryMessage =
         completedRecovery === "reconnect"
-          ? "Browser reconnected"
-          : "Browser sync resumed";
+          ? t("storeNotices.browserReconnected")
+          : t("storeNotices.browserSyncResumed");
       set(
         completedRecovery
           ? {
@@ -1117,9 +1120,7 @@ export const store = {
     return selectConnectionNow(connectionId);
   },
 
-  pauseConnection(
-    detail = "This browser will stop syncing until you resume it.",
-  ) {
+  pauseConnection(detail = t("storeNotices.pauseSyncHint")) {
     connectionRecoveryIntent = null;
     worldLocalStorage.setItem("connectionPaused", "true");
     stopPolling();
@@ -1140,7 +1141,7 @@ export const store = {
       terminalAttachEpoch: state.terminalAttachEpoch + 1,
       notice: {
         kind: "info",
-        message: "Connection paused",
+        message: t("storeNotices.connectionPausedShort"),
         detail,
       },
     });
@@ -1155,8 +1156,10 @@ export const store = {
           kind: pausedClients > 0 ? "success" : "info",
           message:
             pausedClients === 1
-              ? "Paused 1 other browser"
-              : `Paused ${pausedClients} other browsers`,
+              ? t("storeNotices.pausedOtherBrowserOne")
+              : t("storeNotices.pausedOtherBrowsers", {
+                  count: pausedClients,
+                }),
           autoDismissMs: 5000,
         },
       });
@@ -1175,8 +1178,8 @@ export const store = {
         kind: "info",
         message:
           connectionRecoveryIntent === "reconnect"
-            ? "Reconnecting browser"
-            : "Resuming browser sync",
+            ? t("storeNotices.reconnectingBrowser")
+            : t("storeNotices.resumingBrowserSync"),
         loading: true,
       },
     });
@@ -1323,7 +1326,7 @@ export const store = {
           setForConnection(lease, {
             notice: {
               kind: "error",
-              message: "Tab created, but naming failed",
+              message: t("storeNotices.tabNamingFailed"),
               detail: String(error),
             },
           });
@@ -1383,14 +1386,12 @@ export const store = {
     return action(
       async (lease) => {
         if (!leaseIsCurrent(lease))
-          throw new Error("Tab move owner is no longer available");
+          throw new Error(t("storeNotices.tabMoveOwnerGone"));
         const snapshot = leaseSnapshot(lease);
         // A host Spaces has not observed yet (Town reorders any host's desks)
         // has no recorded support: Herdr answers for itself.
         if (snapshot.lastRefresh > 0 && !snapshot.tabMoveSupported)
-          throw new Error(
-            "This Herdr connection does not support tab reordering.",
-          );
+          throw new Error(t("storeNotices.tabReorderUnsupported"));
         // Settle the strip in its new order before Herdr's list comes back.
         const previousTabs = snapshot.tabs;
         if (previousTabs.some((tab) => tab.tab_id === tabId))
@@ -1578,9 +1579,8 @@ export const store = {
       unavailable: () =>
         store.notify({
           kind: "error",
-          message: "Notification target is unavailable",
-          detail:
-            "The owning runtime, workspace, pane or agent session changed.",
+          message: t("storeNotices.notificationTargetUnavailable"),
+          detail: t("storeNotices.notificationOwnerChanged"),
         }),
     });
   },
@@ -1696,10 +1696,10 @@ export const store = {
         failureNotice: (error) => ({
           kind: "error",
           message: error.message.startsWith("workspace_group_close_required:")
-            ? "Workspace belongs to a group"
-            : "Workspace close failed",
+            ? t("storeNotices.workspaceInGroup")
+            : t("storeNotices.workspaceCloseFailed"),
           detail: error.message.startsWith("workspace_group_close_required:")
-            ? "Nothing was closed. To close this workspace and its linked workspaces, explicitly close the group in the Herdr CLI with --group."
+            ? t("storeNotices.workspaceInGroupDetail")
             : error.message,
         }),
       },
@@ -1729,10 +1729,10 @@ export const store = {
         setForConnection(lease, {
           notice: {
             kind: "info",
-            message: "Running git pull",
+            message: t("storeNotices.gitPullRunning"),
             detail: "git pull --ff-only",
             detailMode: "output",
-            detailTitle: "Command",
+            detailTitle: t("storeNotices.commandTitle"),
             loading: true,
           },
         });
@@ -1749,8 +1749,10 @@ export const store = {
         setForConnection(lease, {
           notice: {
             kind: "success",
-            message: "Git pull completed",
-            detail: output ? output.slice(0, 1400) : "Already up to date.",
+            message: t("storeNotices.gitPullCompleted"),
+            detail: output
+              ? output.slice(0, 1400)
+              : t("storeNotices.gitPullUpToDate"),
             detailMode: output ? "output" : "text",
             detailTitle: output ? "git pull --ff-only" : undefined,
           },
@@ -1762,7 +1764,7 @@ export const store = {
         client,
         failureNotice: (error) => ({
           kind: "error",
-          message: "Git pull failed",
+          message: t("storeNotices.gitPullFailed"),
           detail: error.message,
           detailMode: "output",
           detailTitle: "git pull --ff-only",
@@ -1892,7 +1894,7 @@ export const store = {
         client,
         failureNotice: (error) => ({
           kind: "error",
-          message: "Git action failed",
+          message: t("storeNotices.gitActionFailed"),
           detail: error.message,
           detailMode: "text",
         }),
@@ -1994,8 +1996,8 @@ export const store = {
         setForConnection(lease, {
           notice: {
             kind: "info",
-            message: "Removing worktree",
-            detail: "Running teardown hook if configured.",
+            message: t("storeNotices.removingWorktree"),
+            detail: t("storeNotices.teardownHookHint"),
             loading: true,
           },
         });
@@ -2056,7 +2058,7 @@ export const store = {
           setForConnection(lease, {
             notice: {
               kind: "info",
-              message: "Worktree removed without the remove command",
+              message: t("storeNotices.worktreeRemovedFallback"),
               detail: result.command_fallback,
             },
           });
@@ -2064,7 +2066,7 @@ export const store = {
           setForConnection(lease, {
             notice: {
               kind: "success",
-              message: "Worktree removed",
+              message: t("storeNotices.worktreeRemoved"),
             },
           });
         }
@@ -2074,7 +2076,7 @@ export const store = {
         client,
         failureNotice: (error) => ({
           kind: "error",
-          message: "Failed to remove worktree",
+          message: t("storeNotices.worktreeRemoveFailed"),
           detail: error.message,
         }),
       },
@@ -2187,7 +2189,7 @@ export const store = {
         set({
           notice: {
             kind: "error",
-            message: "Background notification sync failed",
+            message: t("storeNotices.notificationSyncFailed"),
             detail: (error as Error).message,
           },
         });
@@ -2227,7 +2229,7 @@ export const store = {
         set({
           notice: {
             kind: "error",
-            message: "Notification preference was not saved",
+            message: t("storeNotices.notificationPreferenceNotSaved"),
             detail: (error as Error).message,
           },
         });
@@ -2249,7 +2251,7 @@ export const store = {
             taskNotificationBusy: false,
             notice: {
               kind: "error",
-              message: "Notification revocation failed",
+              message: t("storeNotices.notificationRevocationFailed"),
               detail: (error as Error).message,
             },
           });
@@ -2263,7 +2265,7 @@ export const store = {
         taskNotificationPermission: notificationPermission(),
         notice: {
           kind: "info",
-          message: "Task notifications disabled",
+          message: t("storeNotices.taskNotificationsDisabled"),
           autoDismissMs: 5000,
         },
       });
@@ -2278,9 +2280,8 @@ export const store = {
         taskNotificationPermission: "unsupported",
         notice: {
           kind: "error",
-          message: "Browser notifications are not supported",
-          detail:
-            "This browser or deployment context does not expose the Notification API.",
+          message: t("storeNotices.notificationsUnsupported"),
+          detail: t("storeNotices.notificationsUnsupportedDetail"),
         },
       });
       return;
@@ -2299,7 +2300,7 @@ export const store = {
         taskNotificationPermission: notificationPermission(),
         notice: {
           kind: "error",
-          message: "Notification permission failed",
+          message: t("storeNotices.notificationPermissionFailed"),
           detail: (e as Error).message,
         },
       });
@@ -2384,10 +2385,9 @@ export const store = {
       notice: {
         kind: "info",
         message: automatic
-          ? "Updating Herdr for this release"
-          : "Upgrading Herdr",
-        detail:
-          "Bringing Herdr, its harness integrations and the Herdr World plugin up to this release.",
+          ? t("storeNotices.herdrUpdating")
+          : t("storeNotices.herdrUpgrading"),
+        detail: t("storeNotices.herdrUpgradeDetail"),
         loading: true,
       },
     });
@@ -2411,7 +2411,7 @@ export const store = {
         if (!job || job.status === "running") continue;
         if (job.status === "failed") throw new Error(job.error);
         if (job.status !== "done") {
-          throw new Error("Herdr World restarted before the upgrade finished.");
+          throw new Error(t("storeNotices.herdrUpgradeRestarted"));
         }
         const failed: string[] = Array.isArray(job.failed) ? job.failed : [];
         if (automatic && !job.changed && !failed.length) {
@@ -2424,24 +2424,24 @@ export const store = {
           notice: {
             kind: failed.length ? "error" : restart ? "info" : "success",
             message: failed.length
-              ? "Herdr upgrade incomplete"
+              ? t("storeNotices.herdrUpgradeIncomplete")
               : restart
-                ? "Herdr upgraded; restart needed"
-                : "Herdr is up to date",
+                ? t("storeNotices.herdrUpgradedRestartNeeded")
+                : t("storeNotices.herdrUpToDate"),
             detail: (job.lines as string[]).join("\n"),
             detailMode: "output",
-            detailTitle: "Herdr upgrade",
+            detailTitle: t("storeNotices.herdrUpgradeTitle"),
           },
         });
         return;
       }
-      throw new Error("The Herdr upgrade did not report a result in time.");
+      throw new Error(t("storeNotices.herdrUpgradeNoResult"));
     } catch (e) {
       set({
         herdrUpgrading: false,
         notice: {
           kind: "error",
-          message: "Herdr upgrade failed",
+          message: t("storeNotices.herdrUpgradeFailed"),
           detail: (e as Error).message,
         },
       });
@@ -2453,8 +2453,8 @@ export const store = {
       set({
         notice: {
           kind: "info",
-          message: "Connection is paused",
-          detail: "Resume the connection before installing updates.",
+          message: t("storeNotices.connectionPaused"),
+          detail: t("storeNotices.resumeBeforeUpdates"),
         },
       });
       return;
@@ -2484,9 +2484,8 @@ export const store = {
             dismissedUpdateVersion: latestVersion,
             notice: {
               kind: "info",
-              message: "Restarting the Herdr World process",
-              detail:
-                "The binary was updated. Waiting for the external process supervisor to start the new version.",
+              message: t("storeNotices.restartingProcess"),
+              detail: t("storeNotices.binaryUpdatedWaiting"),
               loading: true,
             },
           });
@@ -2499,8 +2498,10 @@ export const store = {
           dismissedUpdateVersion: latestVersion,
           notice: {
             kind: "success",
-            message: `Herdr World ${installedVersion} installed`,
-            detail: "Restart the Herdr World process to use the new version.",
+            message: t("storeNotices.installedVersion", {
+              version: installedVersion,
+            }),
+            detail: t("storeNotices.restartToUseVersion"),
           },
         });
         return;
@@ -2511,7 +2512,7 @@ export const store = {
         dismissedUpdateVersion: latestVersion,
         notice: {
           kind: "success",
-          message: "Herdr World is already up to date",
+          message: t("storeNotices.alreadyUpToDate"),
         },
       });
     } catch (e) {
@@ -2519,7 +2520,7 @@ export const store = {
         updateInstalling: false,
         notice: {
           kind: "error",
-          message: "Update install failed",
+          message: t("storeNotices.updateInstallFailed"),
           detail: (e as Error).message,
         },
       });

@@ -7,9 +7,9 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`4dba95e5`(批次 32,待推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **4204** 键,0 占位符不匹配
-- 工作区:干净
+- 最新提交:批次 34(待提交)
+- 词典规模:en / zh-Hans / zh-Hant 各 **4441** 键,0 占位符不匹配
+- 工作区:批次 34 改动待提交
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
 ## 项目与设计文档
@@ -152,6 +152,8 @@
 | 31e-3 | `a14cdbee` | board/windows 及 world 剩余:BoardFacts、BoardHub、BoardPeek、WorkLens、boardFactsText(新增 `Translate` 类型 + `tr` 参数)、workLensModel(新增 LANE_KEYS 映射)、WindowFrame、WindowSurface、WindowSwitcher、WorldPanel;world 顶层 10 个文件;新增 board.facts.summaryCounts 与 wordBusy/wordWaiting/wordDone/wordQuiet |
 | 31e-4 | `b292449a` | WorldInspectorConversation 的聊天等待提示(新增 world.chatWaitLabel/chatWaitLongerLabel/chatWaitDetail/chatWaitStay) |
 | 32 | `4dba95e5` | assistant.ts 15 条 Ranger 桥接错误(新增 assistant.errors 域)+ terminalThemes.ts 自定义主题默认名(复用 terminal.defaultCustomThemeName);内置主题名保持英文 |
+| 33 | `ff6d1b97` | BoardView.tsx(新增顶层 boardView 域,约 145 键):toast/通知、卡片与便条操作条、便条编辑器未保存提示、串接托盘、窗格选择器、新建标签页对话框、移动对话框、颜色词表 |
+| 34 | (待提交) | store 通知文案(新增 storeNotices 域,约 111 键):连接与恢复通知、操作结果警告、更新与 Herdr 升级进度、git 与 worktree 生命周期通知、通知正文与动作、窗格移动与命令失败;store 级验证错误消息仍保持英文 |
 
 ---
 
@@ -166,7 +168,18 @@
 assistant.ts(15 条)、terminalThemes.ts 已完成;browserInput.worker.ts **无需翻译**
 (经读文件确认:只有内部协议字段,无用户可见文案)。
 
-### 批次 33:联动切换(当前)
+### 批次 33:联动切换 —— **已完成**
+
+仅 `web/src/world/BoardView.tsx`;新增顶层 `boardView` 域(约 145 键),复用
+`common.cancel`/`common.close`/`world.colourOf` 等既有键。提交 `ff6d1b97`。
+
+### 批次 34:store 通知文案 —— **已完成**
+
+新增顶层 `storeNotices` 域(约 111 键),覆盖 `web/src/store.ts` 与
+`web/src/store/*.ts` 的 notice 文案;store 级验证错误消息与 DOM API 名称
+保持英文。
+
+### 批次 35:components 目录剩余(当前)
 
 AgentLauncherDialog + HarnessReadinessSummary + BoardView。重新 grep 确认:
 AgentLauncherDialog、HarnessReadinessSummary 已全部翻译(31e-1),

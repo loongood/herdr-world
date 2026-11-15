@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   type BrowserNavigation,
   selectBrowserTarget,
@@ -98,11 +99,10 @@ export function endpointCreationReason(
       ) ?? endpointMethodReason(snapshot.navigationMode, advertisement, method);
     if (reason) return reason;
   }
-  if (!source)
-    return "No current source terminal is available in this workspace.";
+  if (!source) return t("storeNotices.noSourceTerminal");
   const attachment = snapshot.terminalAttachments[source.terminal_id];
   return attachment && !attachment.ready
-    ? "Endpoint availability is loading. Preparing the source terminal."
+    ? t("storeNotices.endpointAvailabilityLoading")
     : null;
 }
 
@@ -192,9 +192,7 @@ async function prepareQualifiedCreation(
     sourcePaneId,
   );
   if (!nativeSource)
-    throw new Error(
-      "No current source terminal is available in the destination workspace.",
-    );
+    throw new Error(t("storeNotices.noDestinationSourceTerminal"));
   const source: CreationSource = { ...nativeSource, ...target };
   const advertisement = snapshot.endpointAvailability[source.terminal_id];
   if (advertisement) {
@@ -209,12 +207,7 @@ async function prepareQualifiedCreation(
     await new Promise<void>((resolve, reject) => {
       let unsubscribe = () => {};
       const timer = setTimeout(
-        () =>
-          finish(
-            new Error(
-              "Source terminal preparation timed out; nothing was created.",
-            ),
-          ),
+        () => finish(new Error(t("storeNotices.sourceTerminalTimeout"))),
         20_000,
       );
       function finish(error?: Error) {
@@ -225,11 +218,7 @@ async function prepareQualifiedCreation(
       }
       function check() {
         if (!qualifiedLeaseIsCurrent(target, lease))
-          return finish(
-            new Error(
-              "The destination host changed during terminal preparation.",
-            ),
-          );
+          return finish(new Error(t("storeNotices.destinationHostChanged")));
         const current = leaseSnapshot(lease);
         if (
           !current.panes.some(
@@ -240,9 +229,7 @@ async function prepareQualifiedCreation(
               pane.workspace_id === source.workspace_id,
           )
         )
-          return finish(
-            new Error("The source terminal moved or closed before creation."),
-          );
+          return finish(new Error(t("storeNotices.sourceTerminalMoved")));
         const attachment = current.terminalAttachments[source.terminal_id];
         if (!attachment?.ready) return;
         const reason =
@@ -296,9 +283,7 @@ function assertCreationSourceCurrent(
         pane.terminal_id === source.terminal_id,
     )
   )
-    throw new Error(
-      "The prepared source changed before dispatch; nothing was created.",
-    );
+    throw new Error(t("storeNotices.preparedSourceChanged"));
 }
 
 function navigateBrowser(
