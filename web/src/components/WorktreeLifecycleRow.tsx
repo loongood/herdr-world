@@ -11,6 +11,7 @@ import {
 import { useOperationalStore } from "../store";
 import type { PullRequestSummary } from "../../../shared/pullRequest";
 import { WorktreePullRequestBadge } from "./WorktreePullRequestBadge";
+import { useT } from "../i18n";
 import type { InspectorView } from "../workspaceResource";
 import {
   lifecycleAutoSyncLabel,
@@ -50,6 +51,7 @@ export function WorktreeLifecycleRow({
   onOpenResource: (row: LifecycleRow, view: InspectorView) => Promise<unknown>;
   onRemove: (row: LifecycleRow) => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const workspace = row.workspace;
   const openWorkspaceId = workspace?.workspace_id ?? openedWorkspaceId;
@@ -64,12 +66,16 @@ export function WorktreeLifecycleRow({
           <GitBranch size={16} />
           <strong>{title}</strong>
           <span className="badge">
-            {row.worktree.is_linked_worktree ? "Linked" : "Main"}
+            {row.worktree.is_linked_worktree
+              ? t("worktree.badgeLinked")
+              : t("worktree.badgeMain")}
           </span>
           <span
             className={`lifecycle-open-state ${openWorkspaceId ? "is-open" : ""}`}
           >
-            {openWorkspaceId ? "Open" : "Closed"}
+            {openWorkspaceId
+              ? t("worktree.stateOpen")
+              : t("worktree.stateClosed")}
           </span>
         </div>
         <code title={row.worktree.path}>{row.worktree.path}</code>
@@ -91,7 +97,9 @@ export function WorktreeLifecycleRow({
             </span>
           ) : null}
           {row.worktree.is_prunable ? (
-            <span className="lifecycle-prunable">Prunable</span>
+            <span className="lifecycle-prunable">
+              {t("worktree.prunableBadge")}
+            </span>
           ) : null}
         </div>
       </div>
@@ -105,20 +113,22 @@ export function WorktreeLifecycleRow({
             onClick={() => onFocus(openWorkspaceId)}
           >
             <FocusIcon size={14} />
-            Focus
+            {t("worktree.focusAction")}
           </button>
         ) : (
           <button
             type="button"
             className="ghost"
-            title="Open worktree"
+            title={t("worktree.openWorktreeTitle")}
             disabled={operationRunning}
             onClick={() =>
-              runOperation(rowKey, "Opening worktree", () => onOpen(row))
+              runOperation(rowKey, t("worktree.openingWorktree"), () =>
+                onOpen(row),
+              )
             }
           >
             <FolderOpen size={14} />
-            Open
+            {t("worktree.openAction")}
           </button>
         )}
         {!row.worktree.is_prunable ? (
@@ -128,36 +138,36 @@ export function WorktreeLifecycleRow({
               className="ghost"
               title={
                 openWorkspaceId
-                  ? "Browse workspace files"
-                  : "Open workspace and browse files"
+                  ? t("worktree.browseFilesTitle")
+                  : t("worktree.openBrowseFilesTitle")
               }
               disabled={operationRunning}
               onClick={() =>
-                runOperation(rowKey, "Opening Files", () =>
+                runOperation(rowKey, t("worktree.openingFiles"), () =>
                   onOpenResource(row, "files"),
                 )
               }
             >
               <FolderTree size={14} />
-              Files
+              {t("worktree.filesAction")}
             </button>
             <button
               type="button"
               className="ghost"
               title={
                 openWorkspaceId
-                  ? "Review workspace changes"
-                  : "Open workspace and review changes"
+                  ? t("worktree.reviewChangesTitle")
+                  : t("worktree.openReviewChangesTitle")
               }
               disabled={operationRunning}
               onClick={() =>
-                runOperation(rowKey, "Opening Changes", () =>
+                runOperation(rowKey, t("worktree.openingChanges"), () =>
                   onOpenResource(row, "changes"),
                 )
               }
             >
               <FileDiff size={14} />
-              Changes
+              {t("worktree.changesAction")}
             </button>
           </>
         ) : null}
@@ -165,35 +175,35 @@ export function WorktreeLifecycleRow({
           <button
             type="button"
             className="ghost lifecycle-pull-button"
-            aria-label={`Pull ${title}`}
-            title="Git pull"
+            aria-label={t("worktree.pullAria", { name: title })}
+            title={t("worktree.gitPullTitle")}
             disabled={operationRunning}
             onClick={() =>
-              runOperation(rowKey, "Pulling current branch", () =>
+              runOperation(rowKey, t("worktree.pullingBranch"), () =>
                 store.gitPullWorkspace(workspace.workspace_id),
               )
             }
           >
             <GitMerge size={14} />
-            Pull
+            {t("worktree.pullAction")}
           </button>
         ) : null}
         {workspace ? (
           <button
             type="button"
-            aria-label={`Auto-sync origin's default branch into ${title}`}
+            aria-label={t("worktree.syncToggleAria", { name: title })}
             aria-pressed={syncInfo?.enabled ?? false}
             title={
               syncInfo?.enabled
-                ? "Auto sync from origin's default branch is enabled. Click to disable."
-                : "Auto sync from origin's default branch into this branch. Click to enable."
+                ? t("worktree.syncEnabledTitle")
+                : t("worktree.syncDisabledTitle")
             }
             className={`ghost lifecycle-sync-toggle ${
               syncInfo?.enabled ? "is-active" : ""
             }`}
             disabled={!syncInfo || operationRunning}
             onClick={() =>
-              runOperation(rowKey, "Updating auto-sync policy", () =>
+              runOperation(rowKey, t("worktree.updatingSyncPolicy"), () =>
                 store.setWorkspaceAutoSyncEnabled(
                   workspace.workspace_id,
                   !(syncInfo?.enabled ?? false),
@@ -202,15 +212,15 @@ export function WorktreeLifecycleRow({
             }
           >
             <RefreshCw size={13} />
-            Sync
+            {t("worktree.syncAction")}
           </button>
         ) : null}
         {row.worktree.is_linked_worktree && !row.worktree.is_prunable ? (
           <button
             type="button"
             className="ghost lifecycle-remove-button"
-            aria-label={`Remove ${title}`}
-            title="Remove worktree"
+            aria-label={t("worktree.removeAria", { name: title })}
+            title={t("worktree.removeWorktreeTitle")}
             disabled={operationRunning}
             onClick={() => onRemove(row)}
           >
@@ -219,7 +229,7 @@ export function WorktreeLifecycleRow({
             ) : (
               <Trash2 size={15} />
             )}
-            Remove
+            {t("worktree.removeAction")}
           </button>
         ) : null}
       </div>

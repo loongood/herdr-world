@@ -21,11 +21,13 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { AGENT_WORKTREE_SOURCE_LABELS } from "../../../shared/agentWorktree";
+import { useT } from "../i18n";
 import type { AgentWorktreeView } from "../useAgentWorktree";
 import { middleEllipsis } from "./middleEllipsis";
 import "./AgentWorktreePicker.css";
 
 export function AgentWorktreeLine({ view }: { view: AgentWorktreeView }) {
+  const t = useT();
   const { selected, observation, target } = view;
   const source = selected?.source;
   const Icon =
@@ -45,7 +47,9 @@ export function AgentWorktreeLine({ view }: { view: AgentWorktreeView }) {
     >
       <span
         title={
-          source ? AGENT_WORKTREE_SOURCE_LABELS[source] : "Worktree evidence"
+          source
+            ? AGENT_WORKTREE_SOURCE_LABELS[source]
+            : t("worktree.evidenceTitle")
         }
       >
         <Icon size={12} aria-hidden="true" />
@@ -65,15 +69,17 @@ export function AgentWorktreeLine({ view }: { view: AgentWorktreeView }) {
             <span className="agent-worktree-line-branch">
               {" "}
               · {selected.branch ?? "detached HEAD"}
-              {stale ? " · stale" : ""}
+              {stale ? t("worktree.staleSuffix") : ""}
             </span>
           </>
         ) : observation?.state === "ambiguous" ? (
-          `${observation.candidates.length} worktrees · choose`
+          t("worktree.ambiguousChoose", {
+            count: observation.candidates.length,
+          })
         ) : view.loading ? (
-          "Reading worktree…"
+          t("worktree.readingWorktree")
         ) : (
-          "Worktree unavailable · choose"
+          t("worktree.unavailableChoose")
         )}
       </span>
     </span>
@@ -81,16 +87,14 @@ export function AgentWorktreeLine({ view }: { view: AgentWorktreeView }) {
 }
 
 export function AgentWorktreePicker({ view }: { view: AgentWorktreeView }) {
+  const t = useT();
   const name = useId();
   const stale = view.observation?.state === "stale";
   return (
     <section className="agent-worktree-picker">
       <fieldset>
-        <legend>Worktree</legend>
-        <p>
-          This selects the worktree shown in Files and Changes; it does not
-          change the agent&apos;s terminal directory.
-        </p>
+        <legend>{t("worktree.pickerLegend")}</legend>
+        <p>{t("worktree.pickerDescription")}</p>
         {view.observation?.candidates.map((candidate) => (
           <label key={candidate.candidateId} className="agent-worktree-choice">
             <input
@@ -112,9 +116,9 @@ export function AgentWorktreePicker({ view }: { view: AgentWorktreeView }) {
               <small>
                 {AGENT_WORKTREE_SOURCE_LABELS[candidate.source]}
                 {stale
-                  ? " · stale"
+                  ? t("worktree.staleSuffix")
                   : view.observation?.state === "ambiguous"
-                    ? " · ambiguous"
+                    ? t("worktree.ambiguousSuffix")
                     : ""}
               </small>
             </span>
@@ -123,17 +127,16 @@ export function AgentWorktreePicker({ view }: { view: AgentWorktreeView }) {
       </fieldset>
       {view.selected ? (
         <p title={view.selected.canonicalRoot}>
-          Viewing {middleEllipsis(view.selected.canonicalRoot, 64)}
+          {t("worktree.viewingRoot", {
+            path: middleEllipsis(view.selected.canonicalRoot, 64),
+          })}
         </p>
       ) : (
-        <p>
-          {view.observation?.reason ??
-            "Choose a worktree for Files and Changes."}
-        </p>
+        <p>{view.observation?.reason ?? t("worktree.chooseForFilesChanges")}</p>
       )}
       {view.observation?.reportedPr ? (
         <a href={view.observation.reportedPr} target="_blank" rel="noreferrer">
-          Reported PR
+          {t("worktree.reportedPr")}
         </a>
       ) : null}
       {view.observation?.unavailableEvidence?.map((evidence) => (
@@ -143,13 +146,12 @@ export function AgentWorktreePicker({ view }: { view: AgentWorktreeView }) {
         </p>
       ))}
       {view.observation?.truncated ? (
-        <p>
-          Showing a bounded set of repository worktrees, with branch matches
-          first.
-        </p>
+        <p>{t("worktree.boundedSetNote")}</p>
       ) : null}
       <button type="button" disabled={view.loading} onClick={view.refresh}>
-        {view.loading ? "Refreshing…" : "Refresh"}
+        {view.loading
+          ? t("worktree.refreshingAction")
+          : t("worktree.refreshAction")}
       </button>
     </section>
   );
@@ -166,6 +168,7 @@ export function AgentWorktreeGate({
   children: ReactNode;
   retainPresentation?: boolean;
 }) {
+  const t = useT();
   const client = useContext(ResourceConnectionClientContext);
   const owner = JSON.stringify([
     client?.connectionId,
@@ -217,17 +220,17 @@ export function AgentWorktreeGate({
     <div className="workspace-inspector-unavailable" role="status">
       <strong>
         {view.observation?.state === "stale"
-          ? "Worktree evidence is stale"
-          : "Choose a worktree"}
+          ? t("worktree.gateStale")
+          : t("worktree.gateChoose")}
       </strong>
       <span>
         {view.observation?.reason ??
           (view.loading
-            ? "Reading the agent's worktree evidence…"
-            : "Files and Changes need a current worktree selection.")}
+            ? t("worktree.readingEvidence")
+            : t("worktree.needSelection"))}
       </span>
       <button type="button" onClick={onChoose}>
-        Choose a worktree
+        {t("worktree.gateChoose")}
       </button>
     </div>
   );

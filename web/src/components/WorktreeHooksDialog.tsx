@@ -2,15 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useOperationalStore } from "../store";
 import { useConnectionClient } from "../useConnectionClient";
 import type { WorktreeHookInfo } from "../worktreeLifecycle";
+import { useT } from "../i18n";
 import { CloseButton } from "./CloseButton";
 import "./WorktreeHooksDialog.css";
 
-const HOOKS = [
-  ["setup", "Setup"],
-  ["opened", "Opened"],
-  ["teardown", "Teardown"],
-  ["removed", "Removed"],
-] as const;
+const HOOKS = ["setup", "opened", "teardown", "removed"] as const;
 
 export function WorktreeHooksDialog({
   open,
@@ -21,6 +17,7 @@ export function WorktreeHooksDialog({
   workspaceId?: string;
   onClose: () => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const connectionClient = useConnectionClient();
   const [info, setInfo] = useState<WorktreeHookInfo | null>(null);
@@ -97,9 +94,7 @@ export function WorktreeHooksDialog({
       const result = await store.setRepoWorktreeHooksEnabled(infoKey, enabled);
       if (!requestIsCurrent()) return;
       if (result === undefined) {
-        setError(
-          store.get().error || "Unable to update worktree hook settings",
-        );
+        setError(store.get().error || t("worktree.hooksUpdateFailed"));
         return;
       }
       setInfo((current) =>
@@ -118,29 +113,30 @@ export function WorktreeHooksDialog({
         className="modal worktree-hooks-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Worktree hooks"
+        aria-label={t("worktree.hooksAria")}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="modal-head">
-          <h2>Worktree Hooks</h2>
+          <h2>{t("worktree.hooksTitle")}</h2>
           <CloseButton onClick={onClose} />
         </div>
         <p className="hook-doc-note">
-          Hooks use <code>roamgate.json</code>, with <code>paseo.json</code>{" "}
-          supported for legacy compatibility.{" "}
+          {t("worktree.hooksNoteBefore")} <code>roamgate.json</code>
+          {t("worktree.hooksNoteMiddle")} <code>paseo.json</code>
+          {t("worktree.hooksNoteAfter")}{" "}
           <a
             href="https://github.com/powerfooI/roamgate/blob/main/docs/DEPLOYMENT.md#worktree-hooks"
             target="_blank"
             rel="noreferrer"
           >
-            View docs
+            {t("worktree.viewDocs")}
           </a>
         </p>
 
         {loading ? (
           <div className="hook-loading" role="status">
             <span className="hook-loading-mark" />
-            <span>Loading worktree hooks...</span>
+            <span>{t("worktree.loadingHooks")}</span>
           </div>
         ) : (
           <>
@@ -149,23 +145,32 @@ export function WorktreeHooksDialog({
             ) : null}
 
             <div className="hook-summary">
-              <SummaryRow label="Repo" value={info?.repo_name ?? "-"} />
-              <SummaryRow label="Store key" value={info?.key ?? "-"} />
               <SummaryRow
-                label="Configuration"
+                label={t("worktree.summaryRepo")}
+                value={info?.repo_name ?? "-"}
+              />
+              <SummaryRow
+                label={t("worktree.summaryStoreKey")}
+                value={info?.key ?? "-"}
+              />
+              <SummaryRow
+                label={t("worktree.summaryConfiguration")}
                 value={info?.config_path ?? "-"}
               />
               <SummaryRow
-                label="Format"
+                label={t("worktree.summaryFormat")}
                 value={
                   info?.config_source === "paseo"
-                    ? "paseo.json (legacy compatibility)"
+                    ? t("worktree.formatPaseo")
                     : info?.config_source === "roamgate"
-                      ? "roamgate.json (native)"
+                      ? t("worktree.formatRoamgate")
                       : "-"
                 }
               />
-              <SummaryRow label="Checkout" value={info?.checkout_path ?? "-"} />
+              <SummaryRow
+                label={t("worktree.summaryCheckout")}
+                value={info?.checkout_path ?? "-"}
+              />
             </div>
 
             <label className="check-row">
@@ -176,18 +181,28 @@ export function WorktreeHooksDialog({
                 onChange={(e) => void setEnabled(e.currentTarget.checked)}
               />
               <span>
-                {saving ? "Saving..." : "Enable worktree hooks for this repo"}
+                {saving
+                  ? t("worktree.savingLabel")
+                  : t("worktree.enableHooksLabel")}
               </span>
             </label>
 
             <div className="hook-fields">
-              {HOOKS.map(([name, label]) => {
+              {HOOKS.map((name) => {
                 const value = info?.hooks?.[name] ?? "";
+                const label =
+                  name === "setup"
+                    ? t("worktree.hookSetup")
+                    : name === "opened"
+                      ? t("worktree.hookOpened")
+                      : name === "teardown"
+                        ? t("worktree.hookTeardown")
+                        : t("worktree.hookRemoved");
                 return (
                   <section key={name} className="hook-field">
                     <span>{label}</span>
                     <pre className={value ? "" : "is-empty"}>
-                      <code>{value || "Not configured"}</code>
+                      <code>{value || t("worktree.notConfigured")}</code>
                     </pre>
                   </section>
                 );

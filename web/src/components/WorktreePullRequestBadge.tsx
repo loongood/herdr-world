@@ -6,46 +6,59 @@ import {
 } from "lucide-react";
 import type { workspacePullRequest } from "../workspaceTreeBadges";
 import type { PullRequestSummary } from "../../../shared/pullRequest";
+import { t, useT } from "../i18n";
 import "./WorktreePullRequestBadge.css";
 
-const labels: Record<PullRequestSummary["state"], string> = {
-  ready: "Unknown",
-  select_remote: "Select remote",
-  select_match: "Multiple matches",
-  unsupported: "Unsupported",
-  missing_cli: "Missing CLI",
-  unauthenticated: "Auth unavailable",
-  no_match: "No match",
-  detached: "Detached HEAD",
-  error: "Unavailable",
-};
+function prStateLabel(state: PullRequestSummary["state"]): string {
+  switch (state) {
+    case "ready":
+      return t("worktree.prUnknown");
+    case "select_remote":
+      return t("worktree.prSelectRemote");
+    case "select_match":
+      return t("worktree.prMultipleMatches");
+    case "unsupported":
+      return t("worktree.prUnsupported");
+    case "missing_cli":
+      return t("worktree.prMissingCli");
+    case "unauthenticated":
+      return t("worktree.prAuthUnavailable");
+    case "no_match":
+      return t("worktree.prNoMatch");
+    case "detached":
+      return "Detached HEAD";
+    case "error":
+      return t("worktree.prErrorState");
+  }
+}
 
 export function WorktreePullRequestBadge({
   status,
 }: {
   status?: PullRequestSummary;
 }) {
+  const t = useT();
   const request = status?.state === "ready" ? status.request : undefined;
   const state = request?.state;
   const label =
     state === "merged"
-      ? "Merged"
+      ? t("worktree.prMerged")
       : state === "closed"
-        ? "Closed without merge"
+        ? t("worktree.prClosedNoMerge")
         : state === "open" || state === "opened"
           ? request?.draft
-            ? "Draft"
-            : "Open"
+            ? t("worktree.prDraft")
+            : t("worktree.prOpen")
           : status
-            ? labels[status.state]
-            : "Loading...";
+            ? prStateLabel(status.state)
+            : t("worktree.prLoading");
   const provider = status?.provider
     ? status.provider === "github"
       ? "PR"
       : "MR"
     : "PR/MR";
   const stale = request ? status?.stale : undefined;
-  const text = `${provider}${request ? ` #${request.number}` : ""}: ${label}${stale ? " (last known)" : ""}`;
+  const text = `${provider}${request ? ` #${request.number}` : ""}: ${label}${stale ? t("worktree.prLastKnownSuffix") : ""}`;
   return (
     <details className="worktree-review">
       <summary
@@ -61,27 +74,31 @@ export function WorktreePullRequestBadge({
           <span>
             {stale.failedAt ? (
               <>
-                Refresh failed at{" "}
+                {t("worktree.prRefreshFailedBefore")}{" "}
                 <time dateTime={stale.failedAt}>
                   {new Date(stale.failedAt).toLocaleString()}
                 </time>
-                ; showing the last known status.
+                {t("worktree.prRefreshFailedAfter")}
               </>
             ) : (
-              (stale.message ??
-              "Showing the last known status while refreshing.")
+              (stale.message ?? t("worktree.prStaleRefreshing"))
             )}
           </span>
         ) : null}
         {request ? (
           <a href={request.url} target="_blank" rel="noopener noreferrer">
-            Open {provider} #{request.number}
+            {t("worktree.prOpenProvider", {
+              provider,
+              number: request.number,
+            })}
           </a>
         ) : null}
         {status ? (
           <time dateTime={status.refreshedAt}>
-            {stale ? "Last successful check" : "Last checked"}:{" "}
-            {new Date(status.refreshedAt).toLocaleString()}
+            {stale
+              ? t("worktree.prLastSuccessCheck")
+              : t("worktree.prLastChecked")}
+            : {new Date(status.refreshedAt).toLocaleString()}
           </time>
         ) : null}
       </div>

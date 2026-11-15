@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOperationalStore } from "../store";
 import { uiLocale } from "../uiLocale";
+import { t, useT } from "../i18n";
 import { useConnectionClient } from "../useConnectionClient";
 import { CloseButton } from "./CloseButton";
 import { focusDialogElement } from "./dialogFocus";
@@ -33,6 +34,7 @@ export function AutoSyncRepositoriesDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const connectionClient = useConnectionClient();
   const [data, setData] = useState<AutoSyncConfigList | null>(null);
@@ -64,7 +66,7 @@ export function AutoSyncRepositoriesDialog({
           setError(
             connectionClient.isCurrent()
               ? (loadError as Error).message
-              : "The selected host is no longer available. Reconnect it or choose another host.",
+              : t("worktree.hostUnavailable"),
           );
         }
       } finally {
@@ -72,9 +74,7 @@ export function AutoSyncRepositoriesDialog({
         if (requestId === requestSequence.current) {
           if (!connectionClient.isCurrent()) {
             setData(null);
-            setError(
-              "The selected host is no longer available. Reconnect it or choose another host.",
-            );
+            setError(t("worktree.hostUnavailable"));
           }
           setLoading(false);
         }
@@ -138,14 +138,14 @@ export function AutoSyncRepositoriesDialog({
         className="modal auto-sync-repositories-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Automatic branch update repositories"
+        aria-label={t("worktree.autoSyncReposAria")}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-head">
           <div>
-            <h2>Automatic Branch Updates</h2>
-            <p>Saved configurations run when their workspace is open</p>
+            <h2>{t("worktree.autoSyncTitle")}</h2>
+            <p>{t("worktree.autoSyncReposSubtitle")}</p>
           </div>
           <CloseButton onClick={onClose} />
         </div>
@@ -153,7 +153,7 @@ export function AutoSyncRepositoriesDialog({
         {loading ? (
           <div className="auto-sync-config-loading" role="status">
             <span className="hook-loading-mark" />
-            <span>Loading repository configurations...</span>
+            <span>{t("worktree.loadingConfigs")}</span>
           </div>
         ) : (
           <div className="auto-sync-config-content">
@@ -176,7 +176,7 @@ export function AutoSyncRepositoriesDialog({
                             }
                           >
                             {config.running
-                              ? "Syncing"
+                              ? t("worktree.syncingLabel")
                               : statusLabel(config.last_status)}
                           </span>
                         </div>
@@ -184,10 +184,18 @@ export function AutoSyncRepositoriesDialog({
                           {configLocation(config)}
                         </code>
                         <div className="auto-sync-config-meta">
-                          <span>Every {config.interval_minutes} min</span>
+                          <span>
+                            {t("worktree.everyMinutes", {
+                              minutes: config.interval_minutes,
+                            })}
+                          </span>
                           <span>{formatLastRun(config.last_run_at)}</span>
                           {config.last_branch ? (
-                            <span>Branch {config.last_branch}</span>
+                            <span>
+                              {t("worktree.branchPrefix", {
+                                branch: config.last_branch,
+                              })}
+                            </span>
                           ) : null}
                         </div>
                         {config.last_message ? (
@@ -199,9 +207,9 @@ export function AutoSyncRepositoriesDialog({
                       <button
                         type="button"
                         role="switch"
-                        aria-label={
-                          "Automatic updates for " + configName(config)
-                        }
+                        aria-label={t("worktree.updatesForAria", {
+                          name: configName(config),
+                        })}
                         aria-checked={config.enabled}
                         className={
                           "settings-switch" + (config.enabled ? " is-on" : "")
@@ -217,15 +225,13 @@ export function AutoSyncRepositoriesDialog({
               </div>
             ) : error ? null : (
               <div className="auto-sync-config-empty">
-                <strong>No saved repositories</strong>
-                <span>
-                  Enable automatic updates from a Workspace context menu first.
-                </span>
+                <strong>{t("worktree.noSavedRepos")}</strong>
+                <span>{t("worktree.enableFromMenuHint")}</span>
               </div>
             )}
             {data?.path ? (
               <div className="auto-sync-config-store">
-                <span>Settings</span>
+                <span>{t("worktree.settingsWord")}</span>
                 <code title={data.path}>{data.path}</code>
               </div>
             ) : null}
@@ -254,22 +260,22 @@ function configLocation(config: AutoSyncConfig) {
 function statusLabel(status?: AutoSyncStatus) {
   switch (status) {
     case "updated":
-      return "Updated";
+      return t("worktree.statusUpdated");
     case "up_to_date":
-      return "Up to date";
+      return t("worktree.statusUpToDate");
     case "skipped":
-      return "Skipped";
+      return t("worktree.statusSkipped");
     case "failed":
-      return "Failed";
+      return t("worktree.statusFailedShort");
     default:
-      return "Not run";
+      return t("worktree.statusNotRun");
   }
 }
 
 function formatLastRun(value?: string) {
-  if (!value) return "Never run";
+  if (!value) return t("worktree.neverRun");
   const date = new Date(value);
   return Number.isNaN(date.valueOf())
     ? value
-    : "Last run " + date.toLocaleString(uiLocale());
+    : t("worktree.lastRunAt", { time: date.toLocaleString(uiLocale()) });
 }

@@ -114,7 +114,11 @@
   Git action menus, stage/discard/delete confirmations and success
   notices (including the batch counts), the worktree lifecycle summaries
   (git status lines, auto-sync labels, removal errors) and the batch
-  action notices in the store. The built-in
+  action notices in the store. The worktree dialogs follow: the lifecycle
+  manager (overview, hook/command/location policies, per-row actions and
+  removal confirmations), the hooks detail dialog, the pull-request
+  badges, the automatic branch update dialogs, the agent worktree picker
+  and gate, and the worktree location dialog. The built-in
   slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.

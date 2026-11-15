@@ -3,6 +3,7 @@ import type { ConnectionClient } from "../api";
 import { store, useOperationalStore } from "../store";
 import { useConnectionClient } from "../useConnectionClient";
 import { useStableCallback } from "../world/useStableCallback";
+import { useT } from "../i18n";
 import { TextInputDialog } from "./ModalDialogs";
 
 type Location = {
@@ -22,6 +23,7 @@ export function WorktreeLocationDialog({
   workspaceId: string | null;
   onClose: () => void;
 }) {
+  const t = useT();
   const connectionClient = useConnectionClient();
   const operations = useOperationalStore();
   const [location, setLocation] = useState<Location | null>(null);
@@ -53,7 +55,7 @@ export function WorktreeLocationDialog({
         if (cancelled) return;
         store.notify({
           kind: "error",
-          message: "Unable to read the worktree location",
+          message: t("worktree.locationReadFailed"),
           detail: (error as Error).message,
         });
         close();
@@ -66,11 +68,11 @@ export function WorktreeLocationDialog({
   return (
     <TextInputDialog
       open={open && !!current}
-      title="Worktree Location"
-      label="Directory for new worktrees (empty for Herdr's default)"
+      title={t("worktree.locationTitle")}
+      label={t("worktree.locationLabel")}
       initialValue={current?.directory ?? ""}
       placeholder="/path/to/worktrees"
-      submitLabel="Save"
+      submitLabel={t("worktree.saveAction")}
       onClose={onClose}
       onSubmit={(value) => {
         // Save only through the connection and runtime generation that read

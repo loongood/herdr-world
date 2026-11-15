@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOperationalStore } from "../store";
 import { uiLocale } from "../uiLocale";
+import { t, useT } from "../i18n";
 import { useConnectionClient } from "../useConnectionClient";
 import { CloseButton } from "./CloseButton";
 import { focusDialogElement } from "./dialogFocus";
@@ -31,6 +32,7 @@ export function WorkspaceAutoSyncDialog({
   workspaceId?: string;
   onClose: () => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const connectionClient = useConnectionClient();
   const [info, setInfo] = useState<WorkspaceAutoSyncInfo | null>(null);
@@ -119,27 +121,25 @@ export function WorkspaceAutoSyncDialog({
         className="modal compact-modal workspace-auto-sync-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Automatic branch updates"
+        aria-label={t("worktree.autoSyncAria")}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-head">
-          <h2>Automatic Branch Updates</h2>
+          <h2>{t("worktree.autoSyncTitle")}</h2>
           <CloseButton onClick={onClose} />
         </div>
 
         <p className="auto-sync-description">
-          Every {info?.interval_minutes ?? 10} minutes, fetch origin&apos;s
-          default branch and merge it into this workspace&apos;s current branch.
-          A dirty workspace is skipped, and conflicting merges are aborted
-          automatically. Updates run only while this workspace is open in the
-          current Herdr World connection.
+          {t("worktree.autoSyncDescription", {
+            minutes: info?.interval_minutes ?? 10,
+          })}
         </p>
 
         {loading ? (
           <div className="auto-sync-loading" role="status">
             <span className="hook-loading-mark" />
-            <span>Loading automatic update settings...</span>
+            <span>{t("worktree.loadingSyncSettings")}</span>
           </div>
         ) : (
           <>
@@ -147,23 +147,29 @@ export function WorkspaceAutoSyncDialog({
 
             <div className="auto-sync-summary">
               <SummaryRow
-                label="Workspace"
+                label={t("worktree.summaryWorkspace")}
                 value={info?.workspace_label ?? "-"}
               />
-              <SummaryRow label="Checkout" value={info?.checkout_path ?? "-"} />
-              <SummaryRow label="Branch" value={info?.last_branch ?? "-"} />
               <SummaryRow
-                label="Last run"
+                label={t("worktree.summaryCheckout")}
+                value={info?.checkout_path ?? "-"}
+              />
+              <SummaryRow
+                label={t("worktree.summaryBranch")}
+                value={info?.last_branch ?? "-"}
+              />
+              <SummaryRow
+                label={t("worktree.summaryLastRun")}
                 value={formatLastRun(info?.last_run_at)}
               />
             </div>
 
             <div className="auto-sync-toggle-row">
               <div>
-                <strong>Keep branch updated</strong>
+                <strong>{t("worktree.keepBranchUpdated")}</strong>
                 <span>
                   {info?.running
-                    ? "Syncing origin's default branch now..."
+                    ? t("worktree.syncingNow")
                     : statusLabel(info?.last_status)}
                 </span>
               </div>
@@ -206,7 +212,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 }
 
 function formatLastRun(value?: string) {
-  if (!value) return "Not run yet";
+  if (!value) return t("worktree.notRunYet");
   const date = new Date(value);
   return Number.isNaN(date.valueOf()) ? value : date.toLocaleString(uiLocale());
 }
@@ -214,14 +220,14 @@ function formatLastRun(value?: string) {
 function statusLabel(status?: AutoSyncStatus) {
   switch (status) {
     case "updated":
-      return "Updated from origin's default branch";
+      return t("worktree.syncStatusUpdated");
     case "up_to_date":
-      return "Already up to date";
+      return t("worktree.syncStatusUpToDate");
     case "skipped":
-      return "Last run was skipped";
+      return t("worktree.syncStatusSkipped");
     case "failed":
-      return "Last run failed";
+      return t("worktree.syncStatusFailed");
     default:
-      return "No sync has run yet";
+      return t("worktree.syncStatusNever");
   }
 }
