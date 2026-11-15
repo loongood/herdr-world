@@ -6,17 +6,18 @@ import {
   useRef,
   useState,
 } from "react";
+import { useT } from "../../i18n";
 import { useAgentStarts } from "../agentStarts";
 import { paintTownRider } from "./TownBusLayer";
 import {
   TOWN_ARRIVAL_SIT_WAIT_MS,
+  type TownArrival,
   TownArrivals,
   townAgentsByTerminal,
   townArrivalPath,
   townArrivalWalkMs,
   townPathLength,
   townPathPose,
-  type TownArrival,
 } from "./townArrivals";
 import type { TownBusRoute } from "./townBus";
 import type { TownLayout, TownPoint } from "./townLayout";
@@ -95,6 +96,7 @@ export const TownArrivalLayer = memo(function TownArrivalLayer({
   lookOf(key: string): TownLook;
   renderer: { readonly current: TownRendererHandle | null };
 }) {
+  const t = useT();
   const walkers = useRef(new Map<number, HTMLElement>());
   const welcomes = useRef(new Map<number, HTMLElement>());
   /** When each welcome began. */
@@ -198,7 +200,7 @@ export const TownArrivalLayer = memo(function TownArrivalLayer({
               ))}
             </span>
             <span className="town-arrival-tag">
-              {agent?.agentName ?? agent?.displayLabel ?? "New agent"}
+              {agent?.agentName ?? agent?.displayLabel ?? t("town.newAgent")}
             </span>
           </div>,
         ];

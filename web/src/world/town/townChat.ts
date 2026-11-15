@@ -5,12 +5,13 @@
  */
 
 import { useEffect, useState } from "react";
+import { t } from "../../i18n";
+import { terminalComposerRequest } from "../../terminalComposer";
 import {
+  type LatestConversation,
   leafOwner,
   useConversationRead,
-  type LatestConversation,
 } from "../conversationRead";
-import { terminalComposerRequest } from "../../terminalComposer";
 import { questionFromScreen, screenIdentity } from "../paneScreen";
 import type { WorldLeafObject, WorldObject } from "../worldObject";
 
@@ -232,10 +233,7 @@ export async function sendTownReply(
   submit: boolean,
 ) {
   const client = townOwner(leaf);
-  if (!client)
-    throw new TownReplyError(
-      "This agent's host changed; refresh before replying.",
-    );
+  if (!client) throw new TownReplyError(t("town.hostChanged"));
   const request = terminalComposerRequest(leaf.pane.pane_id, text, submit);
   await client.call(request.method, request.params);
 }

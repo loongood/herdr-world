@@ -1,6 +1,7 @@
 /**
  * Nameplate text that stays readable at full scale (docs/design/town-at-scale.md).
  */
+import { t } from "../../i18n";
 
 /**
  * Where a reception chip's agent sits. An agent without a Herdr name is
@@ -17,9 +18,14 @@ export function townReceptionName(
   if (agent.agentName || !room)
     return {
       name: agent.displayLabel,
-      title: where ? `${agent.displayLabel} in ${where}` : agent.displayLabel,
+      title: where
+        ? t("town.receptionTitleIn", { name: agent.displayLabel, where })
+        : agent.displayLabel,
     };
-  return { name: room, title: `${agent.displayLabel} in ${where}` };
+  return {
+    name: room,
+    title: t("town.receptionTitleIn", { name: agent.displayLabel, where }),
+  };
 }
 
 /**
@@ -30,5 +36,6 @@ export function townRoomCardMeta(
   counts: { desks: number; working: number },
   overflow: number,
 ) {
-  return `${counts.working} busy · ${counts.desks} desks${overflow ? ` · +${overflow} more` : ""}`;
+  const more = overflow ? ` · ${t("town.moreCount", { count: overflow })}` : "";
+  return `${t("town.busyCount", { count: counts.working })} · ${t("town.desksCount", { count: counts.desks })}${more}`;
 }

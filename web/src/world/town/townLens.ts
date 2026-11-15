@@ -15,6 +15,7 @@
  */
 
 import type { WorkItem } from "../../../../shared/worldSources";
+import { type TranslationKey, t } from "../../i18n";
 import { formatOfficeCost, formatOfficeUsage } from "../officeObservability";
 import type {
   OfficeAgent,
@@ -35,25 +36,6 @@ export const TOWN_LENSES = [
   "harness",
 ] as const;
 export type TownLensId = (typeof TOWN_LENSES)[number];
-
-export const TOWN_LENS_NAMES: Record<TownLensId, string> = {
-  attention: "Attention",
-  idle: "Idle time",
-  spend: "Spend",
-  pulls: "Pull requests",
-  quests: "Quests",
-  harness: "Harness",
-};
-
-/** What each lens shows, for the chooser and screen readers. */
-export const TOWN_LENS_HINTS: Record<TownLensId, string> = {
-  attention: "Town as usual: who needs you, who works.",
-  idle: "How long since each agent last worked.",
-  spend: "Today's usage per room and desk.",
-  pulls: "Each desk's linked pull request.",
-  quests: "Each agent's quest progress.",
-  harness: "Which harness each agent runs.",
-};
 
 /** The next lens after `lens`, `step` places on, wrapping. */
 export function townLensStep(lens: TownLensId, step: 1 | -1): TownLensId {
@@ -145,24 +127,28 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 /** Idle bands: under 5 m is fresh; 8 h or more is cold. */
 const IDLE_BANDS = [5 * MINUTE, 30 * MINUTE, 2 * HOUR, 8 * HOUR] as const;
-const IDLE_SWATCHES: readonly TownLensSwatch[] = [
-  { label: "< 5 m", color: v("warm-1") },
-  { label: "5–30 m", color: v("warm-2") },
-  { label: "30 m–2 h", color: v("cold-1") },
-  { label: "2–8 h", color: v("cold-2") },
-  { label: "8 h +", color: v("cold-3") },
+const idleSwatches = (): readonly TownLensSwatch[] => [
+  { label: t("lens.scale.idleUnder5"), color: v("warm-1") },
+  { label: t("lens.scale.idle5to30"), color: v("warm-2") },
+  { label: t("lens.scale.idle30to2h"), color: v("cold-1") },
+  { label: t("lens.scale.idle2to8h"), color: v("cold-2") },
+  { label: t("lens.scale.idle8plus"), color: v("cold-3") },
 ];
 
 /** "4 m", "3 h 12 m", "2 d 5 h": an idle span in words. */
 export function townIdleWords(ms: number): string {
   const minutes = Math.floor(Math.max(0, ms) / MINUTE);
-  if (minutes < 1) return "under a minute";
-  if (minutes < 60) return `${minutes} m`;
+  if (minutes < 1) return t("lens.words.idleUnderAMinute");
+  if (minutes < 60) return t("lens.words.idleMinutes", { minutes });
   const hours = Math.floor(minutes / 60);
   if (hours < 24)
-    return minutes % 60 ? `${hours} h ${minutes % 60} m` : `${hours} h`;
+    return minutes % 60
+      ? t("lens.words.idleHoursMinutes", { hours, minutes: minutes % 60 })
+      : t("lens.words.idleHours", { hours });
   const days = Math.floor(hours / 24);
-  return hours % 24 ? `${days} d ${hours % 24} h` : `${days} d`;
+  return hours % 24
+    ? t("lens.words.idleDaysHours", { days, hours: hours % 24 })
+    : t("lens.words.idleDays", { days });
 }
 
 export function townIdleSwatch(ms: number): number {
@@ -179,10 +165,16 @@ function idleOf(agent: LensAgent, facts: TownLensFacts): number | undefined {
 
 function idleMark(ms: number | undefined, working: boolean): TownLensMark {
   if (ms === undefined)
-    return { swatch: "no-data", words: "Idle time unknown", short: "no data" };
+    return {
+      swatch: "no-data",
+      words: t("lens.words.idleUnknown"),
+      short: t("lens.words.noData"),
+    };
   return {
     swatch: townIdleSwatch(ms),
-    words: working ? "Working now" : `Idle ${townIdleWords(ms)}`,
+    words: working
+      ? t("lens.words.workingNow")
+      : t("lens.words.idleFor", { span: townIdleWords(ms) }),
   };
 }
 
@@ -199,36 +191,40 @@ export function townRoomIdle(values: readonly number[]) {
 
 /** Spend bands, as a share of the costliest place of the same kind. */
 const SPEND_BANDS = [0.1, 0.3, 0.6] as const;
-const SPEND_SWATCHES: readonly TownLensSwatch[] = [
-  { label: "None", color: v("none") },
-  { label: "Low", color: v("heat-1") },
-  { label: "Some", color: v("heat-2") },
-  { label: "High", color: v("heat-3") },
-  { label: "Top", color: v("heat-4") },
+const spendSwatches = (): readonly TownLensSwatch[] => [
+  { label: t("lens.scale.spendNone"), color: v("none") },
+  { label: t("lens.scale.spendLow"), color: v("heat-1") },
+  { label: t("lens.scale.spendSome"), color: v("heat-2") },
+  { label: t("lens.scale.spendHigh"), color: v("heat-3") },
+  { label: t("lens.scale.spendTop"), color: v("heat-4") },
 ];
 
-const ECONOMY_MISSING: Record<
+const ECONOMY_MISSING = {
+  loading: "lens.words.economyLoading",
+  unavailable: "lens.words.economyUnavailable",
+  stale: "lens.words.economyStale",
+  "no-data": "lens.words.economyNoData",
+  limited: "lens.words.economyLimited",
+} as const satisfies Record<
   Exclude<TownPlaceEconomy["status"], "ready" | "none">,
-  string
-> = {
-  loading: "Reading today's usage…",
-  unavailable: "Usage unavailable",
-  stale: "Usage out of date",
-  "no-data": "No usage data from this host",
-  limited:
-    "Place detail limited; usage is included in city and building totals.",
-};
+  TranslationKey
+>;
 
 /** A ready place's spend in words: "~$1.40 today · 210.0k tokens". */
 export function townSpendWords(
   economy: Extract<TownPlaceEconomy, { status: "ready" }>,
 ) {
-  const tokens = `${formatOfficeUsage(economy.tokens)} tokens`;
+  const tokens = t("lens.words.spendTokens", {
+    tokens: formatOfficeUsage(economy.tokens),
+  });
   const text =
     economy.price === "priced" && economy.costUsd !== null
-      ? `${formatOfficeCost(economy.costUsd, "estimated")} today · ${tokens}`
-      : `${tokens} today, not priced`;
-  return economy.partial ? `${text} · partial` : text;
+      ? t("lens.words.spendTodayCost", {
+          cost: formatOfficeCost(economy.costUsd, "estimated"),
+          tokens,
+        })
+      : t("lens.words.spendTodayTokens", { tokens });
+  return economy.partial ? `${text}${t("lens.words.spendPartial")}` : text;
 }
 
 /**
@@ -281,12 +277,16 @@ export function townSpendMarks(
             : formatOfficeUsage(economy.tokens),
       });
     } else if (economy.status === "none")
-      marks.set(key, { swatch: 0, words: "No usage today", short: "0" });
+      marks.set(key, {
+        swatch: 0,
+        words: t("lens.words.spendNoUsageToday"),
+        short: "0",
+      });
     else
       marks.set(key, {
         swatch: "no-data",
-        words: ECONOMY_MISSING[economy.status],
-        short: "no data",
+        words: t(ECONOMY_MISSING[economy.status]),
+        short: t("lens.words.noData"),
       });
   }
   return { marks, by };
@@ -307,12 +307,12 @@ const PULL_STATES: readonly TownPullState[] = [
   "draft",
   "merged",
 ];
-const PULL_SWATCHES: readonly TownLensSwatch[] = [
-  { label: "Failing", color: v("fail") },
-  { label: "Ready", color: v("ready") },
-  { label: "Waiting", color: v("wait") },
-  { label: "Draft", color: v("draft") },
-  { label: "Merged", color: v("merged") },
+const pullSwatches = (): readonly TownLensSwatch[] => [
+  { label: t("lens.scale.pullFailing"), color: v("fail") },
+  { label: t("lens.scale.pullReady"), color: v("ready") },
+  { label: t("lens.scale.pullWaiting"), color: v("wait") },
+  { label: t("lens.scale.pullDraft"), color: v("draft") },
+  { label: t("lens.scale.pullMerged"), color: v("merged") },
 ];
 
 /** A linked pull request's state, as Board's lanes read it; null for tickets. */
@@ -323,35 +323,42 @@ export function townPullState(item: WorkItem): {
   if (item.kind !== "pull_request") return null;
   const ref = `#${item.number ?? "?"}`;
   if (item.lane === "merged")
-    return { state: "merged", words: `${ref} merged` };
+    return { state: "merged", words: t("lens.words.pullMerged", { ref }) };
   if (item.lane === "fixing")
     return {
       state: "failing",
-      words: `${ref} ${
+      words: t(
         item.checks === "fail"
-          ? "CI failing"
+          ? "lens.words.pullFailing"
           : item.mergeable === "conflicting"
-            ? "has conflicts"
-            : "changes requested"
-      }`,
+            ? "lens.words.pullConflicts"
+            : "lens.words.pullChangesRequested",
+        { ref },
+      ),
     };
-  if (item.draft) return { state: "draft", words: `${ref} draft` };
+  if (item.draft)
+    return { state: "draft", words: t("lens.words.pullDraft", { ref }) };
   if (item.lane === "ready")
-    return { state: "ready", words: `${ref} ready to merge` };
+    return { state: "ready", words: t("lens.words.pullReadyToMerge", { ref }) };
   return {
     state: "waiting",
-    words: `${ref} ${item.checks === "pending" ? "checks running" : "waiting for review"}`,
+    words: t(
+      item.checks === "pending"
+        ? "lens.words.pullChecksRunning"
+        : "lens.words.pullWaitingForReview",
+      { ref },
+    ),
   };
 }
 
 /* ---------- Quests ---------- */
 
-const QUEST_SWATCHES: readonly TownLensSwatch[] = [
+const questSwatches = (): readonly TownLensSwatch[] => [
   { label: "0–25%", color: v("grow-1") },
   { label: "25–50%", color: v("grow-2") },
   { label: "50–75%", color: v("grow-3") },
   { label: "75–99%", color: v("grow-4") },
-  { label: "Done", color: v("grow-5") },
+  { label: t("lens.scale.questDone"), color: v("grow-5") },
 ];
 
 /** A quest's share done, 0–1: its steps, or 1 once it is done. */
@@ -367,13 +374,17 @@ function questSwatch(share: number) {
 function questMark(quest: TownQuestMark): TownLensMark {
   const status =
     quest.status === "blocked"
-      ? " · blocked"
+      ? t("lens.words.questBlocked")
       : quest.status === "paused"
-        ? " · paused"
+        ? t("lens.words.questPaused")
         : "";
   return {
     swatch: questSwatch(townQuestShare(quest)),
-    words: `Quest ${quest.progress}: ${quest.title}${status}`,
+    words:
+      t("lens.words.questProgress", {
+        progress: quest.progress,
+        title: quest.title,
+      }) + status,
   };
 }
 
@@ -387,16 +398,19 @@ const HARNESSES: readonly TownHarness[] = [
   "other",
   "shell",
 ];
-const HARNESS_NAMES: Record<TownHarness, string> = {
-  claude: "Claude",
-  codex: "Codex",
-  pi: "Pi",
-  other: "Other agent",
-  shell: "Plain shell",
+const HARNESS_NAME_KEYS: Record<TownHarness, TranslationKey> = {
+  claude: "lens.harness.claude",
+  codex: "lens.harness.codex",
+  pi: "lens.harness.pi",
+  other: "lens.harness.other",
+  shell: "lens.harness.shell",
 };
-const HARNESS_SWATCHES: readonly TownLensSwatch[] = HARNESSES.map(
-  (harness) => ({ label: HARNESS_NAMES[harness], color: v(`h-${harness}`) }),
-);
+const harnessName = (harness: TownHarness) => t(HARNESS_NAME_KEYS[harness]);
+const harnessSwatches = (): readonly TownLensSwatch[] =>
+  HARNESSES.map((harness) => ({
+    label: harnessName(harness),
+    color: v(`h-${harness}`),
+  }));
 
 export function townHarnessOf(agent: Pick<OfficeAgent, "harness">) {
   const name = agent.harness?.toLowerCase() ?? "";
@@ -463,8 +477,8 @@ export function townLensPlaces(model: TownModel): LensPlaces {
   };
 }
 
-const plural = (count: number, one: string) =>
-  `${count} ${one}${count === 1 ? "" : "s"}`;
+const plural = (count: number, one: string, many: string) =>
+  `${count} ${count === 1 ? one : many}`;
 
 /** The marks for one lens over Town's presented rooms, desks and agents. */
 export function townLensView(
@@ -543,7 +557,19 @@ export function lensView(
             ? agentMarks.get(agents[0]!.key)!
             : {
                 swatch: townIdleSwatch(freshest),
-                words: `Freshest ${freshest === 0 ? "working now" : `idle ${townIdleWords(freshest)}`} · ${plural(agents.length, "agent")}`,
+                words: t("lens.words.freshestAgents", {
+                  state:
+                    freshest === 0
+                      ? t("lens.words.freshestWorking")
+                      : t("lens.words.freshestIdle", {
+                          span: townIdleWords(freshest),
+                        }),
+                  agents: plural(
+                    agents.length,
+                    t("lens.words.agentOne"),
+                    t("lens.words.agentMany"),
+                  ),
+                }),
               };
         deskMarks.set(deskKey, mark);
       }
@@ -561,18 +587,24 @@ export function lensView(
         const cold = townRoomIdle(known);
         roomMarks.set(room.key, {
           swatch: townIdleSwatch(cold),
-          short: cold < MINUTE ? "now" : townIdleWords(cold),
-          words: `A quarter of ${plural(known.length, "agent")} idle ${townIdleWords(cold)} or more${
-            known.length < agents.length
-              ? ` (${agents.length - known.length} unknown)`
-              : ""
-          }`,
+          short: cold < MINUTE ? t("lens.words.now") : townIdleWords(cold),
+          words:
+            t("lens.words.quarterIdle", {
+              agents: plural(
+                known.length,
+                t("lens.words.agentOne"),
+                t("lens.words.agentMany"),
+              ),
+              span: townIdleWords(cold),
+            }) +
+            (known.length < agents.length
+              ? t("lens.words.unknownCount", {
+                  count: agents.length - known.length,
+                })
+              : ""),
         });
       }
-      return view(
-        IDLE_SWATCHES,
-        "Since each agent last worked; a room shows its coldest quarter.",
-      );
+      return view(idleSwatches(), t("lens.words.idleNote"));
     }
     case "spend": {
       const roomEconomies = new Map<string, TownPlaceEconomy>();
@@ -601,14 +633,20 @@ export function lensView(
           missing.add(room.hostLabel);
       const scale =
         by === "cost"
-          ? "Today's estimated cost, against the costliest place."
-          : "Today's tokens, against the busiest place.";
+          ? t("lens.words.spendNoteCost")
+          : t("lens.words.spendNoteTokens");
       return view(
-        SPEND_SWATCHES,
-        missing.size ? `${scale} No data: ${[...missing].join(", ")}.` : scale,
+        spendSwatches(),
+        missing.size
+          ? t("lens.words.spendNoData", {
+              scale,
+              hosts: [...missing].join(", "),
+            })
+          : scale,
       );
     }
     case "pulls": {
+      const swatches = pullSwatches();
       for (const room of rooms) {
         const states: TownPullState[] = [];
         for (const desk of desksOf(room)) {
@@ -626,16 +664,13 @@ export function lensView(
         const worst = PULL_STATES.find((state) => states.includes(state))!;
         roomMarks.set(room.key, {
           swatch: PULL_STATES.indexOf(worst),
-          short: `${states.filter((state) => state === worst).length} ${PULL_SWATCHES[PULL_STATES.indexOf(worst)]!.label.toLowerCase()}`,
+          short: `${states.filter((state) => state === worst).length} ${swatches[PULL_STATES.indexOf(worst)]!.label.toLowerCase()}`,
           words: tally(states, PULL_STATES, (state) =>
-            PULL_SWATCHES[PULL_STATES.indexOf(state)]!.label.toLowerCase(),
+            swatches[PULL_STATES.indexOf(state)]!.label.toLowerCase(),
           ).words,
         });
       }
-      return view(
-        PULL_SWATCHES,
-        "Desks without a linked pull request stay plain.",
-      );
+      return view(swatches, t("lens.words.pullNote"));
     }
     case "quests": {
       // Every agent gets its own mark, so one without a quest never reads
@@ -645,7 +680,9 @@ export function lensView(
           const quest = facts.quest(agent.key);
           agentMarks.set(
             agent.key,
-            quest ? questMark(quest) : { swatch: null, words: "No quest" },
+            quest
+              ? questMark(quest)
+              : { swatch: null, words: t("lens.words.noQuest") },
           );
         }
       const shares = (agents: readonly LensAgent[]) =>
@@ -664,7 +701,14 @@ export function lensView(
               )!
             : {
                 swatch: questSwatch(Math.min(...known)),
-                words: `${plural(known.length, "quest")}, least done ${Math.round(Math.min(...known) * 100)}%`,
+                words: t("lens.words.questLeastDone", {
+                  quests: plural(
+                    known.length,
+                    t("lens.words.questOne"),
+                    t("lens.words.questMany"),
+                  ),
+                  percent: Math.round(Math.min(...known) * 100),
+                }),
               },
         );
       }
@@ -679,10 +723,17 @@ export function lensView(
         roomMarks.set(room.key, {
           swatch: questSwatch(mean),
           short: `${Math.round(mean * 100)}%`,
-          words: `${plural(known.length, "quest")}, ${Math.round(mean * 100)}% done on average`,
+          words: t("lens.words.questAverageDone", {
+            quests: plural(
+              known.length,
+              t("lens.words.questOne"),
+              t("lens.words.questMany"),
+            ),
+            percent: Math.round(mean * 100),
+          }),
         });
       }
-      return view(QUEST_SWATCHES, "Agents without a quest stay plain.");
+      return view(questSwatches(), t("lens.words.questNote"));
     }
     case "harness": {
       for (const agents of roomAgents.values())
@@ -690,30 +741,28 @@ export function lensView(
           const harness = townHarnessOf(agent);
           agentMarks.set(agent.key, {
             swatch: HARNESSES.indexOf(harness),
-            words: HARNESS_NAMES[harness],
+            words: harnessName(harness),
           });
         }
       // A room or desk can hold several harnesses: one harness gets its
       // colour; several get a stripe each, by share, never the majority's.
       const mixed = (harnesses: TownHarness[]): TownLensMark => {
-        const { ranked, words } = tally(
-          harnesses,
-          HARNESSES,
-          (h) => HARNESS_NAMES[h],
+        const { ranked, words } = tally(harnesses, HARNESSES, (h) =>
+          harnessName(h),
         );
         if (ranked.length === 1)
           return {
             swatch: HARNESSES.indexOf(ranked[0]![0]),
             words,
-            short: HARNESS_NAMES[ranked[0]![0]],
+            short: harnessName(ranked[0]![0]),
           };
         return {
           swatch: null,
           words,
           short:
             ranked.length === 2
-              ? ranked.map(([h]) => HARNESS_NAMES[h]).join(" + ")
-              : `${ranked.length} harnesses`,
+              ? ranked.map(([h]) => harnessName(h)).join(" + ")
+              : t("lens.words.harnesses", { count: ranked.length }),
           mix: ranked.map(([h, count]) => ({
             swatch: HARNESSES.indexOf(h),
             count,
@@ -725,7 +774,7 @@ export function lensView(
           if (desks.get(deskKey)?.panes)
             deskMarks.set(deskKey, {
               swatch: HARNESSES.indexOf("shell"),
-              words: HARNESS_NAMES.shell,
+              words: harnessName("shell"),
             });
           continue;
         }
@@ -738,14 +787,11 @@ export function lensView(
         else if (desksOf(room).some((desk) => desk.panes))
           roomMarks.set(room.key, {
             swatch: HARNESSES.indexOf("shell"),
-            words: "Plain shells only",
-            short: "Shells",
+            words: t("lens.words.plainShellsOnly"),
+            short: t("lens.words.shells"),
           });
       }
-      return view(
-        HARNESS_SWATCHES,
-        "A room or desk with several harnesses is striped by each one's share.",
-      );
+      return view(harnessSwatches(), t("lens.words.harnessNote"));
     }
   }
 }

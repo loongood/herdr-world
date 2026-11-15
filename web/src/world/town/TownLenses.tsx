@@ -5,40 +5,47 @@
  * per browser, for `L` and the ring's Lenses action.
  */
 
+import { Layers } from "lucide-react";
 import {
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
-import { Layers } from "lucide-react";
-import { worldLocalStorage } from "../../browserStorage";
 import type {
   WorkItem,
   WorldSourcesSnapshot,
 } from "../../../../shared/worldSources";
+import { worldLocalStorage } from "../../browserStorage";
+import { t, useT } from "../../i18n";
 import type { HerdrOfficeProjection } from "../herdrOfficeProjection";
 import type { OfficeAgent } from "../officeProjectionTypes";
+import { keyTakenByViewSearch } from "../viewSearchShortcut";
 import type { TownCenterAction } from "./TownCenterMenu";
+import { TownLensSearch, type TownLensSearchSource } from "./TownLensSearch";
 import { townDeskWork } from "./townBadges";
+import { TOWN_TILE as T, type TownLayout, townSeat } from "./townLayout";
 import {
-  TOWN_LENSES,
-  TOWN_LENS_HINTS,
-  TOWN_LENS_NAMES,
-  lensView,
-  townLensPlaces,
-  townLensStep,
-  townLensWords,
   type LensAgent,
   type LensPlaces,
+  lensView,
+  TOWN_LENSES,
   type TownLensFacts,
   type TownLensId,
   type TownLensMark,
   type TownLensView,
+  townLensPlaces,
+  townLensStep,
+  townLensWords,
 } from "./townLens";
-import { TOWN_TILE as T, townSeat, type TownLayout } from "./townLayout";
+import {
+  TOWN_LENS_HINT_KEYS,
+  TOWN_LENS_NAME_KEYS,
+  townLensHint,
+  townLensName,
+} from "./townLensLabels";
 import type { TownModel } from "./townModel";
 import {
   townPlaceEconomy,
@@ -47,11 +54,9 @@ import {
   useTownUsage,
 } from "./townPlaceUsage";
 import type { TownQuestMark } from "./townQuestPennant";
-import { TownLensSearch, type TownLensSearchSource } from "./TownLensSearch";
 import { townScaleLensFacts } from "./townScaleLens";
 import { townScaleSceneRequested } from "./townScaleScene";
 import type { TownTarget } from "./townTargets";
-import { keyTakenByViewSearch } from "../viewSearchShortcut";
 import "./townLens.css";
 
 const STORAGE_KEY = "townLens";
@@ -141,10 +146,9 @@ export function withLensAction(
 ): TownCenterAction[] {
   const action: TownCenterAction = {
     id: "lenses",
-    label: "Lenses",
+    label: t("town.lensesLabel"),
     icon: Layers,
-    detail:
-      state.lens === "attention" ? undefined : TOWN_LENS_NAMES[state.lens],
+    detail: state.lens === "attention" ? undefined : townLensName(state.lens),
     run: state.open,
   };
   const at = actions.findIndex((candidate) => candidate.id === "summary");
@@ -324,10 +328,10 @@ export function townLensReadout(
   if (!view || key === null) return null;
   const room = model.rooms.get(key);
   if (room)
-    return `${room.displayLabel}: ${view.rooms.get(key)?.words ?? "nothing to show"}`;
+    return `${room.displayLabel}: ${view.rooms.get(key)?.words ?? t("town.lensNothingToShow")}`;
   const desk = model.desks.get(key);
   if (desk)
-    return `${desk.displayLabel}: ${view.desks.get(key)?.words ?? "nothing to show"}`;
+    return `${desk.displayLabel}: ${view.desks.get(key)?.words ?? t("town.lensNothingToShow")}`;
   const agent = model.agents.get(key);
   const deskKey = agent
     ? model.agentSeats.get(key)?.deskKey
@@ -337,7 +341,7 @@ export function townLensReadout(
   const words =
     (agent && view.agents.get(key)?.words) ??
     (deskKey ? view.desks.get(deskKey)?.words : undefined);
-  return `${label}: ${words ?? "nothing to show"}`;
+  return `${label}: ${words ?? t("town.lensNothingToShow")}`;
 }
 
 /** Accessible targets name each place's reading while a lens is on. */
@@ -346,11 +350,18 @@ export function townLensTargets(
   view: TownLensView | null,
 ): readonly TownTarget[] {
   if (!view) return targets;
-  const name = TOWN_LENS_NAMES[view.lens];
+  const name = townLensName(view.lens);
   return targets.map((target) => {
     const words = townLensWords(view, target.kind, target.key);
     return words
-      ? { ...target, label: `${target.label}. ${name}: ${words}` }
+      ? {
+          ...target,
+          label: t("town.lensTargetAria", {
+            target: target.label,
+            lens: name,
+            words,
+          }),
+        }
       : target;
   });
 }
@@ -506,12 +517,13 @@ export function TownLensLegend({
   view: TownLensView | null;
   readout: string | null;
 }) {
-  const name = TOWN_LENS_NAMES[state.lens];
+  const t = useT();
+  const name = t(TOWN_LENS_NAME_KEYS[state.lens]);
   return (
     <div
       className="town-board town-lens-legend"
       role="group"
-      aria-label={`Town lens: ${name}`}
+      aria-label={t("town.lensAria", { name })}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.stopPropagation();
@@ -524,8 +536,8 @@ export function TownLensLegend({
         <button
           type="button"
           className="town-lens-step"
-          aria-label="Previous lens"
-          title="Previous lens (Shift+L)"
+          aria-label={t("town.lensPrevious")}
+          title={t("town.lensPreviousTitle")}
           onClick={() => state.step(-1)}
         >
           ‹
@@ -535,7 +547,7 @@ export function TownLensLegend({
           className="town-lens-name"
           aria-expanded={state.choosing}
           aria-controls="town-lens-choices"
-          title="Choose a lens"
+          title={t("town.lensChoose")}
           onClick={state.choose}
         >
           {name} ▾
@@ -543,8 +555,8 @@ export function TownLensLegend({
         <button
           type="button"
           className="town-lens-step"
-          aria-label="Next lens"
-          title="Next lens (L)"
+          aria-label={t("town.lensNext")}
+          title={t("town.lensNextTitle")}
           onClick={() => state.step(1)}
         >
           ›
@@ -552,8 +564,8 @@ export function TownLensLegend({
         <button
           type="button"
           className="town-lens-close"
-          aria-label="Leave the lens"
-          title="Back to Town as usual (Esc)"
+          aria-label={t("town.lensLeave")}
+          title={t("town.lensLeaveTitle")}
           onClick={state.close}
         >
           ✕
@@ -564,7 +576,7 @@ export function TownLensLegend({
           id="town-lens-choices"
           className="town-lens-choices"
           role="radiogroup"
-          aria-label="Lenses"
+          aria-label={t("town.lensesLabel")}
         >
           {TOWN_LENSES.map((lens) => (
             <button
@@ -572,16 +584,19 @@ export function TownLensLegend({
               type="button"
               role="radio"
               aria-checked={lens === state.lens}
-              title={TOWN_LENS_HINTS[lens]}
+              title={t(TOWN_LENS_HINT_KEYS[lens])}
               onClick={() => state.pick(lens)}
             >
-              {TOWN_LENS_NAMES[lens]}
+              {t(TOWN_LENS_NAME_KEYS[lens])}
             </button>
           ))}
         </div>
       ) : null}
       {view ? (
-        <ol className="town-lens-scale" aria-label={`${name} scale`}>
+        <ol
+          className="town-lens-scale"
+          aria-label={t("town.lensScaleAria", { name })}
+        >
           {view.swatches.map((swatch) => (
             <li key={swatch.label}>
               <i style={{ background: swatch.color }} aria-hidden="true" />
@@ -591,19 +606,19 @@ export function TownLensLegend({
           {view.noData ? (
             <li data-mark="no-data">
               <i aria-hidden="true" />
-              No data
+              {t("town.lensNoData")}
             </li>
           ) : null}
         </ol>
       ) : (
         <p className="town-lens-note">
-          {TOWN_LENS_HINTS.attention} Pick a lens.
+          {t("town.lensPickHint", { hint: townLensHint("attention") })}
         </p>
       )}
       {view?.note ? <p className="town-lens-note">{view.note}</p> : null}
       {view ? (
         <p className="town-lens-readout" role="status" aria-live="polite">
-          {readout ?? "Hover, focus or tap a place to read it."}
+          {readout ?? t("town.lensReadoutHint")}
         </p>
       ) : null}
     </div>

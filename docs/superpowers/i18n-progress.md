@@ -7,9 +7,9 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`32fc0e05`(批次 31d,待推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **3641** 键,0 占位符不匹配
-- 工作区:干净
+- 最新提交:`7a538d59`(批次 31e 第 1 部分,已推送)
+- 词典规模:en / zh-Hans / zh-Hant 各 **3992** 键,0 占位符不匹配
+- 工作区:批次 31e 第 2 部分(town 目录)已改,待提交
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
 ## 项目与设计文档
@@ -144,28 +144,29 @@
 | 31b | `33179cdb` | 新增 town.ask/rooms/team/move/room 组、board 33 键与 moves 顶层域(22 键);TownRail、TownTidyRooms、TownChooser、TownAccessibleTargets、townMoveActions(改名 useTownMoveActions)、townMoves、townMoveMenu、townTeamActions、roomRenameClose、boardPaneMove、useBoardPaneMoves、useBoardHerdrActions、worldAsks、WorldControlPlane(Close) |
 | 31c | `b7073d6a` | 新增 groups 域(140 键:kind/kindPlural/kindName/status/role/resolution/op/interest/errors 等);新增 groupLabels.ts(类型化标签 helper);groupActions、GroupDetail、GroupMembers、GroupsWindow、GroupsSummary、GroupInterestButton、GroupEditFeedback |
 | 31d | `32fc0e05` | web/src/components 残留文案:新增 aria / attachments 域,扩展 diff / preview / inspector / terminal / common;AttachmentChips、ConfigurationLoadingDialog、DiffContentView、DiffViewerPanel、FilePreviewTabs、InspectorLoadingShell、InspectorPaneMap、InspectorSplitResizer、PopupOverlay、ShortcutLookupDialog(菜单焦点选择器改用 data-menu-trigger)、ConfigMenu、WorkspaceInspectorHost、FileExplorerDialog、App、AssistantPanel |
+| 31e-1 | `7a538d59` | world 目录第 1 部分:AgentLauncherDialog、HarnessReadinessSummary、TerminalAppearanceEditor/Button、SpacesTerminalAppearance、WorldControlPlane(部分)、TraceOverlay、ConnectionRecoveryBanner、DeskView、DeskOtherHosts |
+| 31e-2 | (待提交) | town 目录:新增 town4(16 键)/town5(10 键)、town.counts 子域、dragMoveToDesk 占位符修正;23 个 town 文件 + BoardView/board/BoardLenses(最小修复);新增 townLensLabels.ts(透镜名/提示类型化映射) |
 
 ---
 
 ## 待完成(按顺序执行;完成一批更新本文件一次)
 
-### 批次 31e:world 目录残留文案
+### 批次 31e(续):world 目录剩余文案
 
-web/src/world/ 下的残余英文(属性与正文),已知清单:
+已完成:AgentLauncherDialog、HarnessReadinessSummary、TerminalAppearanceEditor/
+Button、SpacesTerminalAppearance、TraceOverlay、ConnectionRecoveryBanner、
+DeskView、DeskOtherHosts(31e-1);town 目录全部(31e-2)。
+
+剩余:
 - world/windows/WorldPanel.tsx(title="Drag to move" → 已有 common.dragToMove)
 - world/WorldControlPlane.tsx(Close Inspector 标题与消息、"Tab close failed"、
   "World context"、第 491 行 `${view} view`、"Loading view…/Loading Town…/
   Loading Board…")
-- world/AgentLauncherDialog.tsx、world/HarnessReadinessSummary.tsx
 - world/board/(BoardFacts、BoardHub、BoardPeek、WorkLens)、
-  world/town/(TownLenses、TownPeek、TownZoomControls、TownCenterMenu、
-  TownSummaryPanel、TownWorldLayer、TownCanvas)、world/windows/(WindowFrame、
-  WindowSwitcher)
+  world/windows/(WindowFrame、WindowSwitcher)
 - world/(WorldSearchResults、WorldIntentProfile、WorldNavigator、WorldViewPicker、
   WorldViewToolbar、WorldMobileNav、WorldFoundationApp、WorldStatus、
-  WorldInspectorConversation、WorldViewErrorBoundary、TerminalAppearanceEditor、
-  TerminalAppearanceButton、SpacesTerminalAppearance、TraceOverlay、
-  ConnectionRecoveryBanner、DeskView、DeskOtherHosts、NeedsYouItem)
+  WorldInspectorConversation、WorldViewErrorBoundary、NeedsYouItem)
 - 6 处 `Tab \${tab.number}`:paneJump.ts:215、store/sessions.ts:328、
   world/officeAgent.ts:71、world/SpacesTerminalAppearance.tsx:70、
   world/useSpacesTabWindowArrangement.tsx:72 与 :261 —— 可复用既有

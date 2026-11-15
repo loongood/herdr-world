@@ -1,11 +1,12 @@
+import { t } from "../../i18n";
 import type { TownLevel } from "./townCamera";
 import type { TownHit } from "./townHitTest";
-import type { TownModel } from "./townModel";
 import { TOWN_TILE, type TownLayout } from "./townLayout";
+import type { TownModel } from "./townModel";
 import {
+  type TownRoomPlacement,
   townRoomPlacement,
   townRoomSpotAt,
-  type TownRoomPlacement,
 } from "./townRoomPlace";
 
 /** A desk, agent or room being dragged, and where it would land. */
@@ -58,7 +59,7 @@ export function townRoomDrag(
     key: room.key,
     hostKey: room.hostKey,
     from: room.key,
-    label: `Move ${room.displayLabel}`,
+    label: t("town.dragMoveLabel", { name: room.displayLabel }),
   };
 }
 
@@ -86,7 +87,7 @@ export function townDragFor(
       key: agent.key,
       hostKey: agent.hostKey,
       from: seat.deskKey,
-      label: `Move ${agent.displayLabel}`,
+      label: t("town.dragMoveLabel", { name: agent.displayLabel }),
     };
   }
   const deskKey =
@@ -100,7 +101,7 @@ export function townDragFor(
     key: desk.key,
     hostKey: desk.hostKey,
     from: desk.roomKey,
-    label: `Move ${desk.displayLabel}`,
+    label: t("town.dragMoveLabel", { name: desk.displayLabel }),
   };
 }
 
@@ -149,13 +150,16 @@ export function townDropTarget(
     const mate = magnet ? model.desks.get(magnet) : undefined;
     if (mate && magnet === townMagnetDesk(drag, hit, model)) {
       if (mate.hostKey !== drag.hostKey)
-        return { key: null, label: "Desks group only within one host" };
+        return { key: null, label: t("town.dragGroupSameHost") };
       const team = deskTeams.get(mate.key);
       if (team && team === deskTeams.get(drag.key))
-        return { key: null, label: `${drag.label}: already in this team` };
+        return {
+          key: null,
+          label: t("town.dragAlreadyInTeam", { desk: drag.label }),
+        };
       return {
         key: mate.key,
-        label: `Group with ${mate.displayLabel}`,
+        label: t("town.dragGroupWith", { desk: mate.displayLabel }),
         action: "group",
       };
     }
@@ -172,11 +176,16 @@ export function townDropTarget(
                 ? model.agents.get(hit.key)?.roomKey
                 : undefined;
     const room = roomKey ? model.rooms.get(roomKey) : undefined;
-    if (!room) return { key: null, label: `${drag.label}: drop on a room` };
+    if (!room)
+      return {
+        key: null,
+        label: t("town.dragDropOnRoom", { desk: drag.label }),
+      };
     if (room.hostKey !== drag.hostKey)
-      return { key: null, label: "Desks move only within one host" };
+      return { key: null, label: t("town.dragMoveSameHost") };
     if (room.key === drag.from) {
-      const name = model.desks.get(drag.key)?.displayLabel ?? "desk";
+      const name =
+        model.desks.get(drag.key)?.displayLabel ?? t("town.move.deskFallback");
       const ontoKey =
         hit?.kind === "desk"
           ? hit.key
@@ -191,12 +200,15 @@ export function townDropTarget(
       if (onto && onto.key !== drag.key && model.deskPins.has(onto.key))
         return {
           key: null,
-          label: `${onto.displayLabel} is pinned: unpin it to take its place`,
+          label: t("town.dragDeskPinned", { desk: onto.displayLabel }),
         };
       if (onto && onto.key !== drag.key)
         return {
           key: onto.key,
-          label: `Put ${name} in ${onto.displayLabel}’s place`,
+          label: t("town.dragPutInPlace", {
+            desk: name,
+            onto: onto.displayLabel,
+          }),
           action: "reorder",
         };
       // The free spot is the room's last drawn slot. In a room with more
@@ -207,24 +219,37 @@ export function townDropTarget(
         return room.omittedDeskCount > 0
           ? {
               key: lastDrawn,
-              label: `Put ${name} last of the desks shown in ${room.displayLabel}`,
+              label: t("town.dragPutLastOfShown", {
+                desk: name,
+                room: room.displayLabel,
+              }),
               action: "reorder",
             }
           : {
               key: room.key,
-              label: `Put ${name} last in ${room.displayLabel}`,
+              label: t("town.dragPutLast", {
+                desk: name,
+                room: room.displayLabel,
+              }),
               action: "reorder",
             };
       if (hit?.kind === "room" && groupedDesks.has(drag.key))
-        return { key: room.key, label: "Leave the team", action: "ungroup" };
+        return {
+          key: room.key,
+          label: t("town.dragLeaveTeam"),
+          action: "ungroup",
+        };
       return {
         key: null,
-        label: `${drag.label}: drop on a desk to reorder`,
+        label: t("town.dragDropOnDeskToReorder", { desk: drag.label }),
       };
     }
     return {
       key: room.key,
-      label: `${drag.label} to ${room.displayLabel}`,
+      label: t("town.dragMoveTo", {
+        desk: drag.label,
+        room: room.displayLabel,
+      }),
       action: "move",
     };
   }
@@ -237,12 +262,25 @@ export function townDropTarget(
           ? model.agentSeats.get(hit.key)?.deskKey
           : undefined;
   const desk = deskKey ? model.desks.get(deskKey) : undefined;
-  if (!desk) return { key: null, label: `${drag.label}: drop on a desk` };
+  if (!desk)
+    return {
+      key: null,
+      label: t("town.dragDropOnDesk", { desk: drag.label }),
+    };
   if (desk.hostKey !== drag.hostKey)
-    return { key: null, label: "Agents move only within one host" };
+    return { key: null, label: t("town.dragAgentsMoveSameHost") };
   if (desk.key === drag.from)
-    return { key: null, label: `${drag.label}: already at this desk` };
-  return { key: desk.key, label: `${drag.label} to ${desk.displayLabel}` };
+    return {
+      key: null,
+      label: t("town.dragAlreadyAtDesk", { desk: drag.label }),
+    };
+  return {
+    key: desk.key,
+    label: t("town.dragMoveToDesk", {
+      desk: drag.label,
+      target: desk.displayLabel,
+    }),
+  };
 }
 
 /**
@@ -261,7 +299,8 @@ export function townRoomDropTarget(
   px: number,
   py: number,
 ): { target: TownDropTarget; placement: TownRoomPlacement | null } {
-  const name = model.rooms.get(drag.key)?.displayLabel ?? "room";
+  const name =
+    model.rooms.get(drag.key)?.displayLabel ?? t("town.roomFallback");
   const over = layout.buildings.find(
     (b) =>
       px >= b.x * TOWN_TILE &&
@@ -271,7 +310,7 @@ export function townRoomDropTarget(
   );
   if (over && over.hostKey !== drag.hostKey)
     return {
-      target: { key: null, label: "Rooms stay in their own host’s building" },
+      target: { key: null, label: t("town.dragRoomStayHost") },
       placement: null,
     };
   const spot = townRoomSpotAt(layout, drag.key, x / TOWN_TILE, y / TOWN_TILE);
@@ -280,11 +319,15 @@ export function townRoomDropTarget(
     : null;
   if (!placement?.changed)
     return {
-      target: { key: null, label: `Move ${name}: drag it to a new spot` },
+      target: { key: null, label: t("town.dragMoveRoomHint", { room: name }) },
       placement: null,
     };
   return {
-    target: { key: drag.key, label: `Move ${name} here`, action: "move" },
+    target: {
+      key: drag.key,
+      label: t("town.dragMoveRoomHere", { room: name }),
+      action: "move",
+    },
     placement,
   };
 }

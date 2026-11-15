@@ -1,13 +1,14 @@
-import { answerRecipientView } from "./answerOutbox";
-import { ConnectedAnswerDeliveries } from "./AnswerDeliveries";
-import { useAnswerDeliveryCounts } from "../worldAnswerDeliveries";
 import {
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from "react";
+import type { UsageLimit } from "../../../../shared/usage";
+import { useT } from "../../i18n";
+import type { TranslationKey } from "../../i18n/en";
+import { GroupsSummary } from "../groups/GroupsSummary";
 import type { HerdrOfficeProjection } from "../herdrOfficeProjection";
 import {
   formatOfficeCost,
@@ -15,24 +16,19 @@ import {
   type OfficeObservability,
 } from "../officeObservability";
 import { WorldPanel } from "../windows/WorldPanel";
+import { useAnswerDeliveryCounts } from "../worldAnswerDeliveries";
+import { sharedAsksStore, useWorldAsks } from "../worldAsks";
 import type { WorldObject } from "../worldObject";
-import { GroupsSummary } from "../groups/GroupsSummary";
+import { ConnectedAnswerDeliveries } from "./AnswerDeliveries";
+import { answerRecipientView } from "./answerOutbox";
 import {
   TownAsk,
-  townLocation,
   type TownAskActions,
   type TownCall,
+  townLocation,
 } from "./TownRail";
-import { townAskers } from "./townAskers";
-import { sharedAsksStore, useWorldAsks } from "../worldAsks";
-import {
-  townSummary,
-  townSummaryAge,
-  type TownSummary as TownSummaryModel,
-  type TownSummaryCounts,
-  type TownSummaryItem,
-} from "./townSummary";
 import { TownSinceYouLeft } from "./TownSinceYouLeft";
+import { townAskers } from "./townAskers";
 import {
   townFuelGauge,
   townHarnessName,
@@ -42,11 +38,18 @@ import {
   townSeenAge,
 } from "./townLimits";
 import {
+  type TownUsageState,
   townUsageStore,
   useTownUsage,
-  type TownUsageState,
 } from "./townPlaceUsage";
-import type { UsageLimit } from "../../../../shared/usage";
+import {
+  type TownSummaryCounts,
+  type TownSummaryItem,
+  type TownSummary as TownSummaryModel,
+  townSummary,
+  townSummaryAge,
+  townSummaryAgeShort,
+} from "./townSummary";
 import "./townSummaryPanel.css";
 
 /**
@@ -76,11 +79,12 @@ export function TownSummaryPanel({
   groups?: ReactNode;
   deliveries?: ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="town-summary">
       <section aria-labelledby="town-summary-needs">
         <h3 id="town-summary-needs">
-          Needs you <span>{summary.counts.needsYou}</span>
+          {t("town.needsYouAction")} <span>{summary.counts.needsYou}</span>
         </h3>
         {summary.asks.length > 0 ? (
           <div className="town-asks">
@@ -96,23 +100,25 @@ export function TownSummaryPanel({
                 key={item.agent.key}
                 item={item}
                 detail={
-                  townSummaryAge(item.since, now) === "just now"
-                    ? "waiting under a minute"
-                    : `waiting ${townSummaryAge(item.since, now).replace(" ago", "")}`
+                  townSummaryAge(item.since, now) === t("town.ageJustNow")
+                    ? t("town.waitingUnderAMinute")
+                    : t("town.waitingFor", {
+                        age: townSummaryAgeShort(item.since, now),
+                      })
                 }
-                action="Answer"
+                action={t("town.answerAction")}
                 onOpen={onOpenAgent}
               />
             ))}
           </ul>
         ) : summary.asks.length ? null : (
-          <p className="town-summary-empty">Nobody is waiting for you.</p>
+          <p className="town-summary-empty">{t("town.nobodyWaiting")}</p>
         )}
       </section>
       {deliveries}
       <section aria-labelledby="town-summary-finished">
         <h3 id="town-summary-finished">
-          Done, not reviewed <span>{summary.counts.finished}</span>
+          {t("town.doneNotReviewed")} <span>{summary.counts.finished}</span>
         </h3>
         {summary.finished.length ? (
           <ul>
@@ -124,26 +130,28 @@ export function TownSummaryPanel({
                 // it finished, so the age says so.
                 detail={
                   item.since === null
-                    ? "done"
-                    : `last active ${townSummaryAge(item.since, now)}`
+                    ? t("town.doneAt")
+                    : t("town.lastActive", {
+                        age: townSummaryAge(item.since, now),
+                      })
                 }
-                action="Open"
+                action={t("town.open")}
                 onOpen={onOpenAgent}
               />
             ))}
           </ul>
         ) : (
-          <p className="town-summary-empty">Nothing new has finished.</p>
+          <p className="town-summary-empty">{t("town.nothingFinished")}</p>
         )}
       </section>
       <section aria-labelledby="town-summary-hosts">
-        <h3 id="town-summary-hosts">Hosts and rooms</h3>
+        <h3 id="town-summary-hosts">{t("town.hostsAndRooms")}</h3>
         <div className="town-summary-hosts">
           {summary.hosts.map((host) => (
             <div key={host.key} className="town-summary-host">
               <div className="town-summary-host-name">
                 <strong>{host.label}</strong>
-                {host.stale ? <small>Offline · stale</small> : null}
+                {host.stale ? <small>{t("town.offlineStale")}</small> : null}
                 <Counts counts={host.counts} />
               </div>
               {usage ? (
@@ -158,7 +166,7 @@ export function TownSummaryPanel({
                   key={room.key}
                   type="button"
                   className="town-summary-room"
-                  aria-label={`Show room ${room.label} in Town`}
+                  aria-label={t("town.showRoomAria", { name: room.label })}
                   onClick={() => onShowRoom(room.key)}
                 >
                   <span>{room.label}</span>
@@ -171,7 +179,7 @@ export function TownSummaryPanel({
       </section>
       {groups}
       <section aria-labelledby="town-summary-spend">
-        <h3 id="town-summary-spend">Spend</h3>
+        <h3 id="town-summary-spend">{t("town.spend")}</h3>
         {summary.spend.available ? (
           <>
             <p className="town-summary-spend-total">
@@ -186,14 +194,14 @@ export function TownSummaryPanel({
               ))}
             </ul>
             <p className="town-summary-provenance">
-              from {summary.spend.providerId ?? "metrics"} ·{" "}
-              {townSummaryAge(summary.spend.observedAt, now)}
+              {t("town.fromProvider", {
+                provider: summary.spend.providerId ?? "metrics",
+                age: townSummaryAge(summary.spend.observedAt, now),
+              })}
             </p>
           </>
         ) : (
-          <p className="town-summary-empty">
-            No cost data. Configure a metrics provider in settings.
-          </p>
+          <p className="town-summary-empty">{t("town.noCostData")}</p>
         )}
       </section>
     </div>
@@ -214,12 +222,13 @@ export function HostLimits({
   usage: TownUsageState;
   now: number;
 }) {
+  const t = useT();
   if (usage.status !== "ready")
     return (
       <p className="town-summary-limits-note">
         {usage.status === "failed"
-          ? "Limits are unavailable right now."
-          : "Reading limits…"}
+          ? t("town.limitsUnavailable")
+          : t("town.readingLimits")}
       </p>
     );
   const limits = townLimits(usage).filter(
@@ -227,7 +236,10 @@ export function HostLimits({
   );
   if (!limits.length) return null;
   return (
-    <ul className="town-summary-limits" aria-label="Subscription limits">
+    <ul
+      className="town-summary-limits"
+      aria-label={t("town.subscriptionLimits")}
+    >
       {limits.map((limit) => (
         <HostLimit key={limit.harness} limit={limit} now={now} />
       ))}
@@ -236,6 +248,7 @@ export function HostLimits({
 }
 
 function HostLimit({ limit, now }: { limit: UsageLimit; now: number }) {
+  const t = useT();
   const name = townHarnessName(limit.harness);
   const gauge = townFuelGauge(limit, now);
   if (!gauge)
@@ -244,8 +257,10 @@ function HostLimit({ limit, now }: { limit: UsageLimit; now: number }) {
         <span>{name}</span>
         <small>
           {limit.state === "unsupported"
-            ? `Limits not available: ${limit.reason ?? "no source"}`
-            : "Limits missing: none seen on this host"}
+            ? t("town.limitsNotAvailable", {
+                reason: limit.reason ?? t("town.noSource"),
+              })
+            : t("town.limitsMissing")}
         </small>
       </li>
     );
@@ -253,21 +268,24 @@ function HostLimit({ limit, now }: { limit: UsageLimit; now: number }) {
     <li data-state={gauge.stale ? "stale" : "available"}>
       <span>
         {name}
-        {gauge.stale ? <em> · stale</em> : null}
+        {gauge.stale ? <em>{t("town.staleSuffix")}</em> : null}
       </span>
       {gauge.windows.map((w) => (
         <small key={w.label} data-low={!gauge.stale && w.low}>
           {w.reached
             ? townReachedText(w)
-            : `${w.label}: ${w.used} % used${!gauge.stale && w.low ? " (low)" : ""}`}{" "}
+            : `${t("town.windowUsage", { label: w.label, used: w.used })}${
+                !gauge.stale && w.low ? t("town.windowUsageLow") : ""
+              }`}{" "}
           ·{" "}
           {w.resetsAt === null
-            ? "reset unknown"
-            : `resets ${townResetTime(w.resetsAt)}`}
+            ? t("town.resetUnknown")
+            : t("town.resetsAt", { time: townResetTime(w.resetsAt) })}
         </small>
       ))}
       <small>
-        {gauge.source} · seen {townSeenAge(gauge.observedAt, now)}
+        {gauge.source}{" "}
+        {t("town.seenAt", { age: townSeenAge(gauge.observedAt, now) })}
       </small>
     </li>
   );
@@ -284,13 +302,18 @@ function SummaryItem({
   action: string;
   onOpen(agentKey: string): void;
 }) {
+  const t = useT();
   return (
     <li className="town-summary-item">
       <div>
         <strong>
           {item.agent.displayLabel}
           {item.agent.semanticStatus === "blocked"
-            ? ` · blocked: ${item.agent.stateLabels.blocked?.trim() || "needs you"}`
+            ? ` ${t("town.blockedLabel", {
+                label:
+                  item.agent.stateLabels.blocked?.trim() ||
+                  t("town.needsYouFallback"),
+              })}`
             : ""}
         </strong>
         <small>
@@ -299,7 +322,10 @@ function SummaryItem({
       </div>
       <button
         type="button"
-        aria-label={`${action} ${item.agent.displayLabel}`}
+        aria-label={t("town.summaryItemAria", {
+          action,
+          name: item.agent.displayLabel,
+        })}
         onClick={() => onOpen(item.agent.key)}
       >
         {action}
@@ -308,26 +334,27 @@ function SummaryItem({
   );
 }
 
-const COUNT_LABELS: [keyof TownSummaryCounts, string][] = [
-  ["needsYou", "need you"],
-  ["working", "working"],
-  ["finished", "done"],
-  ["quiet", "quiet"],
-  ["outOfFuel", "out of fuel"],
-  ["unknown", "unknown"],
+const COUNT_LABELS: [keyof TownSummaryCounts, TranslationKey][] = [
+  ["needsYou", "town.counts.needYou"],
+  ["working", "town.counts.working"],
+  ["finished", "town.counts.done"],
+  ["quiet", "town.counts.quiet"],
+  ["outOfFuel", "town.counts.outOfFuel"],
+  ["unknown", "town.counts.unknown"],
 ];
 
 function Counts({ counts }: { counts: TownSummaryCounts }) {
+  const t = useT();
   const shown = COUNT_LABELS.filter(([key]) => counts[key] > 0);
   return (
     <span className="town-summary-counts">
       {shown.length
         ? shown.map(([key, label]) => (
             <span key={key} data-count={key}>
-              {counts[key]} {label}
+              {counts[key]} {t(label)}
             </span>
           ))
-        : "empty"}
+        : t("town.emptyLabel")}
     </span>
   );
 }
@@ -439,6 +466,7 @@ export function useTownSummary({
     }),
     [world],
   );
+  const t = useT();
   const open = useCallback(() => {
     townUsageStore().request();
     setOpen(true);
@@ -457,7 +485,7 @@ export function useTownSummary({
     window: isOpen ? (
       <WorldPanel
         name="town-summary"
-        label="Town summary"
+        label={t("town.summary")}
         focusKey={focusKey}
         onClose={() => setOpen(false)}
       >

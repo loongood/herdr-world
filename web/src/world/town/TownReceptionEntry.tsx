@@ -1,13 +1,16 @@
 import { useLayoutEffect, useRef } from "react";
+import { t as translate, useT } from "../../i18n";
 import type { OfficeAgent } from "../herdrOfficeProjection";
-import { townPortrait } from "./townSprites";
 import { townReceptionName } from "./townNameplates";
+import { townPortrait } from "./townSprites";
 
 export const portrait = townPortrait;
 
 function ago(since: number, now: number) {
   const seconds = Math.max(0, Math.round((now - since) / 1000));
-  return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m`;
+  return seconds < 60
+    ? translate("town.secondsShort", { count: seconds })
+    : translate("town.minutesShort", { count: Math.floor(seconds / 60) });
 }
 
 export function ReceptionEntry({
@@ -34,6 +37,7 @@ export function ReceptionEntry({
   onActivate(key: string): void;
   onHoverEntry(key: string | null, rect?: DOMRect): void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLButtonElement | null>(null);
   const { name, title } = townReceptionName(agent, room, desk);
   useLayoutEffect(() => {
@@ -50,12 +54,19 @@ export function ReceptionEntry({
       disabled={agent.stale || !agent.canOpenInSpaces}
       aria-label={
         asking
-          ? `${title}, owner question`
+          ? t("town.ownerQuestionAria", { name: title })
           : agent.semanticStatus === "done"
-            ? `${title}, finished`
-            : `${title}, needs you for ${ago(since, now)}`
+            ? t("town.finishedAria", { name: title })
+            : t("town.needsYouFor", { name: title, age: ago(since, now) })
       }
-      title={agent.taskSummary ? `${title}: ${agent.taskSummary}` : title}
+      title={
+        agent.taskSummary
+          ? t("town.agentTaskTitle", {
+              name: title,
+              summary: agent.taskSummary,
+            })
+          : title
+      }
       onClick={() => (asking ? onActivate(agent.key) : onSelect(agent.key))}
       onDoubleClick={() => onActivate(agent.key)}
       onMouseEnter={(event) =>
@@ -67,9 +78,9 @@ export function ReceptionEntry({
       <span>{name}</span>
       <small>
         {asking
-          ? "? Owner wanted"
+          ? t("town.ownerWantedPrefix")
           : agent.semanticStatus === "done"
-            ? "done ✓"
+            ? t("town.doneTick")
             : ago(since, now)}
       </small>
     </button>

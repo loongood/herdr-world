@@ -196,5 +196,17 @@
   Inspector's loading shell, its pane map and its split resizer, the diff
   viewer's mode, scope and comparison labels, the popup terminal's close
   control, and the accessibility names the panels and popovers carry.
+  The Town surfaces follow too: the lens chooser and legend (their names,
+  hints, scale and pick hints), the peek (its desk colours, terminal
+  actions, latest message and chat panes), the summary panel (its counts,
+  host limits, window usage and reset times), the town centre menu and
+  sign, the zoom controls, the canvas fallbacks, the arrival layer, the
+  reception entry and its question card, the world layer (its room cards,
+  counts, hidden desks and folded activity), the name plates, the drag
+  and drop targets and their move labels, the room pins and the room
+  neighbours, the edge arrows and their needs-you/asks-you/done phrases,
+  the bus layer and its stops, the town centre helper, the edge
+  navigation, the town search, the reception filter, the answer
+  delivery sign and the folded activity notes.
   Remaining surfaces keep English
   until their phase lands.

@@ -6,8 +6,8 @@
  */
 
 import {
-  createContext,
   type CSSProperties,
+  createContext,
   type ReactNode,
   useCallback,
   useContext,
@@ -18,12 +18,8 @@ import {
 } from "react";
 import type { WorldSourcesSnapshot } from "../../../../shared/worldSources";
 import { questMark, type useAgentQuests } from "../agentQuests";
+import { useOwnerPresence } from "../presence";
 import { DeskWorkBadge } from "../town/DeskWorkBadge";
-import {
-  deskBadges,
-  sameTownBadges,
-  type TownDeskBadge,
-} from "../town/townBadges";
 import {
   markData,
   markStyle,
@@ -32,11 +28,16 @@ import {
   useTownLensKeys,
   useTownLensState,
 } from "../town/TownLenses";
-import { TOWN_LENS_NAMES, type TownLensMark } from "../town/townLens";
+import { TownSinceYouLeft } from "../town/TownSinceYouLeft";
+import {
+  deskBadges,
+  sameTownBadges,
+  type TownDeskBadge,
+} from "../town/townBadges";
+import type { TownLensMark } from "../town/townLens";
+import { townLensName } from "../town/townLensLabels";
 import type { TownQuestMark } from "../town/townQuestPennant";
 import { townScaleSceneRequested } from "../town/townScaleScene";
-import { TownSinceYouLeft } from "../town/TownSinceYouLeft";
-import { useOwnerPresence } from "../presence";
 import type { WorldLeafObject, WorldObject } from "../worldObject";
 import { worldSourcesStore } from "../worldSources";
 import {
@@ -155,7 +156,7 @@ export function boardLensCard(
     ...(mark ? { mark } : {}),
     data: markData(mark),
     ...(style ? { style } : {}),
-    label: `. ${TOWN_LENS_NAMES[view.lens]}: ${mark?.words ?? "nothing to show"}`,
+    label: `. ${townLensName(view.lens)}: ${mark?.words ?? "nothing to show"}`,
   };
 }
 

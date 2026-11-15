@@ -5,7 +5,8 @@
  * Needs you opens; agents stay where they are.
  */
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../../i18n";
 import { useLayoutPreferences } from "../../layoutPreferences";
 import { formatShortcut, matchesShortcut } from "../../shortcutBindings";
 import { getShortcutSnapshot } from "../../shortcutPreferences";
@@ -14,26 +15,26 @@ import { openNeedsYou } from "../needsYou";
 import { keyTakenByViewSearch } from "../viewSearchShortcut";
 import { townWorldAnchor } from "./scene/townHud";
 import type { TownSceneCamera } from "./scene/townSceneCamera";
-import type { TownLevel } from "./townCamera";
 import { TownEdgeArrowStore, type TownPulse } from "./TownEdgeLayer";
+import type { TownLevel } from "./townCamera";
 import {
-  townEdgeArrows,
-  townEdgeArrowsShown,
   type TownEdgeArrow,
   type TownEdgeMark,
   type TownEdgeRect,
   type TownEdgeTarget,
+  townEdgeArrows,
+  townEdgeArrowsShown,
 } from "./townEdgeArrows";
 import { TOWN_TILE, type TownLayout } from "./townLayout";
 import type { TownModel } from "./townModel";
 import {
+  type TownEdgeMarked,
+  type TownNextCursor,
   townEdgeMarked,
   townKeyIgnored,
   townNeedsYouAgentKey,
   townNextLabel,
   townNextStep,
-  type TownEdgeMarked,
-  type TownNextCursor,
 } from "./townNext";
 import { townReceptionMark } from "./townReceptionFilter";
 import type { TownRendererHandle } from "./townRenderer";
@@ -257,7 +258,8 @@ export function useTownEdgeNav(
     if (key) goToAgent(key, mark?.mark ?? arrow.mark);
   };
   const buildingLabel = (hostKey: string) =>
-    latest.current.model.hosts.get(hostKey)?.displayLabel ?? "another building";
+    latest.current.model.hosts.get(hostKey)?.displayLabel ??
+    t("town.anotherBuilding");
   // A new or answered mark asks for a frame, so the arrows follow it.
   useEffect(() => {
     rendererRef.current?.invalidate("edge-arrows");
@@ -284,7 +286,7 @@ export function useTownEdgeNav(
     );
     if (!step) {
       nextCursor.current = null;
-      showNext("Nothing needs you");
+      showNext(t("town.nothingNeedsYou"));
       return;
     }
     nextCursor.current = step;

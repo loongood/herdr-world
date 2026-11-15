@@ -1,15 +1,16 @@
+import type { AgentUsageStop } from "../../../../shared/usageStop";
+import { t } from "../../i18n";
 import type {
   HerdrOfficeProjection,
   OfficeAgent,
   OfficeRosterEntry,
 } from "../herdrOfficeProjection";
 import type { OfficeObservability } from "../officeObservability";
-import type { TownCall } from "./TownRail";
+import { type OfficeStatusCounts, officeReadModel } from "../officeReadModel";
 import type { WorldAsk } from "../worldAsks";
-import { officeReadModel, type OfficeStatusCounts } from "../officeReadModel";
 import type { WorldAgentStatus } from "../worldObject";
+import type { TownCall } from "./TownRail";
 import { townOutOfFuelRooms } from "./townOutOfFuel";
-import type { AgentUsageStop } from "../../../../shared/usageStop";
 
 /**
  * The Town summary: one read model behind the Town board sign, the phone
@@ -312,8 +313,22 @@ export function townPlaceSummary(
 export function townSummaryAge(since: number | null, now: number): string {
   if (since === null) return "";
   const minutes = Math.floor(Math.max(0, now - since) / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes} m ago`;
+  if (minutes < 1) return t("town.ageJustNow");
+  if (minutes < 60) return t("town.ageMinutes", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  return hours < 24 ? `${hours} h ago` : `${Math.floor(hours / 24)} d ago`;
+  return hours < 24
+    ? t("town.ageHours", { count: hours })
+    : t("town.ageDays", { count: Math.floor(hours / 24) });
+}
+
+/** The same age without the "ago": "12 m", for a phrase that adds its own. */
+export function townSummaryAgeShort(since: number | null, now: number): string {
+  if (since === null) return "";
+  const minutes = Math.floor(Math.max(0, now - since) / 60_000);
+  if (minutes < 1) return "";
+  if (minutes < 60) return t("town.ageShortMinutes", { count: minutes });
+  const hours = Math.floor(minutes / 60);
+  return hours < 24
+    ? t("town.ageShortHours", { count: hours })
+    : t("town.ageShortDays", { count: Math.floor(hours / 24) });
 }

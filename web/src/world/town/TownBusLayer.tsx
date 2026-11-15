@@ -1,9 +1,15 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useT } from "../../i18n";
 import { binBusClock, type WorldBin } from "../bin/binStore";
-import { openWorldBin } from "../bin/worldBinEvents";
 import { useWorldBin, worldBinStore } from "../bin/useWorldBin";
+import { openWorldBin } from "../bin/worldBinEvents";
+import { createTownLookResolver } from "./townAppearance";
 import {
   TOWN_QUEUE_GAP,
+  type TownBinRider,
+  type TownBusRoute,
+  type TownRiderOuting,
+  type TownRiderReturn,
   townBinRiders,
   townBusAlong,
   townBusAt,
@@ -19,12 +25,7 @@ import {
   townRiderWalk,
   townRiderWalkBack,
   townStopClock,
-  type TownBinRider,
-  type TownBusRoute,
-  type TownRiderOuting,
-  type TownRiderReturn,
 } from "./townBus";
-import { createTownLookResolver } from "./townAppearance";
 import {
   TOWN_AGENT_SCALE,
   type TownLayout,
@@ -33,10 +34,10 @@ import {
 import type { TownModel } from "./townModel";
 import type { TownRendererHandle } from "./townRenderer";
 import {
-  townCharacter,
-  townLookKey,
   type TownDirection,
   type TownLook,
+  townCharacter,
+  townLookKey,
 } from "./townSprites";
 import "./townBus.css";
 
@@ -189,6 +190,7 @@ export const TownBusLayer = memo(function TownBusLayer({
   framed: { current: (() => void) | null };
   renderer: { readonly current: TownRendererHandle | null };
 }) {
+  const t = useT();
   const bus = useRef<HTMLButtonElement>(null);
   const riderRefs = useRef(new Map<string, HTMLElement>());
   const passengerRefs = useRef(new Map<string, HTMLCanvasElement>());
@@ -438,7 +440,9 @@ export const TownBusLayer = memo(function TownBusLayer({
             tabIndex={count ? 0 : -1}
             aria-hidden={count ? undefined : true}
             aria-label={
-              count ? `Bus stop, ${count} waiting, bus ${clock}` : undefined
+              count
+                ? t("town.busStopAria", { count, clock: clock ?? "" })
+                : undefined
             }
             // Dropping an agent here (its sign or its queue) puts it in the bin.
             data-bin-drop=""
@@ -492,7 +496,7 @@ export const TownBusLayer = memo(function TownBusLayer({
           className="town-bin-rider"
           data-agent={rider.agentKey}
           data-bin-entry={rider.entry.id}
-          title={`${rider.entry.label}, waiting for the bus`}
+          title={t("town.busRiderTitle", { name: rider.entry.label })}
           style={{ left: rider.at.x, top: rider.at.y }}
         >
           <canvas width={SPRITE.width} height={SPRITE.height} />
@@ -522,8 +526,8 @@ export const TownBusLayer = memo(function TownBusLayer({
         data-stopped={bin.bus.stopped || undefined}
         aria-label={
           bin.bus.stopped
-            ? `The bus, stopped, ${passengers.length} aboard`
-            : `The bus, ${passengers.length} aboard; stop it`
+            ? t("town.busStoppedAria", { count: passengers.length })
+            : t("town.busAboardAria", { count: passengers.length })
         }
         onClick={() => {
           // Stopped, nothing closes until it goes on: from the tray, or as

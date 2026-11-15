@@ -1,6 +1,7 @@
-import { useEffect } from "react";
 import { EllipsisVertical } from "lucide-react";
+import { useEffect } from "react";
 import { useMobileControls } from "../../components/MobileControls";
+import { useT } from "../../i18n";
 
 /**
  * Town's camera buttons. The zoom buttons step between whole town, one
@@ -15,6 +16,7 @@ export function TownZoomControls({
   onStep(direction: 1 | -1): void;
   onAll(): void;
 }) {
+  const t = useT();
   const shellControls = useMobileControls();
   const ownsShellControls = shellControls !== null;
   useEffect(() => {
@@ -25,20 +27,28 @@ export function TownZoomControls({
     };
   }, [ownsShellControls]);
   return (
-    <div className="town-zoom" role="group" aria-label="Camera">
-      <button type="button" aria-label="Zoom in" onClick={() => onStep(1)}>
+    <div className="town-zoom" role="group" aria-label={t("town.cameraAria")}>
+      <button
+        type="button"
+        aria-label={t("town.zoomIn")}
+        onClick={() => onStep(1)}
+      >
         +
       </button>
-      <button type="button" aria-label="Zoom out" onClick={() => onStep(-1)}>
+      <button
+        type="button"
+        aria-label={t("town.zoomOut")}
+        onClick={() => onStep(-1)}
+      >
         −
       </button>
       <button
         type="button"
         className="town-zoom-all"
-        aria-label="Show the whole town"
+        aria-label={t("town.showWholeTown")}
         onClick={onAll}
       >
-        ALL
+        {t("town.showAllShort")}
       </button>
       {shellControls ? (
         // The shell's More menu joins the camera group on the phone, so
@@ -46,7 +56,7 @@ export function TownZoomControls({
         <button
           type="button"
           className="town-zoom-more"
-          aria-label="More options"
+          aria-label={t("shell.moreOptions")}
           aria-haspopup="menu"
           aria-expanded={shellControls.moreOpen}
           onClick={shellControls.toggleMore}

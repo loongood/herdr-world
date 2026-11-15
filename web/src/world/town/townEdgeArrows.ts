@@ -7,6 +7,8 @@
  * Pure: the canvas feeds it the camera and the marked agents each frame.
  */
 
+import { t } from "../../i18n";
+import type { TranslationKey } from "../../i18n/en";
 import type { TownLevel, TownViewport } from "./townCamera";
 
 export type TownEdgeMark = "needs" | "asks" | "done";
@@ -290,10 +292,10 @@ export function townEdgeArrowsEqual(
   );
 }
 
-const PHRASES: Record<TownEdgeMark, [string, string]> = {
-  needs: ["needs you", "need you"],
-  asks: ["asks you", "ask you"],
-  done: ["is done", "are done"],
+const PHRASE_KEYS: Record<TownEdgeMark, [TranslationKey, TranslationKey]> = {
+  needs: ["town.edgeNeedsOne", "town.edgeNeedsMany"],
+  asks: ["town.edgeAsksOne", "town.edgeAsksMany"],
+  done: ["town.edgeDoneOne", "town.edgeDoneMany"],
 };
 
 /**
@@ -307,17 +309,23 @@ export function townEdgeArrowLabel(
   const parts = TOWN_EDGE_MARKS.filter((mark) => arrow.counts[mark] > 0).map(
     (mark) => {
       const n = arrow.counts[mark];
-      return `${n} ${PHRASES[mark][n === 1 ? 0 : 1]}`;
+      return `${n} ${t(PHRASE_KEYS[mark][n === 1 ? 0 : 1])}`;
     },
   );
   const what =
     parts.length > 1
-      ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`
+      ? t("town.listAnd", {
+          first: parts.slice(0, -1).join(", "),
+          last: parts[parts.length - 1],
+        })
       : parts[0];
   const names = arrow.hostKeys.map(buildingLabel);
   const where =
     names.length > 1
-      ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
+      ? t("town.listAnd", {
+          first: names.slice(0, -1).join(", "),
+          last: names[names.length - 1],
+        })
       : names[0];
-  return `${what} in ${where}, to the ${arrow.compass}, go there`;
+  return t("town.edgeArrowAria", { what, where, compass: arrow.compass });
 }

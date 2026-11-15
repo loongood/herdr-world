@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type {
   HerdrOfficeProjection,
   OfficeAgent,
@@ -58,8 +59,8 @@ export function townFoldedActivityLabel(
   activity: TownFoldedActivity | undefined,
 ) {
   return [
-    activity?.needsYou ? "Hidden desks need you" : "",
-    activity?.done ? "Hidden desks have unreviewed completions" : "",
+    activity?.needsYou ? t("town.activityNeedsYou") : "",
+    activity?.done ? t("town.activityUnreviewed") : "",
   ]
     .filter(Boolean)
     .join(". ");

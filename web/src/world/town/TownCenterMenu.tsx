@@ -5,11 +5,12 @@
  * Escape, a press outside, Back on a phone or the hub closes it.
  */
 
-import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
-import { X, type LucideIcon } from "lucide-react";
+import { type LucideIcon, X } from "lucide-react";
+import { type KeyboardEvent, useLayoutEffect, useRef } from "react";
+import { useT } from "../../i18n";
 import { useLayer } from "../../layerStack";
+import { type TownCenterLot, townCenterEmblem } from "./townCenter";
 import { TOWN_TILE as T } from "./townLayout";
-import { townCenterEmblem, type TownCenterLot } from "./townCenter";
 import "./townCenter.css";
 
 /** One action on the ring. */
@@ -90,6 +91,7 @@ export function TownCenterMenu({
   place(menu: HTMLElement): void;
   onClose(): void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
   const opened = useRef(performance.now());
@@ -147,7 +149,7 @@ export function TownCenterMenu({
         ref={ring}
         className="town-center-ring"
         role="menu"
-        aria-label="Town center"
+        aria-label={t("town.townCenter")}
         style={
           {
             "--ring-radius": `${radius}px`,
@@ -171,7 +173,9 @@ export function TownCenterMenu({
               aria-disabled={action.disabled || undefined}
               aria-label={[
                 action.label,
-                action.count ? `${action.count} waiting` : null,
+                action.count
+                  ? t("town.centerWaiting", { count: action.count })
+                  : null,
                 action.detail,
               ]
                 .filter(Boolean)
@@ -199,7 +203,7 @@ export function TownCenterMenu({
         <button
           type="button"
           className="town-center-hub"
-          aria-label="Close town center"
+          aria-label={t("town.closeTownCenter")}
           onClick={onClose}
         >
           <X size={iconSize} strokeWidth={2} aria-hidden="true" />
@@ -224,6 +228,7 @@ export function TownCenterSign({
   onOpen?: () => void;
   onFocus?: () => void;
 }) {
+  const t = useT();
   const at = townCenterEmblem(center, T);
   return (
     <button
@@ -236,7 +241,7 @@ export function TownCenterSign({
       onFocus={onFocus}
       onClick={onOpen}
     >
-      Town center
+      {t("town.townCenter")}
     </button>
   );
 }

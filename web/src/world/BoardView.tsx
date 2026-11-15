@@ -1,17 +1,3 @@
-import { useDrawReadiness } from "./useDrawReadiness";
-import { worldRuntimeStore } from "./runtimeStore";
-import { AppearanceAvatar } from "./AppearanceAvatar";
-import { visibleAppearanceColors, saveAppearance } from "./appearance";
-import { tabCardKey } from "../../../shared/terminalColor";
-import { useWorldAsks } from "./worldAsks";
-import { agentStateWord } from "./agentMarks";
-import { useT } from "../i18n";
-import { needsYouLeafKey, openNeedsYou } from "./needsYou";
-import { asksForWorld } from "./worldAskTargets";
-import { WorldAskMark } from "./WorldAskMark";
-import { boardObservation } from "./board/boardObservation";
-import { ConnectionRecoveryBanner } from "./ConnectionRecoveryBanner";
-import { bridge } from "../api";
 import {
   ChevronDown,
   ChevronUp,
@@ -23,8 +9,8 @@ import {
 import {
   type CSSProperties,
   lazy,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type PointerEvent as ReactPointerEvent,
   Suspense,
   startTransition,
   useCallback,
@@ -36,8 +22,13 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { tabCardKey } from "../../../shared/terminalColor";
+import { bridge } from "../api";
 import { worldLocalStorage } from "../browserStorage";
 import { QuestChip } from "../components/QuestLog";
+import { useT } from "../i18n";
+import { AppearanceAvatar } from "./AppearanceAvatar";
+import { agentStateWord } from "./agentMarks";
 import {
   harnessLabel,
   type LauncherCatalog,
@@ -49,12 +40,33 @@ import {
   useAgentProfiles,
 } from "./agentProfiles";
 import { useAgentQuests } from "./agentQuests";
+import { saveAppearance, visibleAppearanceColors } from "./appearance";
+import { BoardControls } from "./board/BoardControls";
+import {
+  BoardAgentNowLine,
+  BoardSummary,
+  BoardWorkspaceEconomy,
+  BoardZoneCounts,
+  BoardZoneFacts,
+} from "./board/BoardFacts";
+import {
+  BoardLensDock,
+  BoardLensReading,
+  BoardTabBadge,
+  BoardWorkBadges,
+  boardLensCard,
+  useBoardLenses,
+} from "./board/BoardLenses";
+import { BoardStatusSummary } from "./board/BoardStatusSummary";
+import { BoardZoneColor } from "./board/BoardZoneColor";
 import {
   anchorFor,
   confirmed,
   nextWitness,
   targetOf,
 } from "./board/boardAnchors";
+import { boardAppearanceStyle } from "./board/boardAppearance";
+import { nextBoardAttention } from "./board/boardAttention";
 import { publishBoardCardPins } from "./board/boardCardPins";
 import { createBoardCardRefs } from "./board/boardCardRefs";
 import {
@@ -94,6 +106,8 @@ import {
   boardStatusOrder,
   projectBoard,
 } from "./board/boardModel";
+import { boardObservation } from "./board/boardObservation";
+import type { BoardPaneMove } from "./board/boardPaneMove";
 import {
   cool,
   type PhysicsCard,
@@ -116,48 +130,34 @@ import {
   tidy,
 } from "./board/boardPlacement";
 import { createFrameLoop, type FrameLoop } from "./board/boardScheduler";
-import { BoardZoneColor } from "./board/BoardZoneColor";
-import { WorkLens } from "./board/WorkLens";
-import { TOWN_LENS_NAMES } from "./town/townLens";
-import {
-  BoardLensDock,
-  BoardLensReading,
-  BoardTabBadge,
-  BoardWorkBadges,
-  boardLensCard,
-  useBoardLenses,
-} from "./board/BoardLenses";
-import { BoardControls } from "./board/BoardControls";
-import { boardAppearanceStyle } from "./board/boardAppearance";
 import { useBoardAppearance } from "./board/useBoardAppearance";
-import { nextBoardAttention } from "./board/boardAttention";
-import { BoardStatusSummary } from "./board/BoardStatusSummary";
-import {
-  BoardAgentNowLine,
-  BoardSummary,
-  BoardWorkspaceEconomy,
-  BoardZoneCounts,
-  BoardZoneFacts,
-} from "./board/BoardFacts";
 import { useBoardFacts } from "./board/useBoardFacts";
-import { TownStepStore } from "./town/townStepStore";
-import { useTownStepReads } from "./town/useTownStepReads";
-import { townScaleSceneRequested } from "./town/townScaleScene";
-import { useBoardPaneMoves } from "./board/useBoardPaneMoves";
 import { useBoardHerdrActions } from "./board/useBoardHerdrActions";
-import type { BoardPaneMove } from "./board/boardPaneMove";
+import { useBoardPaneMoves } from "./board/useBoardPaneMoves";
+import { useBoardSearch } from "./board/useBoardSearch";
+import { WorkLens } from "./board/WorkLens";
+import { ConnectionRecoveryBanner } from "./ConnectionRecoveryBanner";
 import { DEVTOOLS, NO_TRACE } from "./devtools/flag";
 import { TraceOverlay } from "./devtools/TraceOverlay";
 import { openTrace, rememberTrace, traceGesture } from "./devtools/trace";
+import { needsYouLeafKey, openNeedsYou } from "./needsYou";
+import { worldRuntimeStore } from "./runtimeStore";
 import {
   defaultTerminalColor,
   hostColorKey,
   placeColor,
   TERMINAL_COLOR_HEX,
 } from "./terminalColor";
+import { townLensName } from "./town/townLensLabels";
+import { townScaleSceneRequested } from "./town/townScaleScene";
+import { TownStepStore } from "./town/townStepStore";
+import { useTownStepReads } from "./town/useTownStepReads";
+import { useDrawReadiness } from "./useDrawReadiness";
+import { WorldAskMark } from "./WorldAskMark";
 import { WorldSearchResults } from "./WorldSearchResults";
 import { WorldViewToolbar } from "./WorldViewToolbar";
-import { useBoardSearch } from "./board/useBoardSearch";
+import { useWorldAsks } from "./worldAsks";
+import { asksForWorld } from "./worldAskTargets";
 import type { WorldCanvasAnchor } from "./worldConnectorGeometry";
 import { worldMotionPreference } from "./worldFrameScheduler";
 import type { WorldAgentStatus, WorldObject } from "./worldObject";
@@ -166,13 +166,12 @@ import "./board/boardBadge.css";
 import "./board/boardRelations.css";
 import {
   relationTeams,
-  terminalKey,
   type TerminalRef,
+  terminalKey,
 } from "../../../shared/relations";
 import { inheritedColorKey } from "../../../shared/terminalColor";
 import { aimAtBin } from "./bin/binDrop";
 import { putAgentInBin } from "./bin/WorldBin";
-import { keyTakenByViewSearch } from "./viewSearchShortcut";
 import {
   groupTerminals,
   terminalsAreGrouped,
@@ -180,6 +179,7 @@ import {
   useRelations,
   withInheritedColors,
 } from "./relations";
+import { keyTakenByViewSearch } from "./viewSearchShortcut";
 
 /**
  * Board: hosts as zones, workspaces as cards and tabs as cards around their
@@ -4265,7 +4265,7 @@ export default function BoardView({
           workRef={workButtonRef}
           workOpen={workOpen}
           onWork={() => setWorkOpen(!workOpen)}
-          lens={lenses.view ? TOWN_LENS_NAMES[lenses.view.lens] : null}
+          lens={lenses.view ? townLensName(lenses.view.lens) : null}
           onLens={() =>
             lenses.state.shown ? lenses.state.close() : lenses.state.open()
           }

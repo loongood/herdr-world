@@ -14,6 +14,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { openSounds } from "../../chimes/chimeHost";
+import { t } from "../../i18n";
 import { useLayoutPreferences } from "../../layoutPreferences";
 import {
   openProfileEditor,
@@ -26,8 +27,8 @@ import type {
 } from "../herdrOfficeProjection";
 import { openNeedsYou } from "../needsYou";
 import type { WorldObject } from "../worldObject";
-import type { TownCenterAction } from "./TownCenterMenu";
 import type { TownRoomActions } from "./TownCanvas";
+import type { TownCenterAction } from "./TownCenterMenu";
 import { findTownMaster } from "./townMaster";
 import { useTownMaster } from "./useTownMaster";
 
@@ -165,11 +166,12 @@ export function townCenterActions({
     profilesAction(),
     {
       id: "room",
-      label: "New room",
+      label: t("town.newRoom"),
       icon: DoorOpen,
       disabled: roomBlocked,
       detail: roomBlocked
-        ? (rooms.createRoomReason(selectedRoomKey) ?? "Unavailable")
+        ? (rooms.createRoomReason(selectedRoomKey) ??
+          t("town.unavailableDetail"))
         : undefined,
       run: () => rooms.onCreateRoom(selectedRoomKey),
     },
@@ -185,9 +187,9 @@ export function launchAction(
 ): TownCenterAction {
   return {
     id: "launch",
-    label: "New agent",
+    label: t("town.newAgent"),
     icon: UserPlus,
-    detail: room ? `in ${room.label}` : undefined,
+    detail: room ? t("town.newAgentIn", { room: room.label }) : undefined,
     primary: true,
     run: () => (room ? room.run() : requestAgentLaunch({}, "center")),
   };
@@ -218,9 +220,9 @@ export function townMasterAction<T extends TownMasterAgent>({
     // Nobody holds the role: Sounds is where the owner gives it.
     return {
       id: "master",
-      label: "Town master",
+      label: t("town.townMaster"),
       icon: Crown,
-      detail: "Choose one",
+      detail: t("town.chooseOne"),
       run: openSounds,
     };
   const talkToMaster = async () => {
@@ -231,13 +233,15 @@ export function townMasterAction<T extends TownMasterAgent>({
       toast(
         "error",
         holder
-          ? "The Town master isn't in Town now"
-          : `No Town master in Town${name ? ` named ${name}` : ""}`,
+          ? t("town.masterNotInTown")
+          : name
+            ? t("town.noMasterNamed", { name })
+            : t("town.noMasterInTown"),
       );
       return;
     }
     if (master.stale || !master.canOpenInSpaces) {
-      toast("error", `${master.displayLabel} can't be opened now`);
+      toast("error", t("town.masterCantOpen", { name: master.displayLabel }));
       return;
     }
     openChat(master.key);
@@ -255,7 +259,7 @@ export function townMasterAction<T extends TownMasterAgent>({
 /** Needs you, with its count when the view knows it. */
 export const needsYouAction = (count?: number): TownCenterAction => ({
   id: "needs-you",
-  label: "Needs you",
+  label: t("town.needsYouAction"),
   icon: Inbox,
   count,
   run: () => openNeedsYou(),
@@ -270,7 +274,7 @@ export const summaryAction = (
   detail?: string,
 ): TownCenterAction => ({
   id: "summary",
-  label: "Summary",
+  label: t("town.centerSummary"),
   icon: ClipboardList,
   detail,
   run: open,
@@ -279,7 +283,7 @@ export const summaryAction = (
 /** The agent profiles, in the profile editor. */
 export const profilesAction = (): TownCenterAction => ({
   id: "profiles",
-  label: "Profiles",
+  label: t("town.centerProfiles"),
   icon: Shirt,
   run: () => openProfileEditor(),
 });

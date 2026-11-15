@@ -1,62 +1,63 @@
-import { AnswerDeliverySign } from "./AnswerDeliverySign";
-import { Fragment, memo, useMemo, useRef } from "react";
 import { ChevronsLeft, ChevronsRight, Plus } from "lucide-react";
-import { ConnectionRecoveryBanner } from "../ConnectionRecoveryBanner";
+import { Fragment, memo, useMemo, useRef } from "react";
 import { ColorSwatchButton } from "../../components/ColorSwatch";
+import { useT } from "../../i18n";
+import { agentContextFill, useContextUsage } from "../agentContextFill";
+import { ConnectionRecoveryBanner } from "../ConnectionRecoveryBanner";
 import { TOWN_DESK_EXPANSION_STEP } from "../herdrOfficeProjection";
+import type { OfficeQualifiedTarget } from "../officeProjectionTypes";
 import { TERMINAL_COLOR_HEX } from "../terminalColor";
+import { AnswerDeliverySign } from "./AnswerDeliverySign";
 import { DeskWorkBadge } from "./DeskWorkBadge";
 import type { TownHud } from "./scene/townHud";
-import { useTownAges } from "./useTownHud";
+import { TownTargets } from "./TownAccessibleTargets";
+import { TownAddRoom } from "./TownAddRoom";
 import { TownBuildingSign } from "./TownBuildingSign";
-import type { TownBuildingSigns } from "./townBuildingSigns";
 import type { TownRoomActions } from "./TownCanvas";
-import { ReceptionEntry, portrait } from "./TownReceptionEntry";
-import { townRoomCardMeta } from "./townNameplates";
+import { TownDeskTitle } from "./TownDeskTitle";
+import { TownCityBillboard, TownReceptionExpenses } from "./TownExpenseBoards";
+import { TownFoldIndicators } from "./TownFoldIndicators";
+import { TownFuelMark } from "./TownFuelMark";
+import { TownPostOffice } from "./TownPostOffice";
+import { portrait, ReceptionEntry } from "./TownReceptionEntry";
+import { TownReceptionHeldTag, TownReceptionSign } from "./TownReceptionSign";
 import {
+  type TownPlaceCardContent,
   TownRoomOverviewSummary,
   TownRoomPlaque,
-  type TownPlaceCardContent,
 } from "./TownRoomPlaque";
-import { TownDeskTitle } from "./TownDeskTitle";
 import { TownStepBubble } from "./TownStepBubble";
-import { TownFuelMark } from "./TownFuelMark";
-import type { TownStepStore } from "./townStepStore";
-import { TownCityBillboard, TownReceptionExpenses } from "./TownExpenseBoards";
-import { TownPostOffice } from "./TownPostOffice";
-import type { OfficeQualifiedTarget } from "../officeProjectionTypes";
-import {
-  townPlaceSummary,
-  type TownPlace,
-  type TownSummary,
-} from "./townSummary";
-import { TownFoldIndicators } from "./TownFoldIndicators";
-import { TownTargets } from "./TownAccessibleTargets";
 import { TownTidyRooms } from "./TownTidyRooms";
-import { TownAddRoom } from "./TownAddRoom";
-import type { TownDeskBadge } from "./townBadges";
-import {
-  townFoldedActivityLabel,
-  type TownFoldedActivity,
-} from "./townFoldedActivity";
-import { TOWN_TILE as T, townDeskSlots, type TownLayout } from "./townLayout";
-import { townAttention, townRoomCounts, type TownModel } from "./townModel";
-import { townCarpetFor, townCarpetOf } from "./townPaint";
-import { TownQuestPennant, type TownQuestMark } from "./townQuestPennant";
 import { TownTiredMark } from "./TownTiredMark";
-import { agentContextFill, useContextUsage } from "../agentContextFill";
-import { townReceptionBoard } from "./townReception";
-import type { TownReceptionTakes } from "./townReceptionFilter";
-import { TownReceptionHeldTag, TownReceptionSign } from "./TownReceptionSign";
-import type { TownRendererHandle } from "./townRenderer";
-import type { TownBuildingLayers } from "./townBuildingLayers";
+import type { TownDeskBadge } from "./townBadges";
 import {
   TOWN_RECEPTION_LIFT,
   type TownBoardPlacement,
 } from "./townBoardPlacement";
+import type { TownBuildingLayers } from "./townBuildingLayers";
+import type { TownBuildingSigns } from "./townBuildingSigns";
+import {
+  type TownFoldedActivity,
+  townFoldedActivityLabel,
+} from "./townFoldedActivity";
+import { TOWN_TILE as T, type TownLayout, townDeskSlots } from "./townLayout";
+import { type TownModel, townAttention, townRoomCounts } from "./townModel";
+import { townRoomCardMeta } from "./townNameplates";
+import { townCarpetFor, townCarpetOf } from "./townPaint";
+import { type TownQuestMark, TownQuestPennant } from "./townQuestPennant";
+import { townReceptionBoard } from "./townReception";
+import type { TownReceptionTakes } from "./townReceptionFilter";
+import type { TownRendererHandle } from "./townRenderer";
+import type { TownStepStore } from "./townStepStore";
+import {
+  type TownPlace,
+  type TownSummary,
+  townPlaceSummary,
+} from "./townSummary";
 import type { TownTarget } from "./townTargets";
-import { townWallPath, type TownTeams } from "./townTeams";
+import { type TownTeams, townWallPath } from "./townTeams";
 import type { TownVisible } from "./townVisibleHosts";
+import { useTownAges } from "./useTownHud";
 
 const WALL_RADIUS = 10;
 
@@ -223,6 +224,7 @@ export const TownWorldLayer = memo(function TownWorldLayer({
 }) {
   // A card press the town took ends as the town's tap; only keyboard
   // activation (or an untaken press) zooms through the card's own click.
+  const t = useT();
   const cardPressTaken = useRef(false);
   // Context fills, for a tired look at nearly full agents' seats.
   const usage = useContextUsage(true);
@@ -350,7 +352,13 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                   state={host.runtimeState}
                 />
               ) : (
-                <span>{`${counts.rooms} rooms · ${counts.desks} desks · ${counts.working} working`}</span>
+                <span>
+                  {t("town.roomCounts", {
+                    rooms: counts.rooms,
+                    desks: counts.desks,
+                    working: counts.working,
+                  })}
+                </span>
               )}
               <TownTidyRooms
                 hostKey={building.hostKey}
@@ -360,14 +368,18 @@ export const TownWorldLayer = memo(function TownWorldLayer({
               />
               <div className="town-reception-tags">
                 {queue.length ? (
-                  <em aria-label={`${queue.length} need you`}>
+                  <em
+                    aria-label={t("town.needYouAria", { count: queue.length })}
+                  >
                     !{queue.length}
                   </em>
                 ) : null}
                 {questionCount ? (
                   <em
                     className="town-reception-question"
-                    aria-label={`${questionCount} owner questions`}
+                    aria-label={t("town.ownerQuestionsAria", {
+                      count: questionCount,
+                    })}
                   >
                     ?{questionCount}
                   </em>
@@ -389,18 +401,24 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                 top: building.y * T - TOWN_RECEPTION_LIFT,
               }}
               role="group"
-              aria-label={`${host?.displayLabel ?? "Host"} reception, ${queue.length} waiting`}
+              aria-label={t("town.receptionAria", {
+                host: host?.displayLabel ?? t("town.hostFallback"),
+                count: queue.length,
+              })}
             >
               <div className="town-reception-title">
                 {hostColor ? (
                   <ColorSwatchButton
                     className="town-place-color"
-                    label={`Colour of ${host?.displayLabel ?? "host"}'s building`}
+                    label={t("town.buildingColourAria", {
+                      host: host?.displayLabel ?? t("town.hostFallbackLower"),
+                    })}
                     {...hostColor}
                   />
                 ) : null}
                 <span>
-                  {(host?.displayLabel ?? "").toUpperCase()} RECEPTION
+                  {(host?.displayLabel ?? "").toUpperCase()}{" "}
+                  {t("town.receptionLabel")}
                 </span>
                 {queue.length ? <b>{queue.length}</b> : null}
                 <TownTidyRooms
@@ -458,7 +476,9 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                         className="town-reception-entry"
                         data-owner-question="true"
                         data-owner-question-terminal={agent.nodeId}
-                        aria-label={`${agent.displayLabel}, owner question`}
+                        aria-label={t("town.ownerQuestionAria", {
+                          name: agent.displayLabel,
+                        })}
                         disabled={agent.stale || !agent.canOpenInSpaces}
                         onClick={() => onActivateAsk?.(agent.nodeId)}
                       >
@@ -469,7 +489,7 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                           height={40}
                         />
                         <span>{agent.displayLabel}</span>
-                        <small>? Owner wanted</small>
+                        <small>{t("town.ownerWantedPrefix")}</small>
                       </button>
                     ),
                   )}
@@ -480,7 +500,9 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                   ) : null}
                 </div>
               ) : (
-                <div className="town-reception-empty">Nobody waiting</div>
+                <div className="town-reception-empty">
+                  {t("town.nobodyWaitingShort")}
+                </div>
               )}
               <TownReceptionHeldTag
                 counts={heldCounts}
@@ -522,8 +544,12 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                 room.deskFold === "expanded" && overflow > 0;
               const revealDescription =
                 overflow > TOWN_DESK_EXPANSION_STEP
-                  ? `Show up to ${revealCount} more hidden ${revealCount === 1 ? "desk" : "desks"}`
-                  : `Show the remaining ${overflow} hidden ${overflow === 1 ? "desk" : "desks"}`;
+                  ? revealCount === 1
+                    ? t("town.showHiddenDesk", { count: revealCount })
+                    : t("town.showHiddenDesks", { count: revealCount })
+                  : overflow === 1
+                    ? t("town.showRemainingDesk", { count: overflow })
+                    : t("town.showRemainingDesks", { count: overflow });
               const reason = roomActions.createSeatReason(room.key);
               const roomColor = roomActions.placeColor("room", room.key);
               const add =
@@ -531,8 +557,10 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                   <button
                     className="world-new-seat-canvas-action town-new-seat"
                     type="button"
-                    aria-label={`New agent or terminal in ${label}`}
-                    title={reason ?? `New agent or terminal in ${label}`}
+                    aria-label={t("town.newAgentOrTerminal", { name: label })}
+                    title={
+                      reason ?? t("town.newAgentOrTerminal", { name: label })
+                    }
                     disabled={!roomActions.canCreateSeat(room.key)}
                     style={
                       partiallyExpanded
@@ -558,13 +586,26 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                     aria-expanded={room.deskFold === "expanded"}
                     aria-label={
                       overflow > 0
-                        ? `${revealDescription} in ${label}${activityLabel ? `. ${activityLabel}` : ""}`
-                        : `Fold ${label} back to 24 desks`
+                        ? t("town.revealInRoom", {
+                            description: revealDescription,
+                            name: label,
+                          }) +
+                          (activityLabel
+                            ? t("town.revealActivity", {
+                                activity: activityLabel,
+                              })
+                            : "")
+                        : t("town.foldRoomNamed", { name: label })
                     }
                     title={
                       overflow > 0
-                        ? `${revealDescription}${activityLabel ? `. ${activityLabel}` : ""}`
-                        : "Fold this room back to 24 desks"
+                        ? revealDescription +
+                          (activityLabel
+                            ? t("town.revealActivity", {
+                                activity: activityLabel,
+                              })
+                            : "")
+                        : t("town.foldRoom")
                     }
                     style={{
                       ...(partiallyExpanded && seatCell
@@ -598,7 +639,7 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                     ) : (
                       <>
                         <ChevronsLeft size={16} aria-hidden="true" />
-                        <span>Fold</span>
+                        <span>{t("town.foldLabel")}</span>
                       </>
                     )}
                     <TownFoldIndicators activity={activity} />
@@ -635,7 +676,17 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                             touchAction: "none",
                           } as React.CSSProperties
                         }
-                        aria-label={`${label}: ${c.desks} desks, ${c.working} working${c.blocked ? `, ${c.blocked} need you` : ""}${c.done ? `, ${c.done} done` : ""}. Zoom in.`}
+                        aria-label={t("town.roomCardAria", {
+                          name: label,
+                          desks: c.desks,
+                          working: c.working,
+                          blocked: c.blocked
+                            ? t("town.roomCardBlocked", { count: c.blocked })
+                            : "",
+                          done: c.done
+                            ? t("town.roomCardDone", { count: c.done })
+                            : "",
+                        })}
                         onPointerDown={(event) => {
                           cardPressTaken.current =
                             onRoomCardPress?.(
@@ -737,7 +788,10 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                               <button
                                 type="button"
                                 className="town-desk-more"
-                                aria-label={`All ${desk.observedPaneCount} panes at ${desk.displayLabel}`}
+                                aria-label={t("town.allPanesAria", {
+                                  count: desk.observedPaneCount,
+                                  name: desk.displayLabel,
+                                })}
                                 onClick={() =>
                                   roomActions.onChoosePanes(desk.key)
                                 }
@@ -867,8 +921,8 @@ export const TownWorldLayer = memo(function TownWorldLayer({
                         <button
                           className="town-new-seat town-fold-reset"
                           type="button"
-                          aria-label={`Fold ${label} back to 24 desks`}
-                          title="Fold this room back to 24 desks"
+                          aria-label={t("town.foldRoomNamed", { name: label })}
+                          title={t("town.foldRoom")}
                           onClick={() => roomActions.onToggleFold?.(room.key)}
                         >
                           <ChevronsLeft size={18} aria-hidden="true" />
@@ -898,7 +952,7 @@ export const TownWorldLayer = memo(function TownWorldLayer({
             })}
             <TownAddRoom
               building={building}
-              hostLabel={host?.displayLabel ?? "host"}
+              hostLabel={host?.displayLabel ?? t("town.hostFallbackLower")}
               roomActions={roomActions}
               selectedRoomKey={
                 selectedHost === building.hostKey ? selectedRoomKey : null

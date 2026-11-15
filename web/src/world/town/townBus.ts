@@ -5,7 +5,9 @@
  */
 
 import type { BinEntry } from "../../../../shared/bin";
+import { t } from "../../i18n";
 import { binClockLabel } from "../bin/binStore";
+import { TOWN_WALK_SPEED } from "./townActors";
 import {
   TOWN_TILE as T,
   type TownBuilding,
@@ -13,7 +15,6 @@ import {
   type TownPoint,
 } from "./townLayout";
 import type { TownModel } from "./townModel";
-import { TOWN_WALK_SPEED } from "./townActors";
 import type { TownDirection } from "./townSprites";
 
 /** A street is five tiles: pavement, three lanes, pavement. */
@@ -349,12 +350,12 @@ export function townStopClock({
   halt: number | undefined;
   nextHalt: number | undefined;
 }) {
-  if (elapsed !== null && riding && stopped) return "stopped";
+  if (elapsed !== null && riding && stopped) return t("town.busStopped");
   const until =
     elapsed !== null && riding
       ? (halt ?? 0) * 1000 - elapsed
       : next + (nextHalt ?? 0) * 1000;
-  return until <= TOWN_BUS_DUE_MS ? "due" : binClockLabel(until);
+  return until <= TOWN_BUS_DUE_MS ? t("town.busDue") : binClockLabel(until);
 }
 
 /**

@@ -1,23 +1,23 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SquareTerminal } from "lucide-react";
-import type { OfficeAgent } from "../herdrOfficeProjection";
-import { t } from "../../i18n";
-import { agentStateWord } from "../agentMarks";
-import { AgentLatestMessage } from "../AgentHoverCard";
-import type { TownChoice, TownConversation } from "./townChat";
-import { townPortrait } from "./townSprites";
-import { ContextFillBar } from "../../components/ContextFillBar";
-import { useAgentContextFill } from "../agentContextFill";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ColorSwatchButton } from "../../components/ColorSwatch";
+import { ContextFillBar } from "../../components/ContextFillBar";
+import { t as translate, useT } from "../../i18n";
+import { AgentLatestMessage } from "../AgentHoverCard";
+import { useAgentContextFill } from "../agentContextFill";
+import { agentStateWord } from "../agentMarks";
+import type { OfficeAgent } from "../herdrOfficeProjection";
 import {
   TERMINAL_COLOR_PALETTE,
   TERMINAL_COLORS,
   type TerminalColor,
 } from "../terminalColor";
+import type { TownChoice, TownConversation } from "./townChat";
+import { townPortrait } from "./townSprites";
 
 export function townStatusText(agent: OfficeAgent) {
   return agent.stale
-    ? t("marks.offlineNote")
+    ? translate("marks.offlineNote")
     : (agent.stateLabels[agent.semanticStatus] ??
         agentStateWord(agent.semanticStatus));
 }
@@ -80,6 +80,7 @@ export function TownPeek({
   onClose(): void;
   onHold(hold: boolean): void;
 }) {
+  const t = useT();
   const card = useRef<HTMLDivElement>(null);
   const screen = useRef<HTMLDivElement>(null);
   // Follow the newest message unless the reader has scrolled up in it.
@@ -128,7 +129,7 @@ export function TownPeek({
       role="dialog"
       tabIndex={-1}
       data-agent-key={agent.key}
-      aria-label={`${agent.displayLabel} peek`}
+      aria-label={t("town.peekAria", { name: agent.displayLabel })}
       style={
         placed
           ? { left: placed.left, top: placed.top }
@@ -156,7 +157,7 @@ export function TownPeek({
         {deskColor ? (
           <ColorSwatchButton
             className="town-peek-color"
-            label="Desk colour"
+            label={t("town.deskColour")}
             palette={TERMINAL_COLOR_PALETTE}
             current={{ id: deskColor.current, custom: deskColor.custom }}
             onColor={(id) =>
@@ -171,17 +172,19 @@ export function TownPeek({
         <button
           type="button"
           className="town-peek-terminal"
-          aria-label={`Open ${agent.displayLabel}'s terminal`}
-          title="Open terminal"
+          aria-label={t("town.openAgentTerminalAria", {
+            name: agent.displayLabel,
+          })}
+          title={t("town.openTerminal")}
           onClick={onTerminal}
         >
           <SquareTerminal size={15} aria-hidden="true" />
-          <span>Open terminal</span>
+          <span>{t("town.openTerminal")}</span>
         </button>
         <button
           type="button"
           className="town-peek-close"
-          aria-label="Close peek"
+          aria-label={t("town.closePeek")}
           onClick={onClose}
         >
           ×
@@ -190,7 +193,7 @@ export function TownPeek({
       <div
         ref={screen}
         className="town-peek-screen"
-        aria-label="Latest message"
+        aria-label={t("town.latestMessage")}
         onScroll={(event) => {
           const element = event.currentTarget;
           follow.current =
@@ -205,7 +208,11 @@ export function TownPeek({
         />
       </div>
       {choices.length && canReply ? (
-        <div className="town-answers" role="group" aria-label="Answers">
+        <div
+          className="town-answers"
+          role="group"
+          aria-label={t("town.answersAria")}
+        >
           {choices.map((choice, index) => (
             <button
               key={choice.key}
@@ -219,7 +226,11 @@ export function TownPeek({
           ))}
         </div>
       ) : null}
-      <div className="town-answers" role="group" aria-label="Chat">
+      <div
+        className="town-answers"
+        role="group"
+        aria-label={t("town.chatAria")}
+      >
         {agent.semanticStatus === "done" ? (
           <button
             type="button"
@@ -228,23 +239,25 @@ export function TownPeek({
               review.ready
                 ? undefined
                 : review.failed
-                  ? "The latest report could not be read"
-                  : "Reading the latest report…"
+                  ? t("town.latestReportUnreadable")
+                  : t("town.readingLatestReport")
             }
             onClick={onReviewed}
           >
-            <span>Mark reviewed</span>
+            <span>{t("needsYou.markReviewed")}</span>
           </button>
         ) : null}
         {agent.semanticStatus === "done" && review.failed ? (
           <button type="button" onClick={review.onRetry}>
-            <span>Retry</span>
+            <span>{t("needsYou.retry")}</span>
           </button>
         ) : null}
         {canReply ? (
           <button type="button" onClick={onChat}>
             <span>
-              {agent.semanticStatus === "done" ? "Follow up" : "Open chat"}
+              {agent.semanticStatus === "done"
+                ? t("town.followUp")
+                : t("town.openChat")}
             </span>
           </button>
         ) : null}
@@ -252,7 +265,7 @@ export function TownPeek({
       <div className="town-peek-foot">
         {onNext ? (
           <button type="button" onClick={onNext}>
-            Next ›
+            {t("town.nextItem")}
           </button>
         ) : null}
       </div>

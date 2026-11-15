@@ -6,10 +6,11 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../../i18n";
 import type { HerdrOfficeProjection } from "../herdrOfficeProjection";
 import { officePresentationKey } from "../officeSelection";
 import type { WorldObject } from "../worldObject";
-import { worldSearchResults, type WorldSearchResult } from "../worldSearch";
+import { type WorldSearchResult, worldSearchResults } from "../worldSearch";
 
 /**
  * A search result's Town key: rooms, tables, agents and buildings are keyed
@@ -29,9 +30,11 @@ const TOWN_SEARCH_ESCAPE_SCOPE = ".world-search-results, .town-canvas-host";
 
 /** "7 matches · 3 off-screen", or "No matches". */
 export function townSearchLabel(matches: number, offscreen: number) {
-  if (!matches) return "No matches";
-  const count = matches === 1 ? "1 match" : `${matches} matches`;
-  return offscreen ? `${count} · ${offscreen} off-screen` : count;
+  if (!matches) return t("town.noMatches");
+  const count = t(matches === 1 ? "town.oneMatch" : "town.manyMatches", {
+    count: matches,
+  });
+  return offscreen ? t("town.offscreenMatches", { count, offscreen }) : count;
 }
 
 export function useTownSearch(

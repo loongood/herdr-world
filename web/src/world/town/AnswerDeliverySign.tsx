@@ -1,3 +1,4 @@
+import { useT } from "../../i18n";
 import {
   useAnswerConnectionCount,
   type WorldAnswerDeliveriesStore,
@@ -12,13 +13,14 @@ export function AnswerDeliverySign({
   connectionId: string;
   store?: WorldAnswerDeliveriesStore;
 }) {
+  const t = useT();
   const count = useAnswerConnectionCount(connectionId, store),
     open = useOpenAnswerOutbox();
   return count ? (
     <button
       type="button"
       className="town-reception-letter"
-      aria-label={`${count} saved answer deliveries at this host. Open Outbox.`}
+      aria-label={t("town.outboxLabel", { count })}
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => {
         event.stopPropagation();

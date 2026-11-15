@@ -1,11 +1,12 @@
 import { useSyncExternalStore } from "react";
 import { worldLocalStorage } from "../../browserStorage";
+import { t } from "../../i18n";
 import {
+  parseTownReceptionFilter,
   TOWN_RECEPTION_DEFAULT,
   TOWN_RECEPTION_SETTING_KEY,
-  parseTownReceptionFilter,
-  townReceptionIsDefault,
   type TownReceptionFilter,
+  townReceptionIsDefault,
 } from "./townReceptionFilter";
 
 /**
@@ -66,8 +67,7 @@ export function connectTownReceptionFilter(next: Send | null) {
  */
 export async function saveTownReceptionFilter(next: TownReceptionFilter) {
   const write = send;
-  if (!write)
-    throw new Error("Not connected to World; the reception filter is unsaved.");
+  if (!write) throw new Error(t("town.filterUnsaved"));
   const current = ++revision;
   publish(next);
   try {

@@ -5,10 +5,11 @@
  */
 
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { t } from "../../i18n";
 import {
-  sharedBoardStore,
   type BoardDocumentStore,
   type RoomSpot,
+  sharedBoardStore,
 } from "../board/boardDocument";
 import type { TownRoomActions } from "./TownCanvas";
 import { townRoomDrag } from "./townDrag";
@@ -16,12 +17,12 @@ import type { TownLayout } from "./townLayout";
 import type { RoomPins, TownModel } from "./townModel";
 import type { TownRendererHandle } from "./townRenderer";
 import {
+  type TownRoomPlacement,
   townBuildingSpots,
   townRoomNeighbor,
   townRoomRestore,
   townRoomSwap,
   townRoomTidy,
-  type TownRoomPlacement,
 } from "./townRoomPlace";
 
 const NONE: RoomPins = Object.freeze({});
@@ -138,7 +139,11 @@ export function townRoomMoves(
         ? townRoomNeighbor(layout, roomKey, step)
         : null;
       return other
-        ? { label: model.rooms.get(other.key)?.displayLabel ?? "room" }
+        ? {
+            label:
+              model.rooms.get(other.key)?.displayLabel ??
+              t("town.roomFallback"),
+          }
         : null;
     },
     onMoveRoom: (roomKey, step) => {
@@ -151,19 +156,26 @@ export function townRoomMoves(
         ? townRoomTidy(layout, hostKey)
         : null;
       if (!placement) return;
-      const host = model.hosts.get(hostKey)?.displayLabel ?? "This building";
+      const host =
+        model.hosts.get(hostKey)?.displayLabel ?? t("town.thisBuilding");
       const tidied = latest.current.roomActions.onRoomsTidied;
       if (!placement.changed) return tidied?.(host, null);
       const before = townBuildingSpots(layout, hostKey);
-      void glide(hostKey, placement, `${host}'s rooms`).then((result) => {
-        if (result !== "moved") return;
-        tidied?.(host, async () => {
-          const undo = townRoomRestore(latest.current.layout, hostKey, before);
-          return undo?.changed
-            ? glide(hostKey, undo, `${host}'s rooms`)
-            : "returned";
-        });
-      });
+      void glide(hostKey, placement, t("town.hostRooms", { host })).then(
+        (result) => {
+          if (result !== "moved") return;
+          tidied?.(host, async () => {
+            const undo = townRoomRestore(
+              latest.current.layout,
+              hostKey,
+              before,
+            );
+            return undo?.changed
+              ? glide(hostKey, undo, t("town.hostRooms", { host }))
+              : "returned";
+          });
+        },
+      );
     },
   };
 }

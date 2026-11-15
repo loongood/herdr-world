@@ -1,10 +1,11 @@
+import { t } from "../../i18n";
 import { agentStateWord } from "../agentMarks";
 import type {
   OfficeAgent,
   OfficeDesk,
   OfficeRoom,
 } from "../herdrOfficeProjection";
-import { TOWN_TILE as T, townSeat, type TownLayout } from "./townLayout";
+import { TOWN_TILE as T, type TownLayout, townSeat } from "./townLayout";
 import type { TownModel } from "./townModel";
 
 export type TownTarget = {
@@ -27,21 +28,38 @@ export function townAgentLabel(
     ({ agent: candidate }) => candidate.key === agent.key,
   );
   const state = agent.stale
-    ? "stale"
+    ? t("town.staleWord")
     : (agent.stateLabels[agent.semanticStatus] ??
       agentStateWord(agent.semanticStatus).toLowerCase());
   const location = desk
-    ? `desk ${desk.displayLabel}, ${entry?.roomLabel ?? "Office"}`
-    : (entry?.roomLabel ?? "Office");
+    ? t("town.deskTargetIn", {
+        desk: desk.displayLabel,
+        room: entry?.roomLabel ?? t("town.officeFallback"),
+      })
+    : (entry?.roomLabel ?? t("town.officeFallback"));
   const host =
-    entry?.hostLabel ?? model.hosts.get(agent.hostKey)?.displayLabel ?? "host";
-  const summary = agent.taskSummary ? `, ${agent.taskSummary}` : "";
-  return `${agent.displayLabel}, ${state}, ${location}, ${host}${summary}`;
+    entry?.hostLabel ??
+    model.hosts.get(agent.hostKey)?.displayLabel ??
+    t("town.hostFallbackLower");
+  const summary = agent.taskSummary
+    ? t("town.agentSummaryTail", { summary: agent.taskSummary })
+    : "";
+  return t("town.agentTargetAria", {
+    name: agent.displayLabel,
+    state,
+    location,
+    host,
+    summary,
+  });
 }
 
 export function townRoomLabel(model: TownModel, room: OfficeRoom) {
-  const host = model.hosts.get(room.hostKey)?.displayLabel ?? "host";
-  return `Room ${room.accessibleLabel ?? room.displayLabel}, ${host}`;
+  const host =
+    model.hosts.get(room.hostKey)?.displayLabel ?? t("town.hostFallbackLower");
+  return t("town.roomTargetAria", {
+    room: room.accessibleLabel ?? room.displayLabel,
+    host,
+  });
 }
 
 function deskLabel(
@@ -50,11 +68,12 @@ function deskLabel(
   teammates: readonly string[] = [],
 ) {
   const room = model.rooms.get(desk.roomKey);
-  const host = model.hosts.get(desk.hostKey)?.displayLabel ?? "host";
+  const host =
+    model.hosts.get(desk.hostKey)?.displayLabel ?? t("town.hostFallbackLower");
   const team = teammates.length
-    ? `, in a team with ${teammates.join(", ")}`
+    ? t("town.inTeam", { names: teammates.join(", ") })
     : "";
-  return `${desk.occupantAgentKey ? "Desk" : "Empty desk"} ${desk.displayLabel}, ${room?.displayLabel ?? "Office"}, ${host}, ${desk.observedPaneCount} panes${team}`;
+  return `${desk.occupantAgentKey ? t("town.deskTarget") : t("town.emptyDeskTarget")} ${desk.displayLabel}, ${room?.displayLabel ?? t("town.officeFallback")}, ${host}, ${t("town.panesCount", { count: desk.observedPaneCount })}${team}`;
 }
 
 /**
@@ -133,7 +152,12 @@ export function townTargets(
             targets.push({
               key: device.key,
               kind: "pane",
-              label: `${device.displayLabel}, desk ${desk.displayLabel}, ${desk.observedPaneCount} panes${device.stale ? ", stale" : ""}`,
+              label: t("town.paneTargetAria", {
+                pane: device.displayLabel,
+                desk: desk.displayLabel,
+                count: desk.observedPaneCount,
+                stale: device.stale ? t("town.staleTail") : "",
+              }),
               rect,
               canActivate: device.canOpenInSpaces,
             });

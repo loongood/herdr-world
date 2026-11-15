@@ -1,15 +1,8 @@
+import { useT } from "../../i18n";
 import { useDrawReadiness } from "../useDrawReadiness";
 import "../worldAsks.css";
-import { TownBoard } from "./TownBoard";
 import {
-  TownTeamsLayer,
-  TownWorldLayer,
-  type TownRoomCardPress,
-} from "./TownWorldLayer";
-import { TownBuildingSigns } from "./townBuildingSigns";
-import { TownBuildingLayers } from "./townBuildingLayers";
-import { TownBoardPlacement } from "./townBoardPlacement";
-import {
+  type ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -17,16 +10,15 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
-  type ReactNode,
 } from "react";
-import type { RoomPins } from "./townModel";
-import { useTownStepWants, type TownStepStore } from "./useTownStepWants";
-import { useTownRoomMoves } from "./townRoomPins";
-import { TOWN_GESTURES } from "./townGesture";
+import type { Relation } from "../../../../shared/relations";
 import { DEVTOOLS, NO_TRACE, type ViewTrace } from "../devtools/flag";
 import { traceGesture } from "../devtools/trace";
-import { TownZoomControls } from "./TownZoomControls";
 import type { HerdrOfficeProjection } from "../herdrOfficeProjection";
+import type { OfficeObservability } from "../officeObservability";
+import type { TerminalPlace } from "../relations";
+import type { TerminalColors } from "../terminalColor";
+import { type DeskPins, placeDeskPin } from "../useDeskPins";
 import type {
   WorldCanvasAnchor,
   WorldCanvasAnchors,
@@ -34,64 +26,74 @@ import type {
   WorldConversationAnchors,
   WorldConversationAnchorTarget,
 } from "../worldConnectorGeometry";
-import type { OfficeObservability } from "../officeObservability";
-import { TownCamera, type TownLevel } from "./townCamera";
-import { townShapeFor, townShapeKey, type TownShape } from "./townLayout";
-import { useTownCenterRing } from "./useTownCenterRing";
-import {
-  TownCenterMenu,
-  TownCenterSign,
-  type TownCenterAction,
-} from "./TownCenterMenu";
-import { TownScene } from "./scene/townScene";
-import { holdTownReflowOnInput } from "./townSceneInput";
-import { sharedTownJoinSeats, type TownJoinSeats } from "./townJoinSeats";
-import { TownSceneDiff } from "./scene/townSceneDiff";
-import { TownHud, townScreenAnchor, townWorldAnchor } from "./scene/townHud";
-import { TownHudContext, useTownHud } from "./useTownHud";
-import { TownSceneCamera, townViewport } from "./scene/townSceneCamera";
-import { TownInteraction } from "./scene/townInteraction";
-import { townBrowserClock, townBrowserFrames } from "./townBrowserClock";
-import { townSummary, type TownSummary } from "./townSummary";
-import { townCalls } from "./TownRail";
-import {
-  createTownRenderer,
-  nextTownTask,
-  townRendererFailed,
-  type TownRendererHandle,
-} from "./townRenderer";
+import { useWorldSources } from "../worldSources";
 import {
   advancePixiSystemTicker,
   holdPixiSystemTicker,
 } from "./pixiSystemTicker";
-import type { TownTarget } from "./townTargets";
-import type { TerminalColors } from "../terminalColor";
-import type { Relation } from "../../../../shared/relations";
-import type { TerminalPlace } from "../relations";
-import { placeDeskPin, type DeskPins } from "../useDeskPins";
-import { useWorldSources } from "../worldSources";
+import { TownHud, townScreenAnchor, townWorldAnchor } from "./scene/townHud";
+import { TownInteraction } from "./scene/townInteraction";
+import { TownScene } from "./scene/townScene";
+import { TownSceneCamera, townViewport } from "./scene/townSceneCamera";
+import { TownSceneDiff } from "./scene/townSceneDiff";
+import { TownBoard } from "./TownBoard";
+import {
+  type TownCenterAction,
+  TownCenterMenu,
+  TownCenterSign,
+} from "./TownCenterMenu";
+import { townCalls } from "./TownRail";
+import {
+  type TownRoomCardPress,
+  TownTeamsLayer,
+  TownWorldLayer,
+} from "./TownWorldLayer";
+import { TownZoomControls } from "./TownZoomControls";
+import { TownBoardPlacement } from "./townBoardPlacement";
+import { townBrowserClock, townBrowserFrames } from "./townBrowserClock";
+import { TownBuildingLayers } from "./townBuildingLayers";
+import { TownBuildingSigns } from "./townBuildingSigns";
+import { TownCamera, type TownLevel } from "./townCamera";
 import {
   NO_FOLDED_ACTIVITY,
   type TownFoldedActivity,
 } from "./townFoldedActivity";
-import "./town.css";
-import { markAway, type TownQuestMark } from "./townQuestPennant";
-import { TownBusLayer, useTownBin } from "./TownBusLayer";
-import { TownArrivalLayer, useTownArrivals } from "./TownArrivalLayer";
-import { aimAtBin } from "../bin/binDrop";
+import { TOWN_GESTURES } from "./townGesture";
+import { sharedTownJoinSeats, type TownJoinSeats } from "./townJoinSeats";
+import { type TownShape, townShapeFor, townShapeKey } from "./townLayout";
+import type { RoomPins } from "./townModel";
 import {
-  townReceptionTakesAll,
+  createTownRenderer,
+  nextTownTask,
+  type TownRendererHandle,
+  townRendererFailed,
+} from "./townRenderer";
+import { useTownRoomMoves } from "./townRoomPins";
+import { holdTownReflowOnInput } from "./townSceneInput";
+import { type TownSummary, townSummary } from "./townSummary";
+import type { TownTarget } from "./townTargets";
+import { useTownCenterRing } from "./useTownCenterRing";
+import { TownHudContext, useTownHud } from "./useTownHud";
+import { type TownStepStore, useTownStepWants } from "./useTownStepWants";
+import "./town.css";
+import { aimAtBin } from "../bin/binDrop";
+import { TownArrivalLayer, useTownArrivals } from "./TownArrivalLayer";
+import { TownBusLayer, useTownBin } from "./TownBusLayer";
+import { markAway, type TownQuestMark } from "./townQuestPennant";
+import {
   type TownReceptionTakes,
+  townReceptionTakesAll,
 } from "./townReceptionFilter";
 import "./townBoard.css";
 import { useTownCanvasSearch } from "./useTownCanvasSearch";
 import "./townTeams.css";
-import { TownEdgeOverlay, TownPulseRing } from "./TownEdgeLayer";
-import { useTownEdgeNav, type TownNeedsYouOrder } from "./useTownEdgeNav";
-import { TownLensBoard, TownLensLayer, useTownLenses } from "./TownLenses";
 import type { OfficeAgent } from "../officeProjectionTypes";
+import { TownEdgeOverlay, TownPulseRing } from "./TownEdgeLayer";
+import { TownLensBoard, TownLensLayer, useTownLenses } from "./TownLenses";
+import { type TownNeedsYouOrder, useTownEdgeNav } from "./useTownEdgeNav";
 
 export type { PlaceColorChoice, TownRoomActions } from "./townRoomActions";
+
 import type { TownRoomActions } from "./townRoomActions";
 
 /** Camera kept across Office visits within one page session. */
@@ -218,6 +220,7 @@ export function TownCanvas({
   /** Where the user put rooms (useRoomPins); other rooms stack. */
   roomPins?: RoomPins;
 }) {
+  const t = useT();
   const shellRef = useRef<HTMLDivElement | null>(null);
   const traceRef = useRef(trace);
   traceRef.current = trace;
@@ -860,8 +863,8 @@ export function TownCanvas({
     <div className="town-shell" ref={shellRef} data-calm={calm}>
       {failure ? (
         <div className="world-renderer-fallback" role="status">
-          <strong>Visual scene unavailable</strong>
-          <span>The complete roster and inspector remain available.</span>
+          <strong>{t("town.visualSceneUnavailable")}</strong>
+          <span>{t("town.rosterAvailable")}</span>
         </div>
       ) : null}
       <div
@@ -871,7 +874,7 @@ export function TownCanvas({
         hidden={failure}
         tabIndex={0}
         role="application"
-        aria-label="Office town. Arrow keys pan, plus and minus zoom."
+        aria-label={t("town.sceneAria")}
         onKeyDown={keyboard}
       />
       <div
