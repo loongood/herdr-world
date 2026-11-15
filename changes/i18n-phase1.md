@@ -50,7 +50,12 @@
   controls with the installed-font picker, theme cards and the custom
   theme editor (color fields, limits and delete confirmation). The mobile
   shortcut editor, the incremental transport setting and the composer's
-  command palette follow as well. The built-in slash-command catalog keeps
+  command palette follow as well. The agent dialogs follow too: the
+  terminal's agent launcher, the session inspector (overview stats, file
+  row, timeline turns and step rows), the message detail dialog (roles,
+  copy and view toggles) and the agent integrations settings (states,
+  install/update/uninstall flows with their confirmations, versions and
+  connection states). The built-in slash-command catalog keeps
   its English descriptions: they document external CLIs, not World's own
   copy.
   Remaining surfaces keep English

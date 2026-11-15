@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Copy, X } from "lucide-react";
 import { formatUiDateTime } from "../uiLocale";
 import { copyTextWithFeedback } from "../copyText";
+import { t, useT } from "../i18n";
 import { isToolContentPending } from "./agentHistory";
 import { CloseButton } from "./CloseButton";
 import { MarkdownPreview } from "./markdown";
@@ -21,10 +22,10 @@ export type AgentMessage = {
 
 export function agentMessageRoleLabel(message: AgentMessage) {
   return message.role === "tool"
-    ? `${message.kind === "tool_call" ? "Tool arguments" : message.is_error ? "Tool error" : "Tool output"}: ${message.tool_name ?? "tool"}`
+    ? `${message.kind === "tool_call" ? t("agents.toolArgumentsLabel") : message.is_error ? t("agents.toolErrorLabel") : t("agents.toolOutput")}: ${message.tool_name ?? "tool"}`
     : message.role === "assistant"
-      ? "Assistant"
-      : "User";
+      ? t("agents.roleAssistant")
+      : t("agents.roleUser");
 }
 
 // Message rendering is shared by the modal and the inline History reader.
@@ -38,6 +39,7 @@ export function AgentMessageContent({
   onClose: () => void;
 }) {
   const isTool = message.role === "tool";
+  const t = useT();
   const [viewMode, setViewMode] = useState<"rendered" | "raw">(
     message.role === "assistant" ? "rendered" : "raw",
   );
@@ -58,12 +60,12 @@ export function AgentMessageContent({
         className={`modal-head agent-message-modal-head ${embedded ? "is-embedded" : ""}`}
       >
         <div>
-          <h3>{roleLabel} Message</h3>
+          <h3>{t("agents.messageTitle", { role: roleLabel })}</h3>
           <time dateTime={message.sent_at}>
             {formatUiDateTime(message.sent_at)}
           </time>
           {message.source_call_id ? (
-            <p>Call ID: {message.source_call_id}</p>
+            <p>{t("agents.callIdLabel", { id: message.source_call_id })}</p>
           ) : null}
         </div>
         <div className="agent-message-modal-actions">
@@ -78,12 +80,18 @@ export function AgentMessageContent({
               }
               aria-label={
                 viewMode === "rendered"
-                  ? "Show raw markdown"
-                  : "Show rendered markdown"
+                  ? t("agents.showRawMarkdownAria")
+                  : t("agents.showRenderedMarkdownAria")
               }
-              title={viewMode === "rendered" ? "Show raw" : "Show rendered"}
+              title={
+                viewMode === "rendered"
+                  ? t("agents.showRawTitle")
+                  : t("agents.showRenderedTitle")
+              }
             >
-              {viewMode === "rendered" ? "Raw" : "Rendered"}
+              {viewMode === "rendered"
+                ? t("agents.rawLabel")
+                : t("agents.renderedToggle")}
             </button>
           ) : null}
           {!contentPending ? (
@@ -91,8 +99,8 @@ export function AgentMessageContent({
               type="button"
               className="agent-history-icon"
               onClick={() => void copyTextWithFeedback(message.text)}
-              aria-label="Copy message"
-              title="Copy"
+              aria-label={t("agents.copyMessageAria")}
+              title={t("agents.copyTitle")}
             >
               <Copy size={15} />
             </button>
@@ -102,18 +110,20 @@ export function AgentMessageContent({
               type="button"
               className="agent-history-icon"
               onClick={onClose}
-              aria-label="Close message detail"
-              title="Close detail"
+              aria-label={t("agents.closeMessageDetail")}
+              title={t("agents.closeDetailTitle")}
             >
               <X size={15} />
             </button>
           ) : (
-            <CloseButton label="Close message" onClick={onClose} />
+            <CloseButton label={t("agents.closeMessage")} onClick={onClose} />
           )}
         </div>
       </div>
       {contentPending ? (
-        <pre className="agent-message-modal-content">Loading tool content…</pre>
+        <pre className="agent-message-modal-content">
+          {t("agents.loadingToolContent")}
+        </pre>
       ) : !isTool && viewMode === "rendered" ? (
         <div className="agent-message-modal-content is-rendered">
           <MarkdownPreview

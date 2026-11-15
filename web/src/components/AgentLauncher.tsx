@@ -16,6 +16,7 @@ import {
 } from "../agentIntegrations";
 import { AgentIcon } from "./AgentIcon";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { useT } from "../i18n";
 import "./AgentLauncher.css";
 
 export function AgentLauncher({
@@ -38,6 +39,7 @@ export function AgentLauncher({
   onSelectCommand: (command: string) => void;
 }) {
   const client = useConnectionClient();
+  const t = useT();
   const scope = connectionClientScopeKey(
     client,
     client.serverRuntimeGeneration,
@@ -145,7 +147,7 @@ export function AgentLauncher({
       setSelected(null);
       setError(null);
     } catch (e) {
-      setError(`Could not save command: ${(e as Error).message}`);
+      setError(t("agents.launchSaveFailed", { message: (e as Error).message }));
     }
   };
 
@@ -162,8 +164,8 @@ export function AgentLauncher({
         <button
           type="button"
           className="agent-launcher-trigger"
-          aria-label="Agent terminals"
-          title="Agent terminals"
+          aria-label={t("agents.agentTerminals")}
+          title={t("agents.agentTerminals")}
           disabled={disabled || !visible}
         >
           <Bot size={19} aria-hidden="true" />
@@ -172,13 +174,13 @@ export function AgentLauncher({
       <PopoverContent
         className="agent-launcher-panel"
         side="top"
-        aria-label="Agent terminals"
+        aria-label={t("agents.agentTerminals")}
       >
         <div className="agent-launcher-heading">
-          <span>Agent terminals</span>
+          <span>{t("agents.agentTerminals")}</span>
           <button
             type="button"
-            aria-label="Close agent terminals"
+            aria-label={t("agents.closeAgentTerminals")}
             onClick={() => setOpen(false)}
           >
             <X size={14} aria-hidden="true" />
@@ -192,28 +194,30 @@ export function AgentLauncher({
                 type="button"
                 onClick={() => setReload((value) => value + 1)}
               >
-                Retry detection
+                {t("agents.retryDetection")}
               </button>
             ) : null}
           </div>
         ) : null}
         {!items && !error ? (
-          <p role="status">Detecting installed agents...</p>
+          <p role="status">{t("agents.detectingAgents")}</p>
         ) : null}
         {items?.length === 0 ? (
-          <p role="status">No agents found on this server.</p>
+          <p role="status">{t("agents.noAgentsFound")}</p>
         ) : null}
         {selected ? (
           <form
             className="agent-launcher-editor"
-            aria-label={`${selected.label} launch command`}
+            aria-label={t("agents.launchCommandLabel", {
+              label: selected.label,
+            })}
             onSubmit={(event) => {
               event.preventDefault();
               saveCommand(command);
             }}
           >
             <label>
-              {selected.label} launch command
+              {t("agents.launchCommandLabel", { label: selected.label })}
               <input
                 autoFocus
                 value={command}
@@ -230,7 +234,7 @@ export function AgentLauncher({
                 disabled={disabled}
                 onClick={() => saveCommand(selected.command)}
               >
-                Reset
+                {t("agents.resetCommand")}
               </button>
               <button
                 type="button"
@@ -239,10 +243,10 @@ export function AgentLauncher({
                   setError(null);
                 }}
               >
-                Cancel
+                {t("history.cancel")}
               </button>
               <button type="submit" disabled={disabled || !command.trim()}>
-                Save
+                {t("agents.saveCommand")}
               </button>
             </div>
           </form>
@@ -263,8 +267,10 @@ export function AgentLauncher({
                 <button
                   type="button"
                   className="agent-launcher-edit"
-                  aria-label={`Edit ${item.label} command`}
-                  title="Edit launch command"
+                  aria-label={t("agents.editCommandAria", {
+                    label: item.label,
+                  })}
+                  title={t("agents.editLaunchCommand")}
                   disabled={disabled || !client.isCurrent()}
                   onClick={() => {
                     setCommand(

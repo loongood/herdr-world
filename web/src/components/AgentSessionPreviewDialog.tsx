@@ -11,6 +11,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { useStoreSelector } from "../store";
+import { t, useT } from "../i18n";
 import type { Pane } from "../types";
 import { uiLocale } from "../uiLocale";
 import { copyTextWithFeedback } from "../copyText";
@@ -72,13 +73,13 @@ function stepMetricText(steps: AgentSessionTrajectoryStep[]) {
   }
   return [
     latest.prompt_tokens !== undefined
-      ? `Input ${formatOptionalCompact(latest.prompt_tokens)}`
+      ? `${t("agents.statInput")} ${formatOptionalCompact(latest.prompt_tokens)}`
       : "",
     latest.cached_tokens !== undefined
-      ? `Cached ${formatOptionalCompact(latest.cached_tokens)}`
+      ? `${t("agents.statCached")} ${formatOptionalCompact(latest.cached_tokens)}`
       : "",
     latest.completion_tokens !== undefined
-      ? `Output ${formatOptionalCompact(latest.completion_tokens)}`
+      ? `${t("agents.statOutput")} ${formatOptionalCompact(latest.completion_tokens)}`
       : "",
   ]
     .filter(Boolean)
@@ -106,6 +107,7 @@ export function AgentSessionPreviewDialog({
 }) {
   const workspaces = useStoreSelector((state) => state.workspaces);
   const connectionClient = useConnectionClient();
+  const t = useT();
   const dialogRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<"timeline" | "atif" | "raw">("timeline");
   const turns = useMemo(
@@ -142,9 +144,7 @@ export function AgentSessionPreviewDialog({
     ? JSON.stringify(summary.trajectory, null, 2)
     : "";
   const unavailableDetail =
-    error ||
-    summary?.detail ||
-    "No readable session transcript was reported for this agent.";
+    error || summary?.detail || t("agents.noTranscript");
 
   // Render at the document root for the same reason as AgentMessageDialog:
   // on mobile the transformed .app box and the inspector slot's stacking
@@ -156,7 +156,7 @@ export function AgentSessionPreviewDialog({
         className="modal agent-session-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Session Inspector"
+        aria-label={t("agents.sessionInspector")}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
       >
@@ -164,62 +164,71 @@ export function AgentSessionPreviewDialog({
           <div className="agent-session-identity">
             <AgentIcon agent={pane.agent} />
             <div>
-              <h3>Session Inspector</h3>
+              <h3>{t("agents.sessionInspector")}</h3>
               <span>
-                {workspaceLabel} · {paneAgentTitle(pane) || "Agent"} ·{" "}
+                {workspaceLabel} ·{" "}
+                {paneAgentTitle(pane) || t("agents.agentFallback")} ·{" "}
                 {shortId(pane.pane_id)}
               </span>
             </div>
           </div>
-          <CloseButton label="Close Session Inspector" onClick={onClose} />
+          <CloseButton
+            label={t("agents.closeSessionInspector")}
+            onClick={onClose}
+          />
         </div>
 
         {summary?.status === "ok" ? (
           <>
             <section
               className="agent-session-overview"
-              aria-label="Session overview"
+              aria-label={t("agents.sessionOverviewAria")}
             >
               <div>
                 <strong>{formatCount(summary.stats.turns)}</strong>
-                <span>Turns</span>
+                <span>{t("agents.turnsLabel")}</span>
               </div>
               <div>
                 <strong>{formatTokenTotal(summary)}</strong>
-                <span>Total tokens</span>
+                <span>{t("agents.totalTokens")}</span>
               </div>
               <div>
                 <strong title={formatSessionTime(summary.updated_at)}>
                   {formatSessionTime(summary.updated_at)}
                 </strong>
-                <span>Updated</span>
+                <span>{t("agents.updatedLabel")}</span>
               </div>
               <p>
-                Input {formatOptionalCompact(usage?.input_tokens)}
+                {t("agents.statInput")}{" "}
+                {formatOptionalCompact(usage?.input_tokens)}
                 <span>·</span>
-                Cached {formatOptionalCompact(usage?.cached_input_tokens)}
+                {t("agents.statCached")}{" "}
+                {formatOptionalCompact(usage?.cached_input_tokens)}
                 <span>·</span>
-                Output {formatOptionalCompact(usage?.output_tokens)}
+                {t("agents.statOutput")}{" "}
+                {formatOptionalCompact(usage?.output_tokens)}
                 <span>·</span>
-                Reasoning{" "}
+                {t("agents.statReasoning")}{" "}
                 {formatOptionalCompact(usage?.reasoning_output_tokens)}
               </p>
             </section>
             <div className="agent-session-file-row">
               <div>
-                <span>Session file</span>
+                <span>{t("agents.sessionFile")}</span>
                 <code title={summary.path}>{summary.path}</code>
               </div>
               <span>
-                {formatCount(summary.stats.records)} records ·{" "}
-                {formatBytes(summary.file?.size)}
+                {t("agents.recordsCount", {
+                  count: formatCount(summary.stats.records),
+                })}{" "}
+                · {formatBytes(summary.file?.size)}
               </span>
               <button
                 type="button"
                 className="agent-history-icon"
                 onClick={() => void copyTextWithFeedback(summary.path)}
-                aria-label="Copy session file path"
-                title="Copy path"
+                aria-label={t("agents.copySessionPathAria")}
+                title={t("agents.copyPathTitle")}
               >
                 <Copy size={13} />
               </button>
@@ -230,11 +239,11 @@ export function AgentSessionPreviewDialog({
         {loading ? (
           <div className="agent-session-state">
             <span className="terminal-loading-dot" />
-            Loading session
+            {t("agents.loadingSession")}
           </div>
         ) : summary?.status !== "ok" || error ? (
           <div className="agent-session-state is-error">
-            <strong>Session unavailable</strong>
+            <strong>{t("agents.sessionUnavailable")}</strong>
             <span>{unavailableDetail}</span>
             {summary?.command ? <code>{summary.command}</code> : null}
           </div>
@@ -244,7 +253,7 @@ export function AgentSessionPreviewDialog({
               <div
                 className="agent-session-mode-switch"
                 role="tablist"
-                aria-label="Session Inspector view"
+                aria-label={t("agents.sessionViewAria")}
               >
                 <button
                   type="button"
@@ -253,7 +262,7 @@ export function AgentSessionPreviewDialog({
                   role="tab"
                   aria-selected={mode === "timeline"}
                 >
-                  Timeline
+                  {t("agents.timelineTab")}
                 </button>
                 <button
                   type="button"
@@ -271,13 +280,13 @@ export function AgentSessionPreviewDialog({
                   role="tab"
                   aria-selected={mode === "raw"}
                 >
-                  Raw
+                  {t("agents.rawLabel")}
                 </button>
               </div>
               <details className="agent-session-export-menu">
                 <summary>
                   <Download size={14} />
-                  Export
+                  {t("agents.exportLabel")}
                 </summary>
                 <div>
                   <button
@@ -291,7 +300,7 @@ export function AgentSessionPreviewDialog({
                       )
                     }
                   >
-                    Export ATIF
+                    {t("agents.exportAtif")}
                   </button>
                   <button
                     type="button"
@@ -303,14 +312,14 @@ export function AgentSessionPreviewDialog({
                       )
                     }
                   >
-                    Export raw
+                    {t("agents.exportRaw")}
                   </button>
                 </div>
               </details>
             </div>
             {summary.truncated ? (
               <div className="file-preview-banner">
-                Preview truncated. Export raw to get the full session file.
+                {t("agents.truncatedBanner")}
               </div>
             ) : null}
             <div className="agent-session-content">
@@ -321,7 +330,7 @@ export function AgentSessionPreviewDialog({
                   <CodePreview text={atifText} searchable />
                 ) : (
                   <div className="agent-session-state">
-                    No ATIF trajectory available.
+                    {t("agents.noAtifTrajectory")}
                   </div>
                 )
               ) : (
@@ -337,11 +346,10 @@ export function AgentSessionPreviewDialog({
 }
 
 function SessionTimeline({ turns }: { turns: AgentSessionTurn[] }) {
+  const t = useT();
   if (turns.length === 0) {
     return (
-      <div className="agent-session-state">
-        No timeline items. Switch to Raw to inspect the session file.
-      </div>
+      <div className="agent-session-state">{t("agents.noTimelineItems")}</div>
     );
   }
 
@@ -362,6 +370,7 @@ const SessionTurn = memo(function SessionTurn({
 }: {
   turn: AgentSessionTurn;
 }) {
+  const t = useT();
   const metrics = stepMetricText(turn.steps);
   const firstTimestamp = turn.steps.find((step) => step.timestamp)?.timestamp;
   // Match tool results back to their calls so output rows can carry the tool
@@ -378,14 +387,21 @@ const SessionTurn = memo(function SessionTurn({
       <header>
         <div>
           <strong>
-            {turn.number === null ? "Session setup" : `Turn ${turn.number}`}
+            {turn.number === null
+              ? t("agents.sessionSetup")
+              : t("agents.turnN", { number: turn.number })}
           </strong>
           {firstTimestamp ? (
             <time>{formatStepTime(firstTimestamp)}</time>
           ) : null}
         </div>
         <span>
-          {turn.steps.length} {turn.steps.length === 1 ? "event" : "events"}
+          {t(
+            turn.steps.length === 1
+              ? "agents.eventsCountOne"
+              : "agents.eventsCountMany",
+            { count: turn.steps.length },
+          )}
         </span>
       </header>
       <div className="agent-session-turn-body">
@@ -412,6 +428,7 @@ function SessionStepRows({
   step: AgentSessionTrajectoryStep;
   toolNameById: Map<string, string>;
 }) {
+  const t = useT();
   const message = meaningfulMessage(step);
   const reasoning =
     step.reasoning_content && step.reasoning_content !== message
@@ -425,7 +442,7 @@ function SessionStepRows({
           <summary>
             <ChevronRight size={12} className="agent-session-details-icon" />
             <Brain size={12} />
-            <span>Reasoning</span>
+            <span>{t("agents.reasoningLabel")}</span>
             <small>{firstLinePreview(reasoning)}</small>
           </summary>
           <pre>{reasoning}</pre>
@@ -433,13 +450,13 @@ function SessionStepRows({
       ) : null}
       {step.source === "user" && message ? (
         <section className="agent-session-exchange is-user">
-          <span>Prompt</span>
+          <span>{t("agents.promptLabel")}</span>
           <pre>{message}</pre>
         </section>
       ) : null}
       {step.source === "agent" && message ? (
         <section className="agent-session-exchange is-agent">
-          <span>Response</span>
+          <span>{t("agents.responseLabel")}</span>
           <pre>{message}</pre>
         </section>
       ) : null}
@@ -477,7 +494,7 @@ function SessionStepRows({
             <span>
               {(result.source_call_id &&
                 toolNameById.get(result.source_call_id)) ||
-                "Tool output"}
+                t("agents.toolOutput")}
             </span>
             <small>{firstLinePreview(result.content ?? "")}</small>
           </summary>
@@ -491,7 +508,7 @@ function SessionStepRows({
           <summary>
             <ChevronRight size={12} className="agent-session-details-icon" />
             <Info size={12} />
-            <span>System</span>
+            <span>{t("agents.systemLabel")}</span>
             <small>{firstLinePreview(message)}</small>
           </summary>
           <pre>{message}</pre>

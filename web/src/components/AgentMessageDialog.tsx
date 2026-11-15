@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { focusDialogElement } from "./dialogFocus";
+import { useT } from "../i18n";
 import {
   AgentMessageContent,
   agentMessageRoleLabel,
@@ -16,6 +17,7 @@ export function AgentMessageDialog({
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const t = useT();
   const messageId = message?.id ?? null;
 
   useEffect(() => {
@@ -51,7 +53,9 @@ export function AgentMessageDialog({
         className="modal agent-message-modal"
         role="dialog"
         aria-modal="true"
-        aria-label={`Full ${agentMessageRoleLabel(message).toLowerCase()} message`}
+        aria-label={t("agents.fullMessageAria", {
+          role: agentMessageRoleLabel(message).toLowerCase(),
+        })}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
       >
