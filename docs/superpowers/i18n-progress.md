@@ -7,9 +7,9 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`9e359852`(批次 37 主体);批次 36 主体 `2adc5213`,Windows 路径修复 `95a861f2`
-- 词典规模:en / zh-Hans / zh-Hant 各 **5099** 键,0 占位符不匹配
-- 工作区:批次 37 变更已格式化、类型检查通过、lint 39 warnings(与基线一致)
+- 最新提交:`92088bbe`(批次 38 主体);批次 37 主体 `9e359852`,批次 36 主体 `2adc5213`
+- 词典规模:en / zh-Hans / zh-Hant 各 **5130** 键,0 占位符不匹配
+- 工作区:批次 38 变更已格式化、类型检查通过、lint 39 warnings(与基线一致)
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
 ## 项目与设计文档
@@ -157,6 +157,7 @@
 | 34 | `69744a0f` | store 通知文案(新增 storeNotices 域,约 111 键):连接与恢复通知、操作结果警告、更新与 Herdr 升级进度、git 与 worktree 生命周期通知、通知正文与动作、窗格移动与命令失败;store 级验证错误消息仍保持英文 |
 | 35 | `279a907f` | web/src/components 剩余 + worldIntegrations:新增顶层 components 域(18 子域)与 worldIntegrations 域;AgentChat、AgentCheckoutPanel(拆出前缀与细节)、CodexSessionLink、ConnectionHerdrInfo、ConversationMinimap、HistoryTerminalComposer、InspectorSourceFiles、InstanceNameSettings、SpeechSettings、TerminalFileLinkMenu、WorktreeCommandSettings、WorktreeOpenDialog、WorldIntegrationRow、PaneMoveMenu、PullRequestCard、CommandCombobox、FileExplorerDialog、FilePreviewContent、FilesystemBrowser、TerminalView、ColorSwatch、markdown、PopupOverlay、WorkspaceInspectorHost、agentSession、agentDisplayName、fileExplorerResources、inspectorCheckout;修复两处语言相关哨兵("Unassigned" 与 "Visual selection") |
 | 37 | `9e359852` | web/src/ 顶层:新增 marks/agents/assistant/app/connections/terminal/speech/worktree/attachments/status/notifications/annotations/pr 补键与 speech、notifications 新域(约 114 键);api、agentIntegrations、agentLauncher、agentOrder、agentWorktreeClient、agentWorktreeTrial、assistantModels、attachmentUploads、connectionProfiles、copyText、endpointAvailability、markdownToSpeech、resourcePresentationClient、speechPlayback、sshProfileValidation、store、taskNotifications、taskPush、terminalComposer(Commands)、terminalHistorySelection、terminalImageUpload、terminalInput、terminalPaste、terminalRecovery、terminalTouchSelection、useAgentWorktree、useAllServerAgentSessions、useReviewAnnotationDraft、useWorktreePullRequests、visibleTabLayout、worktreeLifecycle、workspaceTreeBadges、AssistantChatControls、AssistantPanel、TerminalView |
+| 38 | `92088bbe` | 零散用户可见文案(31 键):新增 office 域(10 键)+ herdrOrder/bin/town.fuel/world/boardView/worktree/creation/terminal/diff/chat/search 补键;officeSelection、board/BoardLenses、board/useBoardSearch、herdrOrder、town/scene/townInteraction、town/townLimits、town/answerOutbox、useWorldInspectorController、WorldIntentProfile、BoardView、store/worktreeActions、store/creation、terminalClipboard、components/diffAutoCollapse、components/chat/useChatKeys、i18n/format(新增 formatNumber) |
 
 ---
 
@@ -274,32 +275,49 @@ world 目录剩余英文(约 80 条)已全部迁移:`worldInspectorSelection.ts`
 - 新键 `worktree.hostUnavailableForRead`:原拟用名 `worktree.hostUnavailable`
   与既有键重复(TS1117),改名避开。
 
-### 批次 38:零散用户可见文案(当前)
+### 批次 38:零散用户可见文案 —— **已完成**
 
-全量重扫 `web/src/`(排除 `i18n/`、`*/testing/`、测试文件)后剩余的
-**用户可见**文案,按文件:
+提交:`92088bbe`。词典 5099 → **5130** 键(新增 `office` 域 10 键 + 21 个既有
+域补键:`herdrOrder`/`bin`/`town.fuel`/`world`/`boardView`/`worktree`/
+`creation`/`terminal`/`diff`/`chat`/`search`)。
 
-- `world/town/townLimits.ts`:"not available"、"limit reached"、"5 h limit reached"、
-  "seen 1 h ago" 等限额与时效提示
-- `world/town/TownRoomPlaque.tsx`、`world/town/TownFuelGauge.tsx`、
-  `world/town/townSummary.ts`、`world/town/townScaleRuntime.ts`、
-  `world/town/TownWorldLayer.tsx`、`world/town/townRenderer.ts`
-- `world/BoardView.tsx`:"Move the terminal to <workspace>?"、"Don't ask again"、
-  "the note no longer exists"、"not found"、"Board frame failed"
-- `world/officeObservability.ts`:可观测面板的行标签(需逐条判断是标签还是诊断码)
-- `components/MobileTerminalShortcutsDialog.tsx`:"Navigation keys"、"Function keys"
-- `components/AssistantPanel.tsx`、`components/AgentChat.tsx`、
-  `components/AgentSessionPreviewDialog.tsx`、`components/WorkspaceRows.tsx`、
-  `components/WorkspaceTree.tsx`、`components/DiffViewerPanel.tsx`、
-  `components/DiffContentView.tsx`、`components/FilesystemBrowser.tsx`、
-  `components/CodePreview.tsx`、`components/FileExplorerDialog.tsx`
-- `world/NeedsYouTab.tsx`、`world/PullRequestCard.tsx`、`world/DeskView.tsx`、
-  `world/runtimeStore.ts`、`world/officeSelection.ts`
-- `web/src/testing/TerminalLinkInspector.tsx`(开发调试页,看情况)
+全量重扫 `web/src/`(排除 `i18n/`、`*/testing/`、测试文件,**并且去掉注释**
+——旧扫描脚本会把注释里的 "Tue 14:00"、"limit reached" 当成待译文案)后,
+真正剩下的用户可见文案已全部迁移:
 
-**不译**:命令面板搜索关键词(`CommandCombobox.tsx` 的 ~90 条英文关键词、
-`worktreeCommandActions.tsx` 的 worktree 关键词)、CSS 字符串、内置主题名、
-键帽标签、内部错误码与 fixture 文本。
+- `world/officeSelection.ts`:stale、empty desk、desks/agents 计数、
+  live Office state、not observed、活动时长(just now / Ns / Nm / Nh / Nd)
+- `world/board/useBoardSearch.ts`:No matches / 1 match / N matches
+  (复用 `search.matchOne`/`search.matchMany`)
+- `world/board/BoardLenses.tsx`:nothing to show(复用 `town.lensNothingToShow`)
+- `world/herdrOrder.ts`:The host's rooms、already first/last、Herdr 不能重排标签页
+- `world/town/scene/townInteraction.ts`:Put in the bin
+- `world/town/townLimits.ts`:三条用量来源名(Codex session log 等)
+- `world/town/answerOutbox.ts`:original host(复用 `outbox.originalHost`)
+- `world/useWorldInspectorController.ts`:This terminal could not be opened
+- `world/WorldIntentProfile.tsx`:宿主状态(复用既有 `intent.host*` 四键)
+- `world/BoardView.tsx`:the note no longer exists
+- `store/worktreeActions.ts`:origin's default branch
+- `store/creation.ts`:目标主机导航模式尚不可用
+- `terminalClipboard.ts`:三条剪贴板失败文案
+- `components/diffAutoCollapse.ts`:generated file / large diff / large file /
+  N changed lines
+- `components/chat/useChatKeys.ts`:The conversation changed. Nothing was sent.
+- `i18n/format.ts`:新增 `formatNumber()`(按当前语言分组)
+
+**保持英文(有意)**:命令面板与 worktree 动作的搜索关键词、CSS 类名、
+内置终端主题名、键帽标签、内部错误码与协议标识、fixture 文本、
+`officeObservability.ts` 的解析诊断文案。
+
+**本批次的两个坑**:
+- `herdrOrder.ts` 的 `TAB_MOVE_UNSUPPORTED` 原本是**模块级常量**,里面的
+  `message` 会在导入时就被求值并冻结语言 → 改成 `tabMoveUnsupported()` 函数。
+  `townLimits.ts` 的 `SOURCE_NAMES` 同理,改成键表 + 函数内 `t()`。
+- `world/town/scene/townInteraction.ts` 属于 Town 场景模块图,只能引
+  `../../../i18n/core`(纯核心);`web/src/i18n/` 整个目录在边界契约里是允许的。
+- 顺带修回一处早期漂移:`appearance.unavailable` 的英文值由
+  "Terminal appearance unavailable" 恢复为原文
+  "Terminal appearance is unavailable"(check-en3 报出)。
 
 ### 阶段 3(远期):服务端消息
 
