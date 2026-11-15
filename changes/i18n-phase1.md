@@ -46,6 +46,12 @@
   pane toolbar, splits and close confirmation), the composer (modes, uploads,
   commands, notices and errors) and the tab pane layout (switcher, empty
   state and pane counter), including the close-warning sentence about
-  unsent drafts.
+  unsent drafts. The terminal appearance dialog follows too: font and size
+  controls with the installed-font picker, theme cards and the custom
+  theme editor (color fields, limits and delete confirmation). The mobile
+  shortcut editor, the incremental transport setting and the composer's
+  command palette follow as well. The built-in slash-command catalog keeps
+  its English descriptions: they document external CLIs, not World's own
+  copy.
   Remaining surfaces keep English
   until their phase lands.

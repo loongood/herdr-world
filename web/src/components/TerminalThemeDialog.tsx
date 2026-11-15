@@ -50,6 +50,7 @@ import {
   CommandList,
 } from "./ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { type TranslationKey, useT } from "../i18n";
 import "./TerminalThemeDialog.css";
 
 // Editor fallback palette for colors a source theme leaves unset (xterm
@@ -78,28 +79,28 @@ const EDITOR_FALLBACK_COLORS: Record<TerminalThemeColorKey, string> = {
   brightWhite: "#eeeeec",
 };
 
-const COLOR_KEY_LABELS: Record<TerminalThemeColorKey, string> = {
-  background: "Background",
-  foreground: "Foreground",
-  cursor: "Cursor",
-  cursorAccent: "Cursor text",
-  selectionBackground: "Selection",
-  black: "Black",
-  red: "Red",
-  green: "Green",
-  yellow: "Yellow",
-  blue: "Blue",
-  magenta: "Magenta",
-  cyan: "Cyan",
-  white: "White",
-  brightBlack: "Bright black",
-  brightRed: "Bright red",
-  brightGreen: "Bright green",
-  brightYellow: "Bright yellow",
-  brightBlue: "Bright blue",
-  brightMagenta: "Bright magenta",
-  brightCyan: "Bright cyan",
-  brightWhite: "Bright white",
+const COLOR_KEY_LABEL_KEYS: Record<TerminalThemeColorKey, TranslationKey> = {
+  background: "terminal.colorBackground",
+  foreground: "terminal.colorForeground",
+  cursor: "terminal.colorCursor",
+  cursorAccent: "terminal.colorCursorText",
+  selectionBackground: "terminal.colorSelection",
+  black: "terminal.colorBlack",
+  red: "terminal.colorRed",
+  green: "terminal.colorGreen",
+  yellow: "terminal.colorYellow",
+  blue: "terminal.colorBlue",
+  magenta: "terminal.colorMagenta",
+  cyan: "terminal.colorCyan",
+  white: "terminal.colorWhite",
+  brightBlack: "terminal.colorBrightBlack",
+  brightRed: "terminal.colorBrightRed",
+  brightGreen: "terminal.colorBrightGreen",
+  brightYellow: "terminal.colorBrightYellow",
+  brightBlue: "terminal.colorBrightBlue",
+  brightMagenta: "terminal.colorBrightMagenta",
+  brightCyan: "terminal.colorBrightCyan",
+  brightWhite: "terminal.colorBrightWhite",
 };
 
 const ALL_COLOR_KEYS: readonly TerminalThemeColorKey[] = [
@@ -107,9 +108,12 @@ const ALL_COLOR_KEYS: readonly TerminalThemeColorKey[] = [
   ...TERMINAL_ANSI_COLOR_KEYS,
 ];
 
-const THEME_VARIANTS: readonly { value: ResolvedTheme; label: string }[] = [
-  { value: "dark", label: "Dark mode" },
-  { value: "light", label: "Light mode" },
+const THEME_VARIANTS: readonly {
+  value: ResolvedTheme;
+  labelKey: TranslationKey;
+}[] = [
+  { value: "dark", labelKey: "terminal.variantDark" },
+  { value: "light", labelKey: "terminal.variantLight" },
 ];
 
 let nextCustomThemeId = 1;
@@ -220,6 +224,7 @@ function TerminalFontPicker({
   const [installedFonts, setInstalledFonts] = useState<string[] | null>(null);
   const [fontListError, setFontListError] = useState<string | null>(null);
   const [loadingFonts, setLoadingFonts] = useState(false);
+  const t = useT();
   const queryFonts = localFontQuery();
   const typedName = normalizeTerminalFontFamily(search);
   const typedNameListed = installedFonts?.some(
@@ -248,10 +253,9 @@ function TerminalFontPicker({
         (a, b) => a.localeCompare(b),
       );
       setInstalledFonts(families);
-      if (families.length === 0)
-        setFontListError("The browser did not share any installed fonts.");
+      if (families.length === 0) setFontListError(t("terminal.fontListEmpty"));
     } catch {
-      setFontListError("Font access was denied. Type a font name instead.");
+      setFontListError(t("terminal.fontAccessDenied"));
     } finally {
       setLoadingFonts(false);
     }
@@ -265,10 +269,10 @@ function TerminalFontPicker({
           className={`terminal-font-trigger ${open ? "is-open" : ""}`}
           role="combobox"
           aria-expanded={open}
-          aria-label="Terminal font"
+          aria-label={t("terminal.fontTriggerAria")}
         >
           <span style={{ fontFamily: terminalFontFamilyStack(fontName) }}>
-            {fontName || "Default"}
+            {fontName || t("terminal.fontDefault")}
           </span>
           <ChevronsUpDown size={13} aria-hidden="true" />
         </button>
@@ -283,8 +287,8 @@ function TerminalFontPicker({
           <CommandInput
             value={search}
             onValueChange={setSearch}
-            placeholder="Search or enter a font name..."
-            aria-label="Search terminal fonts"
+            placeholder={t("terminal.fontSearchPlaceholder")}
+            aria-label={t("terminal.fontSearchAria")}
             maxLength={MAX_TERMINAL_FONT_NAME_LENGTH}
           />
           <CommandList>
@@ -300,10 +304,10 @@ function TerminalFontPicker({
                     className="command-item-title"
                     style={{ fontFamily: terminalFontFamilyStack(typedName) }}
                   >
-                    Use "{typedName}"
+                    {t("terminal.useFontName", { name: typedName })}
                   </span>
                   <span className="command-item-detail">
-                    Must be installed on this device
+                    {t("terminal.fontMustBeInstalled")}
                   </span>
                 </span>
               </CommandItem>
@@ -316,9 +320,11 @@ function TerminalFontPicker({
               onSelect={() => choose("")}
             >
               <span className="command-item-text">
-                <span className="command-item-title">Default</span>
+                <span className="command-item-title">
+                  {t("terminal.fontDefault")}
+                </span>
                 <span className="command-item-detail">
-                  Built-in terminal fonts
+                  {t("terminal.fontBuiltIn")}
                 </span>
               </span>
               <Check size={13} aria-hidden="true" />
@@ -334,17 +340,17 @@ function TerminalFontPicker({
                 <span className="command-item-text">
                   <span className="command-item-title">
                     {loadingFonts
-                      ? "Loading installed fonts..."
-                      : "Show installed fonts"}
+                      ? t("terminal.fontsLoading")
+                      : t("terminal.showInstalledFonts")}
                   </span>
                   <span className="command-item-detail">
-                    {fontListError ?? "The browser asks for access once"}
+                    {fontListError ?? t("terminal.fontAccessOnce")}
                   </span>
                 </span>
               </CommandItem>
             ) : null}
             {installedFonts && installedFonts.length > 0 ? (
-              <CommandGroup heading="Installed">
+              <CommandGroup heading={t("terminal.installedHeading")}>
                 {installedFonts.map((family) => (
                   <CommandItem
                     key={family}
@@ -386,22 +392,23 @@ function TerminalFontSection({
   onFontNameChange: (name: string) => void;
   onFontScaleChange: (scale: number) => void;
 }) {
+  const t = useT();
   return (
     <section className="terminal-theme-section">
       <div className="terminal-theme-section-head">
         <div>
           <strong>
             <Type size={14} aria-hidden="true" />
-            Font
+            {t("terminal.fontSection")}
           </strong>
-          <span>Uses fonts installed on this device</span>
+          <span>{t("terminal.fontSectionHint")}</span>
         </div>
       </div>
       <div className="terminal-font-group">
         <div className="terminal-font-row">
           <div className="config-item-copy">
-            <strong>Family</strong>
-            <span>Missing characters fall back to the default fonts</span>
+            <strong>{t("terminal.fontFamily")}</strong>
+            <span>{t("terminal.fontFamilyHint")}</span>
           </div>
           <TerminalFontPicker
             fontName={fontName}
@@ -410,17 +417,17 @@ function TerminalFontSection({
         </div>
         <div className="terminal-font-row">
           <div className="config-item-copy">
-            <strong>Size</strong>
-            <span>Scales terminal text only</span>
+            <strong>{t("terminal.fontSize")}</strong>
+            <span>{t("terminal.fontSizeHint")}</span>
           </div>
           <div
             className="config-scale-control"
             role="group"
-            aria-label="Terminal font size"
+            aria-label={t("terminal.fontSizeGroupAria")}
           >
             <button
               type="button"
-              aria-label="Decrease terminal font size"
+              aria-label={t("terminal.fontSizeDecrease")}
               disabled={fontScale <= TERMINAL_FONT_SCALE_MIN}
               onClick={() =>
                 onFontScaleChange(
@@ -433,7 +440,7 @@ function TerminalFontSection({
             <button
               type="button"
               className="config-scale-value"
-              aria-label={`Reset terminal font size, currently ${fontScale}%`}
+              aria-label={t("terminal.fontSizeReset", { scale: fontScale })}
               disabled={fontScale === TERMINAL_FONT_SCALE_DEFAULT}
               onClick={() => onFontScaleChange(TERMINAL_FONT_SCALE_DEFAULT)}
             >
@@ -441,7 +448,7 @@ function TerminalFontSection({
             </button>
             <button
               type="button"
-              aria-label="Increase terminal font size"
+              aria-label={t("terminal.fontSizeIncrease")}
               disabled={fontScale >= TERMINAL_FONT_SCALE_MAX}
               onClick={() =>
                 onFontScaleChange(
@@ -481,6 +488,7 @@ export function TerminalThemeDialog({
   onFontScaleChange: (scale: number) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const dialogRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState<TerminalThemeDraft | null>(null);
   const previewFontFamily = terminalFontFamilyStack(fontName);
@@ -553,12 +561,17 @@ export function TerminalThemeDialog({
       selection,
       customThemes,
     );
-    setDraft(draftFromDefinition(current, "Custom theme"));
+    setDraft(
+      draftFromDefinition(current, t("terminal.defaultCustomThemeName")),
+    );
   };
 
   const duplicateTheme = (card: ThemeCardData) => {
     setDraft(
-      draftFromDefinition(card.definition, `${card.definition.name} copy`),
+      draftFromDefinition(
+        card.definition,
+        t("terminal.copyThemeName", { name: card.definition.name }),
+      ),
     );
   };
 
@@ -566,7 +579,7 @@ export function TerminalThemeDialog({
     if (!draft || missingDraft || (!draft.id && !canCreate)) return;
     const theme: CustomTerminalTheme = {
       id: draft.id ?? newCustomThemeId(),
-      name: draft.name.trim() || "Custom theme",
+      name: draft.name.trim() || t("terminal.defaultCustomThemeName"),
       variant: draft.variant,
       colors: { ...draft.colors },
     };
@@ -640,7 +653,9 @@ export function TerminalThemeDialog({
               )}
               {label}
             </strong>
-            <span>Used when the app is in {label.toLowerCase()}</span>
+            <span>
+              {t("terminal.usedInVariant", { mode: label.toLowerCase() })}
+            </span>
           </div>
           <button
             type="button"
@@ -648,19 +663,21 @@ export function TerminalThemeDialog({
             disabled={!canCreate}
             title={
               canCreate
-                ? `Create a custom theme for ${label.toLowerCase()}`
-                : `Custom theme limit reached (${MAX_CUSTOM_TERMINAL_THEMES})`
+                ? t("terminal.createThemeFor", { mode: label.toLowerCase() })
+                : t("terminal.themeLimitReached", {
+                    max: MAX_CUSTOM_TERMINAL_THEMES,
+                  })
             }
             onClick={() => startNewTheme(variant)}
           >
             <Plus size={14} aria-hidden="true" />
-            New theme
+            {t("terminal.newTheme")}
           </button>
         </div>
         <div
           className="terminal-theme-grid"
           role="radiogroup"
-          aria-label={`${label} terminal theme`}
+          aria-label={t("terminal.variantThemeAria", { mode: label })}
         >
           {cards.map((card, index) => {
             const active = selection[variant] === card.definition.id;
@@ -688,17 +705,23 @@ export function TerminalThemeDialog({
                   <span className="terminal-theme-card-name">
                     {active ? <Check size={13} aria-hidden="true" /> : null}
                     {card.definition.name}
-                    {custom ? <span className="badge">Custom</span> : null}
+                    {custom ? (
+                      <span className="badge">{t("terminal.customBadge")}</span>
+                    ) : null}
                   </span>
                 </button>
                 <span className="terminal-theme-card-actions">
                   <button
                     type="button"
-                    aria-label={`Duplicate ${card.definition.name}`}
+                    aria-label={t("terminal.duplicateThemeAria", {
+                      name: card.definition.name,
+                    })}
                     title={
                       canCreate
-                        ? "Duplicate as custom theme"
-                        : `Custom theme limit reached (${MAX_CUSTOM_TERMINAL_THEMES})`
+                        ? t("terminal.duplicateAsCustom")
+                        : t("terminal.themeLimitReached", {
+                            max: MAX_CUSTOM_TERMINAL_THEMES,
+                          })
                     }
                     disabled={!canCreate}
                     onClick={() => duplicateTheme(card)}
@@ -709,16 +732,20 @@ export function TerminalThemeDialog({
                     <>
                       <button
                         type="button"
-                        aria-label={`Edit ${card.definition.name}`}
-                        title="Edit theme"
+                        aria-label={t("terminal.editThemeAria", {
+                          name: card.definition.name,
+                        })}
+                        title={t("terminal.editTheme")}
                         onClick={() => setDraft(draftFromCustom(custom))}
                       >
                         <Pencil size={13} aria-hidden="true" />
                       </button>
                       <button
                         type="button"
-                        aria-label={`Delete ${card.definition.name}`}
-                        title="Delete theme"
+                        aria-label={t("terminal.deleteThemeAria", {
+                          name: card.definition.name,
+                        })}
+                        title={t("terminal.deleteTheme")}
                         onClick={() => setPendingDelete(custom)}
                       >
                         <Trash2 size={13} aria-hidden="true" />
@@ -745,7 +772,7 @@ export function TerminalThemeDialog({
           value={current.colors[key]}
           onChange={(event) => setColor(key, event.target.value)}
         />
-        <span>{COLOR_KEY_LABELS[key]}</span>
+        <span>{t(COLOR_KEY_LABEL_KEYS[key])}</span>
         <code>{current.colors[key]}</code>
       </label>
     );
@@ -753,8 +780,10 @@ export function TerminalThemeDialog({
       <>
         <div className="modal-head">
           <div>
-            <h2>{current.id ? "Edit theme" : "New theme"}</h2>
-            <p>Pick colors; the preview updates as you go.</p>
+            <h2>
+              {current.id ? t("terminal.editTheme") : t("terminal.newTheme")}
+            </h2>
+            <p>{t("terminal.editorHint")}</p>
           </div>
           <CloseButton onClick={onClose} />
         </div>
@@ -762,7 +791,7 @@ export function TerminalThemeDialog({
         <div className="terminal-theme-editor">
           <div className="terminal-theme-editor-top">
             <label className="form-field terminal-theme-name-field">
-              <span>Theme name</span>
+              <span>{t("terminal.themeName")}</span>
               <input
                 value={current.name}
                 maxLength={MAX_TERMINAL_THEME_NAME_LENGTH}
@@ -772,16 +801,16 @@ export function TerminalThemeDialog({
               />
             </label>
             <div className="terminal-theme-variant-field">
-              <span>Suggested for</span>
+              <span>{t("terminal.suggestedFor")}</span>
               <div
                 className="config-theme-control"
-                aria-label="Suggested appearance"
+                aria-label={t("terminal.suggestedAppearanceAria")}
               >
                 {THEME_VARIANTS.map((variant) => (
                   <button
                     key={variant.value}
                     type="button"
-                    aria-label={variant.label}
+                    aria-label={t(variant.labelKey)}
                     aria-pressed={current.variant === variant.value}
                     className={
                       current.variant === variant.value ? "is-active" : ""
@@ -807,13 +836,13 @@ export function TerminalThemeDialog({
           />
 
           <div className="terminal-theme-color-group">
-            <strong>Base colors</strong>
+            <strong>{t("terminal.baseColors")}</strong>
             <div className="terminal-theme-color-grid">
               {TERMINAL_BASE_COLOR_KEYS.map(colorField)}
             </div>
           </div>
           <div className="terminal-theme-color-group">
-            <strong>ANSI colors</strong>
+            <strong>{t("terminal.ansiColors")}</strong>
             <div className="terminal-theme-color-grid">
               {TERMINAL_ANSI_COLOR_KEYS.map(colorField)}
             </div>
@@ -821,15 +850,13 @@ export function TerminalThemeDialog({
         </div>
 
         {missingDraft ? (
-          <p role="alert">
-            This theme no longer exists. Your unsaved edits are kept here until
-            you close the editor.
-          </p>
+          <p role="alert">{t("terminal.missingThemeAlert")}</p>
         ) : null}
         {!current.id && !canCreate ? (
           <p role="alert">
-            Custom theme limit reached ({MAX_CUSTOM_TERMINAL_THEMES}). Delete a
-            theme before creating another.
+            {t("terminal.themeLimitReachedDetail", {
+              max: MAX_CUSTOM_TERMINAL_THEMES,
+            })}
           </p>
         ) : null}
         <div className="modal-actions">
@@ -838,7 +865,7 @@ export function TerminalThemeDialog({
             className="ghost"
             onClick={() => setDraft(null)}
           >
-            Cancel
+            {t("history.cancel")}
           </button>
           <button
             type="button"
@@ -849,7 +876,7 @@ export function TerminalThemeDialog({
             }
             onClick={saveDraft}
           >
-            {current.id ? "Save theme" : "Create theme"}
+            {current.id ? t("terminal.saveTheme") : t("terminal.createTheme")}
           </button>
         </div>
       </>
@@ -867,7 +894,7 @@ export function TerminalThemeDialog({
           className="modal terminal-themes-modal"
           role="dialog"
           aria-modal="true"
-          aria-label="Terminal appearance"
+          aria-label={t("terminal.appearanceAria")}
           tabIndex={-1}
           onMouseDown={(event) => event.stopPropagation()}
         >
@@ -877,8 +904,8 @@ export function TerminalThemeDialog({
             <>
               <div className="modal-head">
                 <div>
-                  <h2>Terminal Appearance</h2>
-                  <p>Font, size, and themes for terminals in this browser.</p>
+                  <h2>{t("terminal.appearanceTitle")}</h2>
+                  <p>{t("terminal.appearanceSubtitle")}</p>
                 </div>
                 <CloseButton onClick={onClose} />
               </div>
@@ -889,7 +916,7 @@ export function TerminalThemeDialog({
                 onFontScaleChange={onFontScaleChange}
               />
               {THEME_VARIANTS.map((variant) =>
-                renderSection(variant.value, variant.label),
+                renderSection(variant.value, t(variant.labelKey)),
               )}
             </>
           )}
@@ -897,9 +924,11 @@ export function TerminalThemeDialog({
       </div>
       <ConfirmDialog
         open={pendingDelete !== null}
-        title="Delete theme"
-        message={`Delete "${pendingDelete?.name ?? ""}"? This cannot be undone.`}
-        confirmLabel="Delete"
+        title={t("terminal.deleteTheme")}
+        message={t("terminal.deleteConfirm", {
+          name: pendingDelete?.name ?? "",
+        })}
+        confirmLabel={t("terminal.deleteAction")}
         danger
         onConfirm={() => {
           if (pendingDelete) deleteCustomTheme(pendingDelete);

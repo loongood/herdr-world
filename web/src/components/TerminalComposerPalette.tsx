@@ -2,6 +2,7 @@ import "./TerminalComposerPalette.css";
 import { X } from "lucide-react";
 import type { RefObject, KeyboardEvent, MouseEvent } from "react";
 import type { ComposerCommand } from "../terminalComposerCommands";
+import { useT } from "../i18n";
 
 /** The existing command palette, shared by the terminal and Chat composer. */
 export function TerminalComposerPalette({
@@ -39,13 +40,14 @@ export function TerminalComposerPalette({
   commandListRef: RefObject<HTMLDivElement | null>;
   matches: readonly ComposerCommand[];
 }) {
+  const t = useT();
   return (
     <section
       ref={commandPickerRef}
       className="terminal-composer-commands"
       role="group"
       tabIndex={-1}
-      aria-label="Agent commands"
+      aria-label={t("terminal.agentCommandsAria")}
       aria-activedescendant={
         !replacement && selectedCommand
           ? `${pickerId}-${activeCommand}`
@@ -54,10 +56,10 @@ export function TerminalComposerPalette({
       onKeyDown={commandKeyDown}
     >
       <div className="terminal-composer-command-heading">
-        <span>Commands</span>
+        <span>{t("terminal.commandsHeading")}</span>
         <button
           type="button"
-          aria-label="Dismiss commands"
+          aria-label={t("terminal.dismissCommandsAria")}
           onMouseDown={keepTextareaFocus}
           onClick={closeCommandPicker}
         >
@@ -68,11 +70,12 @@ export function TerminalComposerPalette({
         <div
           className="terminal-composer-command-confirm"
           role="group"
-          aria-label="Confirm draft replacement"
+          aria-label={t("terminal.confirmReplacementAria")}
         >
           <p role="status">
-            Replace the entire draft with {replacement.command.name}? Nothing
-            will be sent.
+            {t("terminal.replaceDraftNotice", {
+              name: replacement.command.name,
+            })}
           </p>
           <button
             type="button"
@@ -84,7 +87,7 @@ export function TerminalComposerPalette({
               focusPickerWithoutKeyboard();
             }}
           >
-            Cancel
+            {t("history.cancel")}
           </button>
           <button
             type="button"
@@ -94,7 +97,7 @@ export function TerminalComposerPalette({
             onMouseDown={keepTextareaFocus}
             onClick={() => selectCommand(replacement.command, true)}
           >
-            Replace draft
+            {t("terminal.replaceDraft")}
           </button>
         </div>
       ) : (
@@ -103,7 +106,7 @@ export function TerminalComposerPalette({
             id={pickerId}
             ref={commandListRef}
             role="listbox"
-            aria-label="Agent commands"
+            aria-label={t("terminal.agentCommandsAria")}
             className="terminal-composer-command-list"
           >
             {matches.map((command, index) => (
@@ -135,7 +138,7 @@ export function TerminalComposerPalette({
           </div>
           {matches.length === 0 ? (
             <span className="terminal-composer-command-note" role="status">
-              No matching commands. You can still type and send your own.
+              {t("terminal.noMatchingCommands")}
             </span>
           ) : null}
         </>
