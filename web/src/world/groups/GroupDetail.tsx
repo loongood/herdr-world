@@ -1,10 +1,11 @@
 import { useState } from "react";
 import {
-  GROUP_STATUS_LABELS,
   type GroupTerminalObservation,
   type GroupView,
 } from "../../../../shared/groupViews";
 import type { GroupChange } from "../../../../shared/groups";
+import { useT } from "../../i18n";
+import { groupKindName, groupOpLabel, groupStatusLabel } from "./groupLabels";
 import { PullRequestCard } from "../PullRequestCard";
 import { GroupMembers } from "./GroupMembers";
 import { GroupInterestButton } from "./GroupInterestButton";
@@ -46,16 +47,22 @@ export function GroupDetail({
   const [name, setName] = useState(group.name);
   const [now, setNow] = useState(group.now.join("\n"));
   const [limit, setLimit] = useState(String(group.openPrLimit ?? 2));
+  const t = useT();
+  const currentState = `${t("groups.currentState", {
+    kind: groupKindName(group.kind),
+    name: group.name,
+    now: group.now.join("; ") || t("groups.currentNone"),
+  })}${group.kind === "pod" ? t("groups.currentStateLimit", { limit: String(group.openPrLimit) }) : ""}`;
   return (
     <div className="group-detail">
       <GroupInterestButton group={group} onError={onError} />
       <p className="group-status-line">
         <span
           className={`group-status is-${group.status}`}
-          aria-label={GROUP_STATUS_LABELS[group.status]}
+          aria-label={groupStatusLabel(group.status)}
         />
         {groupStatusText(group)}
-        {!group.current && " · cached topology"}
+        {!group.current && t("groups.cachedTopology")}
       </p>
       <GroupMembers
         group={group}
@@ -70,7 +77,7 @@ export function GroupDetail({
       />
       <section>
         <div className="group-section-heading">
-          <h3>Open PRs</h3>
+          <h3>{t("groups.openPrsTitle")}</h3>
           <span
             className={`group-pr-pill${group.overLimit ? " is-warning" : ""}`}
           >
@@ -80,19 +87,19 @@ export function GroupDetail({
         {group.workState !== "current" && (
           <p className="group-hint">
             {group.workState === "stale"
-              ? "Cached work · GitHub refresh failed. Check the current head before acting."
-              : "GitHub work is unavailable; the count is unknown."}
+              ? t("groups.workStale")
+              : t("groups.workUnknown")}
           </p>
         )}
         {group.openPullRequests.map((item) => (
           <PullRequestCard key={item.key} item={item} compact />
         ))}
         {group.workState === "current" && !group.openPullRequests.length && (
-          <p className="group-hint">No linked open PRs.</p>
+          <p className="group-hint">{t("groups.noOpenPrs")}</p>
         )}
       </section>
       <section>
-        <h3>Now</h3>
+        <h3>{t("groups.nowTitle")}</h3>
         {group.now.length ? (
           <ol>
             {group.now.map((item, index) => (
@@ -108,7 +115,7 @@ export function GroupDetail({
             ))}
           </ol>
         ) : (
-          <p className="group-hint">No Now items.</p>
+          <p className="group-hint">{t("groups.noNowItems")}</p>
         )}
       </section>
       {group.stored && (
@@ -126,7 +133,7 @@ export function GroupDetail({
                 setEditError(null);
               }}
             >
-              Edit {group.kind}…
+              {t("groups.editKind", { kind: groupKindName(group.kind) })}
             </button>
             {group.kind === "team" && (
               <button
@@ -142,7 +149,7 @@ export function GroupDetail({
                   }
                 }}
               >
-                Promote to Pod…
+                {t("groups.promoteToPod")}
               </button>
             )}
             <button
@@ -152,11 +159,13 @@ export function GroupDetail({
               onClick={() =>
                 onPlan({
                   ops: [{ op: "group.delete", id: group.id }],
-                  confirmation: `Delete ${groupTitle(group)}? Its agents keep running and recent deletion attribution is retained.`,
+                  confirmation: t("groups.deleteConfirm", {
+                    group: groupTitle(group),
+                  }),
                 })
               }
             >
-              Delete {group.kind}…
+              {t("groups.deleteKind", { kind: groupKindName(group.kind) })}
             </button>
           </div>
           {editing && (
@@ -166,8 +175,8 @@ export function GroupDetail({
                 event.preventDefault();
                 const numeric = Number(limit);
                 if (!Number.isSafeInteger(numeric) || numeric < 0) {
-                  setEditError("Open-PR limit must be a nonnegative integer.");
-                  onError("Open-PR limit must be a nonnegative integer.");
+                  setEditError(t("groups.limitInvalid"));
+                  onError(t("groups.limitInvalid"));
                   return;
                 }
                 onPlan({
@@ -198,14 +207,14 @@ export function GroupDetail({
               <GroupEditFeedback
                 error={editError}
                 changed={revision !== editRevision}
-                current={`Current ${group.kind}: ${group.name}. Now: ${group.now.join("; ") || "none"}.${group.kind === "pod" ? ` Open-PR limit: ${group.openPrLimit}.` : ""}`}
+                current={currentState}
                 onReview={() => {
                   setEditRevision(revision);
                   setEditError(null);
                 }}
               />
               <label>
-                Name
+                {t("groups.nameLabel")}
                 <input
                   value={name}
                   maxLength={240}
@@ -214,7 +223,7 @@ export function GroupDetail({
                 />
               </label>
               <label>
-                Now · one item per line
+                {t("groups.nowLabel")}
                 <textarea
                   value={now}
                   onChange={(event) => setNow(event.target.value)}
@@ -222,7 +231,7 @@ export function GroupDetail({
               </label>
               {group.kind === "pod" && (
                 <label>
-                  Open-PR limit · warning only
+                  {t("groups.limitLabel")}
                   <input
                     type="number"
                     min={0}
@@ -232,29 +241,27 @@ export function GroupDetail({
                   />
                 </label>
               )}
-              <button disabled={busy}>Save</button>
+              <button disabled={busy}>{t("common.save")}</button>
               <button type="button" onClick={() => setEditing(false)}>
-                Cancel
+                {t("common.cancel")}
               </button>
             </form>
           )}
         </>
       )}
       <section className="group-attribution">
-        <h3>Recent changes</h3>
-        <p className="group-hint">
-          Latest 128 changes across all Groups · sender claims, not
-          authenticated identities.
-        </p>
+        <h3>{t("groups.recentChanges")}</h3>
+        <p className="group-hint">{t("groups.recentChangesHint")}</p>
         {changes.length ? (
           changes
             .slice(-12)
             .reverse()
             .map((change, index) => (
               <p key={`${change.revision}:${change.group_id}:${index}`}>
-                {change.op.replace("group.", "").replace(/_/g, " ")} by{" "}
+                {groupOpLabel(change.op)}
+                {t("groups.attributionBy")}
                 {change.sender.basis === "unknown"
-                  ? "unknown sender"
+                  ? t("groups.unknownSender")
                   : `${change.sender.label} (${change.sender.basis})`}{" "}
                 ·{" "}
                 <time dateTime={new Date(change.at).toISOString()}>
@@ -263,7 +270,7 @@ export function GroupDetail({
               </p>
             ))
         ) : (
-          <p className="group-hint">No recent attribution retained.</p>
+          <p className="group-hint">{t("groups.noRecentChanges")}</p>
         )}
       </section>
     </div>

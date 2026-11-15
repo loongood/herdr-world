@@ -5,6 +5,7 @@ import {
   groupTitle,
   openGroups,
 } from "./groupActions";
+import { useT } from "../../i18n";
 import { useGroups } from "./useGroups";
 import "./groupsSummary.css";
 
@@ -31,19 +32,20 @@ export function GroupsSummaryContent({
   error?: string | null;
   onOpen?(key?: string): void;
 }) {
+  const t = useT();
   const pods = groups.filter((group) => group.kind === "pod");
   return (
     <section className="groups-summary" aria-labelledby="groups-summary-title">
       <div className="groups-summary-heading">
-        <h3 id="groups-summary-title">Pods</h3>
+        <h3 id="groups-summary-title">{t("groups.podsTitle")}</h3>
         <button type="button" onClick={() => onOpen()}>
-          Groups…
+          {t("groups.openGroups")}
         </button>
       </div>
       {error ? <p role="status">{error}</p> : null}
       {!ready ? (
         error ? null : (
-          <p role="status">Loading Pods…</p>
+          <p role="status">{t("groups.loadingPods")}</p>
         )
       ) : pods.length ? (
         <ul>
@@ -52,7 +54,9 @@ export function GroupsSummaryContent({
               <button
                 type="button"
                 className="groups-summary-pod"
-                aria-label={`Open ${groupTitle(group)} in Groups`}
+                aria-label={t("groups.openInGroups", {
+                  group: groupTitle(group),
+                })}
                 onClick={() => onOpen(group.key)}
               >
                 <span
@@ -67,12 +71,16 @@ export function GroupsSummaryContent({
                     {group.members.some(
                       (member) => member.resolution !== "present",
                     )
-                      ? ` · ${group.members.filter((member) => member.resolution !== "present").length} away or ambiguous`
+                      ? t("groups.awayOrAmbiguous", {
+                          count: group.members.filter(
+                            (member) => member.resolution !== "present",
+                          ).length,
+                        })
                       : ""}
                   </small>
                   {group.now[0] ? (
                     <span className="groups-summary-now">
-                      Now: {group.now[0]}
+                      {t("groups.nowItem", { now: group.now[0] })}
                     </span>
                   ) : null}
                 </span>
@@ -86,7 +94,7 @@ export function GroupsSummaryContent({
           ))}
         </ul>
       ) : (
-        <p className="town-summary-empty">No Pods yet.</p>
+        <p className="town-summary-empty">{t("groups.noPods")}</p>
       )}
     </section>
   );

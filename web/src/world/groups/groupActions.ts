@@ -1,3 +1,5 @@
+import { t } from "../../i18n";
+import { groupKindLabel, groupStatusLabel } from "./groupLabels";
 import type { GroupOp } from "../../../../shared/groupOps";
 import {
   agentAddress,
@@ -8,7 +10,6 @@ import {
   type GroupRef,
 } from "../../../../shared/groups";
 import {
-  GROUP_STATUS_LABELS,
   type GroupView,
   type GroupViewMember,
   type GroupTerminalObservation,
@@ -21,37 +22,34 @@ export function openGroups(key?: string) {
   );
 }
 export const groupTitle = (group: Pick<GroupView, "kind" | "name">) =>
-  `${group.kind[0]?.toUpperCase()}${group.kind.slice(1)} · ${group.name}`;
+  `${groupKindLabel(group.kind)} · ${group.name}`;
 export const groupStatusText = (group: GroupView) =>
   Object.entries(group.counts)
     .filter(([, count]) => count > 0)
-    .map(
-      ([status, count]) =>
-        `${count} ${GROUP_STATUS_LABELS[status as keyof typeof GROUP_STATUS_LABELS]}`,
+    .map(([status, count]) =>
+      t("groups.countStatus", { count, status: groupStatusLabel(status) }),
     )
-    .join(" · ") || "Status unknown";
-export const groupPrText = (group: GroupView) =>
-  group.workState === "unknown"
-    ? "Open PRs unknown"
-    : `${group.openPullRequests.length}${group.openPrLimit === null ? "" : `/${group.openPrLimit}`} open PRs${group.workState === "stale" ? " · cached" : ""}`;
+    .join(" · ") || t("groups.statusUnknown");
+export const groupPrText = (group: GroupView) => {
+  if (group.workState === "unknown") return t("groups.prUnknown");
+  const count = `${group.openPullRequests.length}${group.openPrLimit === null ? "" : `/${group.openPrLimit}`}`;
+  return group.workState === "stale"
+    ? t("groups.openPrsCached", { count })
+    : t("groups.openPrs", { count });
+};
 export function memberRef(
   group: GroupView,
   terminal: GroupTerminalObservation,
   terminals: readonly GroupTerminalObservation[],
 ): GroupRef {
   if (group.owner !== "world")
-    throw new Error(
-      "Herdr owns Room/Desk membership. Move the desk or pane in Town.",
-    );
+    throw new Error(t("groups.errors.herdrMembership"));
   if (group.kind === "team")
     return {
       connection_id: terminal.connectionId,
       terminal_id: terminal.terminalId,
     };
-  if (!terminal.name)
-    throw new Error(
-      "This agent has no actual Herdr name. Supply a qualified address.",
-    );
+  if (!terminal.name) throw new Error(t("groups.errors.noHerdrName"));
   if (
     terminals.filter(
       (entry) =>
@@ -59,9 +57,7 @@ export function memberRef(
         entry.name === terminal.name,
     ).length !== 1
   )
-    throw new Error(
-      "Several current agents have that Herdr name. Please rename the agent or give an explicit agent:// address.",
-    );
+    throw new Error(t("groups.errors.duplicateName"));
   return agentAddress(terminal.connectionId, terminal.name);
 }
 /** Revalidate the selection's captured identity rather than adopting a new occupant. */
@@ -80,10 +76,7 @@ export function selectedMemberRef(
       (terminal.sessionFingerprint ?? null) ===
         (selected.sessionFingerprint ?? null),
   );
-  if (matches.length !== 1)
-    throw new Error(
-      "This agent changed or is no longer current. Choose it again or give an explicit address.",
-    );
+  if (matches.length !== 1) throw new Error(t("groups.errors.agentChanged"));
   return memberRef(group, selected, terminals);
 }
 export type GroupEditPlan = {
@@ -101,15 +94,12 @@ export function groupMemberEdit(
   groups: readonly GroupView[],
   edit = false,
 ): GroupEditPlan {
-  if (!group.stored)
-    throw new Error(
-      "Herdr owns this membership. Move the desk or pane in Town.",
-    );
+  if (!group.stored) throw new Error(t("groups.errors.herdrMembershipShort"));
   const parsed = parseGroupRef(ref);
   if (group.kind === "pod" && typeof parsed !== "string")
-    throw new Error("A Pod needs an agent:// address.");
+    throw new Error(t("groups.errors.podNeedsAddress"));
   if (group.kind === "team" && (typeof parsed === "string" || roles.length))
-    throw new Error("A Team needs a terminal ref and has no roles.");
+    throw new Error(t("groups.errors.teamNeedsTerminal"));
   const conflict =
     group.kind === "pod" && hasExclusivePodRole(roles)
       ? groups.find(
@@ -131,7 +121,13 @@ export function groupMemberEdit(
     ...(conflict
       ? {
           replace: true,
-          confirmation: `${typeof parsed === "string" ? parseAgentAddress(parsed).name : "This agent"} already leads or builds ${conflict.name}. Move that exclusive role here instead? Other roles are kept.`,
+          confirmation: t("groups.errors.exclusiveRole", {
+            agent:
+              typeof parsed === "string"
+                ? parseAgentAddress(parsed).name
+                : t("groups.errors.thisAgent"),
+            group: conflict.name,
+          }),
         }
       : {}),
   };
@@ -154,7 +150,7 @@ export function groupPromotion(
   groups: readonly GroupView[],
 ): GroupEditPlan {
   if (group.kind !== "team" || !group.stored)
-    throw new Error("Only a stored Team can be promoted.");
+    throw new Error(t("groups.errors.onlyStoredTeam"));
   const mapping = group.members.map((member: GroupViewMember) => {
     const match =
       member.resolution === "present" && member.matches.length === 1
@@ -165,9 +161,7 @@ export function groupPromotion(
       typeof member.ref === "string" ||
       "tab_id" in member.ref
     )
-      throw new Error(
-        "Every Team member needs one current named agent. Use the CLI for an explicit complete address mapping.",
-      );
+      throw new Error(t("groups.errors.teamMembersNamed"));
     const to = agentAddress(match.connectionId, match.name);
     if (
       groups.some(
@@ -179,12 +173,18 @@ export function groupPromotion(
       )
     )
       throw new Error(
-        `${match.name} already leads or builds a Pod; transfer the role explicitly before promotion.`,
+        t("groups.errors.podRoleConflict", { agent: match.name }),
       );
     return { from: member.ref, to, roles: ["builder"] };
   });
   return {
     ops: [{ op: "group.promote", id: group.id, name, mapping }],
-    confirmation: `Promote to Pod · ${name}, preserving this Group's identity? Explicit member mapping: ${mapping.map((entry) => `${entry.from.terminal_id} → ${entry.to}`).join("; ") || "empty Team"}.`,
+    confirmation: t("groups.errors.promoteConfirm", {
+      name,
+      mapping:
+        mapping
+          .map((entry) => `${entry.from.terminal_id} → ${entry.to}`)
+          .join("; ") || t("groups.errors.emptyTeam"),
+    }),
   };
 }

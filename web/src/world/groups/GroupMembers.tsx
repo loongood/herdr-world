@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { AgentIcon } from "../../components/AgentIcon";
+import { useT } from "../../i18n";
+import {
+  groupKindName,
+  groupResolutionLabel,
+  groupRoleLabel,
+} from "./groupLabels";
 import { parseGroupRef, type GroupRef } from "../../../../shared/groups";
 import type {
   GroupTerminalObservation,
@@ -23,10 +29,11 @@ export function MemberPortrait({
   reviewer?: boolean;
   harness?(terminal: GroupTerminalObservation): string | undefined;
 }) {
+  const t = useT();
   return (
     <span
       className={`group-portrait${reviewer ? " is-reviewer" : ""}${member.resolution === "present" ? "" : " is-away"}`}
-      title={`${member.label} · ${reviewer ? "Reviewer" : member.roles.join(", ") || "Member"} · ${member.resolution}`}
+      title={`${member.label} · ${reviewer ? t("groups.reviewerTitle") : member.roles.map(groupRoleLabel).join(", ") || t("groups.memberTitle")} · ${groupResolutionLabel(member.resolution)}`}
     >
       <AgentIcon
         compact
@@ -70,6 +77,7 @@ export function GroupMembers({
   const [roles, setRoles] = useState<string[]>([]);
   const [roleRevision, setRoleRevision] = useState(revision);
   const [roleError, setRoleError] = useState<string | null>(null);
+  const t = useT();
   const sections =
     group.kind === "pod" ? ["lead", "builder", "reviewer", "other"] : ["other"];
   const apply = (action: () => void, onFailure: (message: string) => void) => {
@@ -89,9 +97,9 @@ export function GroupMembers({
         group.members[0]!.ref.connection_id === terminal.connectionId),
   );
   return (
-    <section className="group-members" aria-label="Members">
+    <section className="group-members" aria-label={t("groups.membersAria")}>
       <div className="group-section-heading">
-        <h3>Members</h3>
+        <h3>{t("groups.membersTitle")}</h3>
         {group.stored && (
           <button
             type="button"
@@ -104,7 +112,7 @@ export function GroupMembers({
               setAddress("");
             }}
           >
-            Add…
+            {t("groups.add")}
           </button>
         )}
       </div>
@@ -119,8 +127,7 @@ export function GroupMembers({
               const ref = address.trim()
                 ? parseGroupRef(address.trim())
                 : selected?.ref;
-              if (!ref)
-                throw new Error("Choose an agent or give a qualified address.");
+              if (!ref) throw new Error(t("groups.chooseAgent"));
               const plan = groupMemberEdit(
                 group,
                 ref,
@@ -145,14 +152,23 @@ export function GroupMembers({
           <GroupEditFeedback
             error={addError}
             changed={revision !== addRevision}
-            current={`Current members of ${group.name}: ${group.members.map((member) => `${member.label}${member.roles.length ? ` (${member.roles.join(", ")})` : ""}`).join("; ") || "none"}.`}
+            current={t("groups.currentMembers", {
+              group: group.name,
+              members:
+                group.members
+                  .map(
+                    (member) =>
+                      `${member.label}${member.roles.length ? ` (${member.roles.map(groupRoleLabel).join(", ")})` : ""}`,
+                  )
+                  .join("; ") || t("groups.currentNone"),
+            })}
             onReview={() => {
               setAddRevision(revision);
               setAddError(null);
             }}
           />
           <label>
-            Current agent
+            {t("groups.currentAgent")}
             <select
               value={
                 selected
@@ -178,7 +194,7 @@ export function GroupMembers({
                   );
               }}
             >
-              <option value="">Choose…</option>
+              <option value="">{t("groups.choose")}</option>
               {eligible.map((terminal) => (
                 <option
                   key={`${terminal.connectionId}\0${terminal.terminalId}`}
@@ -193,7 +209,7 @@ export function GroupMembers({
           {group.kind === "pod" && (
             <>
               <label>
-                Or qualified address
+                {t("groups.qualifiedAddress")}
                 <input
                   value={address}
                   placeholder="agent://connection-a/name"
@@ -201,29 +217,26 @@ export function GroupMembers({
                 />
               </label>
               <label>
-                Role
+                {t("groups.roleLabel")}
                 <select
                   value={role}
                   onChange={(event) => setRole(event.target.value)}
                 >
                   {["builder", "lead", "reviewer"].map((role) => (
-                    <option key={role}>{role}</option>
+                    <option key={role}>{groupRoleLabel(role)}</option>
                   ))}
                 </select>
               </label>
             </>
           )}
-          <button disabled={busy}>Add member</button>
+          <button disabled={busy}>{t("groups.addMember")}</button>
           <button type="button" onClick={() => setAdding(false)}>
-            Cancel
+            {t("common.cancel")}
           </button>
         </form>
       )}
       {group.owner === "herdr" && (
-        <p className="group-hint">
-          Herdr owns this membership. Move the whole desk into a Room, or a pane
-          into a Desk in Town. CLI moves require <code>--herdr</code>.
-        </p>
+        <p className="group-hint">{t("groups.herdrOwned")}</p>
       )}
       {sections.map((section) => {
         const members = group.members.filter((member) =>
@@ -238,12 +251,12 @@ export function GroupMembers({
           <div key={section}>
             <h4>
               {section === "other"
-                ? "Members"
+                ? t("groups.membersTitle")
                 : section === "lead"
-                  ? "Lead"
+                  ? t("groups.sectionLead")
                   : section === "builder"
-                    ? "Builders"
-                    : "Reviewers"}
+                    ? t("groups.sectionBuilders")
+                    : t("groups.sectionReviewers")}
             </h4>
             {members.map((member) => {
               const key = JSON.stringify(member.ref);
@@ -262,10 +275,13 @@ export function GroupMembers({
                     <b title={member.label}>{member.label}</b>
                     <small>
                       {member.resolution === "ambiguous"
-                        ? `${member.matches.length} agents named ${member.label}. Inspect a match; membership remains ambiguous.`
+                        ? t("groups.memberAmbiguous", {
+                            count: member.matches.length,
+                            name: member.label,
+                          })
                         : member.resolution === "away"
-                          ? "Away · last seen unavailable"
-                          : "Present"}
+                          ? t("groups.memberAway")
+                          : t("groups.memberPresent")}
                     </small>
                   </div>
                   {member.matches.map((match) => (
@@ -275,8 +291,11 @@ export function GroupMembers({
                       onClick={() => onOpen(match)}
                     >
                       {member.resolution === "ambiguous"
-                        ? `Inspect ${match.connectionId} · ${match.paneId}`
-                        : "Open"}
+                        ? t("groups.inspect", {
+                            connection: match.connectionId,
+                            pane: match.paneId,
+                          })
+                        : t("groups.open")}
                     </button>
                   ))}
                   {group.stored && (
@@ -292,12 +311,20 @@ export function GroupMembers({
                             confirmation: member.roles.some((role) =>
                               ["lead", "reviewer"].includes(role),
                             )
-                              ? `Remove ${member.label} and their ${member.roles.join(", ")} roles from ${group.name}?`
+                              ? t("groups.removeConfirm", {
+                                  member: member.label,
+                                  roles: member.roles
+                                    .map(groupRoleLabel)
+                                    .join(", "),
+                                  group: group.name,
+                                })
                               : undefined,
                           })
                         }
                       >
-                        Remove from {group.kind}
+                        {t("groups.removeFrom", {
+                          kind: groupKindName(group.kind),
+                        })}
                       </button>
                       {group.kind === "pod" && (
                         <button
@@ -310,7 +337,7 @@ export function GroupMembers({
                             setRoleError(null);
                           }}
                         >
-                          Roles…
+                          {t("groups.roles")}
                         </button>
                       )}
                       {editing === key && (
@@ -339,7 +366,12 @@ export function GroupMembers({
                           <GroupEditFeedback
                             error={roleError}
                             changed={revision !== roleRevision}
-                            current={`Current roles for ${member.label}: ${member.roles.join(", ") || "none"}.`}
+                            current={t("groups.currentRoles", {
+                              member: member.label,
+                              roles:
+                                member.roles.map(groupRoleLabel).join(", ") ||
+                                t("groups.currentNone"),
+                            })}
                             onReview={() => {
                               setRoleRevision(revision);
                               setRoleError(null);
@@ -365,15 +397,17 @@ export function GroupMembers({
                                   )
                                 }
                               />
-                              {role}
+                              {groupRoleLabel(role)}
                             </label>
                           ))}
-                          <button disabled={busy}>Save roles</button>
+                          <button disabled={busy}>
+                            {t("groups.saveRoles")}
+                          </button>
                           <button
                             type="button"
                             onClick={() => setEditing(null)}
                           >
-                            Cancel
+                            {t("common.cancel")}
                           </button>
                         </form>
                       )}
@@ -385,7 +419,9 @@ export function GroupMembers({
           </div>
         ) : null;
       })}
-      {!group.members.length && <p className="group-hint">No members yet.</p>}
+      {!group.members.length && (
+        <p className="group-hint">{t("groups.noMembers")}</p>
+      )}
     </section>
   );
 }

@@ -19,6 +19,8 @@ import {
   WORLD_GROUPS_OPEN_EVENT,
   type GroupEditPlan,
 } from "./groupActions";
+import { useT } from "../../i18n";
+import { groupKindLabel, groupKindName, groupKindPlural } from "./groupLabels";
 import { useGroups } from "./useGroups";
 import "./groups.css";
 
@@ -92,6 +94,7 @@ function GroupsBody({
   const [creating, setCreating] = useState(false);
   const [newKind, setNewKind] = useState("pod");
   const [name, setName] = useState("");
+  const t = useT();
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -166,15 +169,12 @@ function GroupsBody({
           leaf.actionable,
       );
     if (leaf) onOpenTerminal(leaf.id);
-    else
-      setError(
-        "This agent changed or is no longer current. Read Groups again.",
-      );
+    else setError(t("groups.staleAgent"));
   };
   return (
     <WorldPanel
       name="groups"
-      label={group ? groupTitle(group) : "Groups"}
+      label={group ? groupTitle(group) : t("groups.title")}
       focusKey={request}
       onClose={onClose}
     >
@@ -184,7 +184,7 @@ function GroupsBody({
             {error || boardError}
           </p>
         )}
-        {!document && <p role="status">Loading Groups…</p>}
+        {!document && <p role="status">{t("groups.loading")}</p>}
         {group ? (
           <>
             <button
@@ -192,7 +192,7 @@ function GroupsBody({
               className="group-back"
               onClick={() => setSelected(undefined)}
             >
-              ← Back to Groups
+              {t("groups.back")}
             </button>
             <GroupDetail
               key={group.key}
@@ -214,12 +214,10 @@ function GroupsBody({
           </>
         ) : (
           <>
-            {selected && (
-              <p className="group-hint">This Group is no longer present.</p>
-            )}
+            {selected && <p className="group-hint">{t("groups.missing")}</p>}
             <div className="groups-toolbar">
               <div className="workspace-agent-layout-control group-kind-control">
-                <div role="group" aria-label="Group kind">
+                <div role="group" aria-label={t("groups.kindAria")}>
                   {KINDS.map((value) => (
                     <button
                       type="button"
@@ -228,8 +226,7 @@ function GroupsBody({
                       aria-pressed={kind === value}
                       onClick={() => setKind(value)}
                     >
-                      {value[0]!.toUpperCase()}
-                      {value.slice(1)}
+                      {groupKindLabel(value)}
                     </button>
                   ))}
                 </div>
@@ -239,7 +236,7 @@ function GroupsBody({
                 disabled={!document || busy}
                 onClick={() => setCreating(!creating)}
               >
-                New…
+                {t("groups.new")}
               </button>
             </div>
             {creating && (
@@ -266,17 +263,17 @@ function GroupsBody({
                 }}
               >
                 <label>
-                  Kind
+                  {t("groups.kindLabel")}
                   <select
                     value={newKind}
                     onChange={(event) => setNewKind(event.target.value)}
                   >
-                    <option value="pod">Pod</option>
-                    <option value="team">Team</option>
+                    <option value="pod">{groupKindLabel("pod")}</option>
+                    <option value="team">{groupKindLabel("team")}</option>
                   </select>
                 </label>
                 <label>
-                  Name
+                  {t("groups.nameLabel")}
                   <input
                     value={name}
                     required
@@ -284,13 +281,19 @@ function GroupsBody({
                     onChange={(event) => setName(event.target.value)}
                   />
                 </label>
-                <button disabled={busy}>Create {newKind}</button>
+                <button disabled={busy}>
+                  {t("groups.create", { kind: groupKindName(newKind) })}
+                </button>
                 <button type="button" onClick={() => setCreating(false)}>
-                  Cancel
+                  {t("common.cancel")}
                 </button>
               </form>
             )}
-            <div className="group-roster" role="list" aria-label="Groups">
+            <div
+              className="group-roster"
+              role="list"
+              aria-label={t("groups.rosterAria")}
+            >
               {groups
                 .filter((group) => kind === "all" || group.kind === kind)
                 .map((group: GroupView) => (
@@ -306,9 +309,14 @@ function GroupsBody({
                       />
                       <span className="group-roster-title">
                         {groupTitle(group)}
-                        {!group.current && <small>Cached · not current</small>}
+                        {!group.current && (
+                          <small>{t("groups.cachedNotCurrent")}</small>
+                        )}
                       </span>
-                      <span className="group-lead" aria-label="Lead">
+                      <span
+                        className="group-lead"
+                        aria-label={t("groups.leadAria")}
+                      >
                         {group.members
                           .filter((member) => member.roles.includes("lead"))
                           .slice(0, 1)
@@ -322,7 +330,9 @@ function GroupsBody({
                       </span>
                       <span
                         className="group-stack"
-                        aria-label={`${group.members.length} members`}
+                        aria-label={t("groups.membersCount", {
+                          count: group.members.length,
+                        })}
                       >
                         {group.members.slice(0, 4).map((member) => (
                           <MemberPortrait
@@ -337,7 +347,7 @@ function GroupsBody({
                       </span>
                       <span
                         className="group-stack group-reviewers"
-                        aria-label="Reviewers"
+                        aria-label={t("groups.reviewersAria")}
                       >
                         {group.members
                           .filter((member) => member.roles.includes("reviewer"))
@@ -375,20 +385,17 @@ function GroupsBody({
             </div>
             {!groups.some((group) => kind === "all" || group.kind === kind) && (
               <p className="group-hint">
-                No {kind === "all" ? "Groups" : `${kind}s`} yet.
+                {t("groups.noneYet", { kind: groupKindPlural(kind) })}
               </p>
             )}
           </>
         )}
-        <p className="group-crew-rule">
-          Lead/Reviewer edits are for the owner or FirstMate by crew rule. World
-          records sender claims; it does not authenticate that role.
-        </p>
+        <p className="group-crew-rule">{t("groups.crewRule")}</p>
         <ConfirmDialog
           open={pending !== null}
-          title="Confirm Group change"
+          title={t("groups.confirmTitle")}
           message={pending?.plan.confirmation ?? ""}
-          confirmLabel="Confirm"
+          confirmLabel={t("common.confirm")}
           danger={pending?.plan.ops.some((op) => op.op === "group.delete")}
           onClose={() => setPending(null)}
           onConfirm={() => {

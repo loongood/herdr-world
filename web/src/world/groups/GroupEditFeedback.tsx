@@ -1,3 +1,5 @@
+import { useT } from "../../i18n";
+
 export function GroupEditFeedback({
   error,
   changed,
@@ -9,6 +11,7 @@ export function GroupEditFeedback({
   current: string;
   onReview(): void;
 }) {
+  const t = useT();
   return (
     <>
       {error && (
@@ -18,11 +21,11 @@ export function GroupEditFeedback({
       )}
       {changed && (
         <div className="group-hint">
-          <p>The Board changed while this form was open. {current}</p>
+          <p>{t("groups.feedbackChanged", { current })}</p>
           <button type="button" onClick={onReview}>
-            Use current version
+            {t("groups.useCurrentVersion")}
           </button>
-          <p>Your draft is kept. Review these values before saving again.</p>
+          <p>{t("groups.draftKept")}</p>
         </div>
       )}
     </>

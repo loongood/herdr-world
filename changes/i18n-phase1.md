@@ -184,5 +184,11 @@
   moves with their notices and confirmations, the move and team menus, the
   room rename and close dialogs, and Board's Herdr order controls, pane moves
   and Mark reviewed.
+  The Groups surfaces follow too: the roster and its kind filters, the Pod
+  summary in Town, the Group detail (its status line, open pull requests, the
+  Now list, its edit and delete actions and the recent-changes attribution),
+  the member roster with its add, inspect and remove actions, the role
+  editor, the group interest choices, the conflict feedback and the refusals
+  the Group edits report.
   Remaining surfaces keep English
   until their phase lands.
