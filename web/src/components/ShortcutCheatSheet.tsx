@@ -1,18 +1,20 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { CloseButton } from "./CloseButton";
-import { focusDialogElement } from "./dialogFocus";
 import { activeTerminalInput } from "../activeTerminalInput";
+import { useT } from "../i18n";
 import { SHORTCUT_PLATFORMS } from "../shortcutBindings";
 import { shortcutCheatSheet } from "../shortcutCheatSheet";
 import {
   shortcutMatches,
   useShortcutPreferences,
 } from "../shortcutPreferences";
+import { CloseButton } from "./CloseButton";
+import { focusDialogElement } from "./dialogFocus";
 import "./ShortcutCheatSheet.css";
 
 /** Read-only overview of the active preset; editing stays in Configuration. */
 export function ShortcutCheatSheet({ onClose }: { onClose: () => void }) {
   const { preferences, preset, platform } = useShortcutPreferences();
+  const t = useT();
   const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const groups = shortcutCheatSheet(preset.bindings, platform, search);
@@ -56,7 +58,7 @@ export function ShortcutCheatSheet({ onClose }: { onClose: () => void }) {
         className="modal shortcut-cheatsheet"
         role="dialog"
         aria-modal="true"
-        aria-label="Shortcut cheat sheet"
+        aria-label={t("shortcuts.sheetAria")}
         tabIndex={-1}
         onKeyDown={(event) => {
           if (event.key !== "Tab") return;
@@ -78,10 +80,12 @@ export function ShortcutCheatSheet({ onClose }: { onClose: () => void }) {
       >
         <div className="modal-head">
           <div>
-            <h2>Keyboard shortcuts</h2>
+            <h2>{t("shortcuts.title")}</h2>
             <p>
               {preferences.active === "auto"
-                ? `Automatic (${SHORTCUT_PLATFORMS[platform]})`
+                ? t("shortcuts.automaticPreset", {
+                    platform: SHORTCUT_PLATFORMS[platform],
+                  })
                 : preset.name}
             </p>
           </div>
@@ -89,12 +93,12 @@ export function ShortcutCheatSheet({ onClose }: { onClose: () => void }) {
             ref={searchRef}
             type="search"
             className="shortcut-cheatsheet-search"
-            aria-label="Filter shortcuts"
-            placeholder="Filter shortcuts..."
+            aria-label={t("shortcuts.filterAria")}
+            placeholder={t("shortcuts.filterPlaceholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
-          <CloseButton label="Close shortcut cheat sheet" onClick={onClose} />
+          <CloseButton label={t("shortcuts.sheetClose")} onClick={onClose} />
         </div>
         <div className="shortcut-cheatsheet-body">
           {groups.map(({ group, rows }) => (
@@ -107,13 +111,15 @@ export function ShortcutCheatSheet({ onClose }: { onClose: () => void }) {
                     <dd>
                       {row.combos.length === 0 ? (
                         <span className="shortcut-cheatsheet-unassigned">
-                          Unassigned
+                          {t("shortcuts.unassigned")}
                         </span>
                       ) : (
                         row.combos.map((caps, index) => (
                           <Fragment key={caps.join("+")}>
                             {index > 0 ? (
-                              <span className="shortcut-cheatsheet-or">or</span>
+                              <span className="shortcut-cheatsheet-or">
+                                {t("shortcuts.or")}
+                              </span>
                             ) : null}
                             <span className="shortcut-cheatsheet-combo">
                               {caps.map((cap, capIndex) => (
@@ -130,13 +136,12 @@ export function ShortcutCheatSheet({ onClose }: { onClose: () => void }) {
             </section>
           ))}
           {groups.length === 0 ? (
-            <p className="shortcut-cheatsheet-empty">No matching shortcuts.</p>
+            <p className="shortcut-cheatsheet-empty">
+              {t("shortcuts.noMatching")}
+            </p>
           ) : null}
         </div>
-        <p className="shortcut-cheatsheet-foot">
-          Read-only. Change bindings in Configuration &gt; Behavior &gt;
-          Keyboard shortcuts.
-        </p>
+        <p className="shortcut-cheatsheet-foot">{t("shortcuts.sheetFoot")}</p>
       </div>
     </div>
   );

@@ -1,3 +1,5 @@
+import { t } from "./i18n";
+import { normalizeSearchText } from "./searchText";
 import {
   formatShortcut,
   SHORTCUT_NUMBERS,
@@ -5,8 +7,7 @@ import {
   type ShortcutId,
   type ShortcutPlatform,
 } from "./shortcutBindings";
-import { SHORTCUT_CATALOG } from "./shortcutCatalog";
-import { normalizeSearchText } from "./searchText";
+import { SHORTCUT_CATALOG, shortcutLabel } from "./shortcutCatalog";
 
 export type CheatSheetRow = {
   key: string;
@@ -16,9 +17,12 @@ export type CheatSheetRow = {
 };
 export type CheatSheetGroup = { group: string; rows: CheatSheetRow[] };
 
-const numberedRanges: Record<string, string> = {
-  tab: "Switch to tab 1-9",
-  command: "Run numbered actions 1-9 in the command menu",
+const numberedRangeKeys: Record<
+  string,
+  "shortcuts.tabRange" | "shortcuts.commandRange"
+> = {
+  tab: "shortcuts.tabRange",
+  command: "shortcuts.commandRange",
 };
 
 // Search folds "-" and "/" as separators; keep them when they are the key.
@@ -75,6 +79,8 @@ export function shortcutCheatSheet(
   };
   const collapsed = new Map<string, string | null>();
   for (const item of SHORTCUT_CATALOG) {
+    const group = t(item.group);
+    const label = shortcutLabel(item);
     const numbered = /^(tab|command)\.\d$/.exec(item.id);
     if (numbered) {
       const prefix = numbered[1];
@@ -88,18 +94,20 @@ export function shortcutCheatSheet(
             new RegExp(`^${prefix}\\.\\d$`).test(entry.id),
           );
           const caps = [...shortcutKeyCaps(modifiers, platform), "1-9"];
+          const rangeText = t(numberedRangeKeys[prefix]);
           add(
-            item.group,
+            group,
             {
               key: `${prefix}.range`,
-              label: numberedRanges[prefix],
+              label: rangeText,
               combos: [caps],
             },
             [
-              numberedRanges[prefix],
+              rangeText,
               caps.join("+"),
               ...members.map(
-                (entry) => `${entry.label} ${keyText(bindings[entry.id])}`,
+                (entry) =>
+                  `${shortcutLabel(entry)} ${keyText(bindings[entry.id])}`,
               ),
             ].join(" "),
           );
@@ -108,13 +116,13 @@ export function shortcutCheatSheet(
       }
     }
     add(
-      item.group,
+      group,
       {
         key: item.id,
-        label: item.label,
+        label,
         combos: bindings[item.id].map((key) => shortcutKeyCaps(key, platform)),
       },
-      `${item.label} ${keyText(bindings[item.id])}`,
+      `${label} ${keyText(bindings[item.id])}`,
     );
   }
   return [...groups].map(([group, rows]) => ({ group, rows }));

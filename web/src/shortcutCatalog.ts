@@ -1,110 +1,234 @@
+import { type TranslationKey, t } from "./i18n";
 import { SHORTCUT_NUMBERS, type ShortcutId } from "./shortcutBindings";
+
+export type ShortcutLabelKey = Extract<
+  TranslationKey,
+  `shortcuts.label${string}`
+>;
+export type ShortcutGroupKey = Extract<
+  TranslationKey,
+  `shortcuts.group${string}`
+>;
 export type ShortcutDescription = {
   id: ShortcutId;
-  label: string;
-  group: string;
+  label: ShortcutLabelKey;
+  group: ShortcutGroupKey;
+  count?: number;
 };
-const descriptions: [ShortcutId, string, string][] = [
+
+const descriptions: (
+  | [ShortcutId, ShortcutLabelKey, ShortcutGroupKey]
+  | [ShortcutId, ShortcutLabelKey, ShortcutGroupKey, number]
+)[] = [
+  ["command.menu", "shortcuts.labelCommandMenu", "shortcuts.groupGlobal"],
+  ["shortcuts.show", "shortcuts.labelShortcutsShow", "shortcuts.groupGlobal"],
+  ["sidebar.toggle", "shortcuts.labelSidebarToggle", "shortcuts.groupGlobal"],
   [
-    "command.menu",
-    "Open or close the command menu: find anything in World and act on it",
-    "Global",
+    "inspector.toggle",
+    "shortcuts.labelInspectorToggle",
+    "shortcuts.groupGlobal",
   ],
-  ["shortcuts.show", "Show the shortcut cheat sheet on desktop", "Global"],
-  ["sidebar.toggle", "Toggle the desktop sidebar", "Global"],
-  ["inspector.toggle", "Toggle the Workspace Inspector", "Global"],
-  ["inspector.expand", "Expand or restore the Inspector on desktop", "Global"],
-  ["annotations.toggle", "Toggle Annotations", "Global"],
-  ["assistant.toggle", "Toggle Ranger", "Global"],
-  ["zen.toggle", "Toggle Zen mode", "Global"],
-  ["panes.recent", "Open the recent pane switcher", "Global"],
-  ["plugin.herdrFloat.toggle", "Toggle the Herdr Float popup shell", "Global"],
-  ["panes.search", "Search panes in the pane switcher", "Global"],
-  ["view.search", "Search the current view (Town, Board or Desk)", "Global"],
-  ["workspaces.open", "Open Workspaces", "Global"],
-  ["files.toggle", "Toggle File Explorer", "Global"],
-  ["diff.toggle", "Toggle Diff Viewer", "Global"],
-  ["tab.create", "Create a tab", "Tabs & panes"],
-  ["tab.close", "Close the active pane or its single-pane tab", "Tabs & panes"],
-  ["tab.previous", "Switch to the previous tab", "Tabs & panes"],
-  ["tab.next", "Switch to the next tab", "Tabs & panes"],
-  ["pane.left", "Focus the pane to the left", "Tabs & panes"],
-  ["pane.right", "Focus the pane to the right", "Tabs & panes"],
-  ["pane.up", "Focus the pane above", "Tabs & panes"],
-  ["pane.down", "Focus the pane below", "Tabs & panes"],
-  ["pane.moveLeft", "Move the active pane left", "Tabs & panes"],
-  ["pane.moveRight", "Move the active pane right", "Tabs & panes"],
-  ["pane.moveUp", "Move the active pane up", "Tabs & panes"],
-  ["pane.moveDown", "Move the active pane down", "Tabs & panes"],
-  ["pane.splitRight", "Split the active pane right", "Tabs & panes"],
-  ["pane.splitDown", "Split the active pane down", "Tabs & panes"],
-  ["pane.zoom", "Zoom or restore the active pane", "Tabs & panes"],
-  ["arrangement.single", "Arrange windows: Single", "Window arrangements"],
-  ["arrangement.cascade", "Arrange windows: Cascade", "Window arrangements"],
-  ["arrangement.columns", "Arrange windows: Columns", "Window arrangements"],
-  ["arrangement.rows", "Arrange windows: Rows", "Window arrangements"],
-  ["arrangement.grid", "Arrange windows: Grid", "Window arrangements"],
-  ["arrangement.restore", "Restore window positions", "Window arrangements"],
+  [
+    "inspector.expand",
+    "shortcuts.labelInspectorExpand",
+    "shortcuts.groupGlobal",
+  ],
+  [
+    "annotations.toggle",
+    "shortcuts.labelAnnotationsToggle",
+    "shortcuts.groupGlobal",
+  ],
+  [
+    "assistant.toggle",
+    "shortcuts.labelAssistantToggle",
+    "shortcuts.groupGlobal",
+  ],
+  ["zen.toggle", "shortcuts.labelZenToggle", "shortcuts.groupGlobal"],
+  ["panes.recent", "shortcuts.labelPanesRecent", "shortcuts.groupGlobal"],
+  [
+    "plugin.herdrFloat.toggle",
+    "shortcuts.labelPluginHerdrFloatToggle",
+    "shortcuts.groupGlobal",
+  ],
+  ["panes.search", "shortcuts.labelPanesSearch", "shortcuts.groupGlobal"],
+  ["view.search", "shortcuts.labelViewSearch", "shortcuts.groupGlobal"],
+  ["workspaces.open", "shortcuts.labelWorkspacesOpen", "shortcuts.groupGlobal"],
+  ["files.toggle", "shortcuts.labelFilesToggle", "shortcuts.groupGlobal"],
+  ["diff.toggle", "shortcuts.labelDiffToggle", "shortcuts.groupGlobal"],
+  ["tab.create", "shortcuts.labelTabCreate", "shortcuts.groupTabsPanes"],
+  ["tab.close", "shortcuts.labelTabClose", "shortcuts.groupTabsPanes"],
+  ["tab.previous", "shortcuts.labelTabPrevious", "shortcuts.groupTabsPanes"],
+  ["tab.next", "shortcuts.labelTabNext", "shortcuts.groupTabsPanes"],
+  ["pane.left", "shortcuts.labelPaneLeft", "shortcuts.groupTabsPanes"],
+  ["pane.right", "shortcuts.labelPaneRight", "shortcuts.groupTabsPanes"],
+  ["pane.up", "shortcuts.labelPaneUp", "shortcuts.groupTabsPanes"],
+  ["pane.down", "shortcuts.labelPaneDown", "shortcuts.groupTabsPanes"],
+  ["pane.moveLeft", "shortcuts.labelPaneMoveLeft", "shortcuts.groupTabsPanes"],
+  [
+    "pane.moveRight",
+    "shortcuts.labelPaneMoveRight",
+    "shortcuts.groupTabsPanes",
+  ],
+  ["pane.moveUp", "shortcuts.labelPaneMoveUp", "shortcuts.groupTabsPanes"],
+  ["pane.moveDown", "shortcuts.labelPaneMoveDown", "shortcuts.groupTabsPanes"],
+  [
+    "pane.splitRight",
+    "shortcuts.labelPaneSplitRight",
+    "shortcuts.groupTabsPanes",
+  ],
+  [
+    "pane.splitDown",
+    "shortcuts.labelPaneSplitDown",
+    "shortcuts.groupTabsPanes",
+  ],
+  ["pane.zoom", "shortcuts.labelPaneZoom", "shortcuts.groupTabsPanes"],
+  [
+    "arrangement.single",
+    "shortcuts.labelArrangementSingle",
+    "shortcuts.groupWindows",
+  ],
+  [
+    "arrangement.cascade",
+    "shortcuts.labelArrangementCascade",
+    "shortcuts.groupWindows",
+  ],
+  [
+    "arrangement.columns",
+    "shortcuts.labelArrangementColumns",
+    "shortcuts.groupWindows",
+  ],
+  [
+    "arrangement.rows",
+    "shortcuts.labelArrangementRows",
+    "shortcuts.groupWindows",
+  ],
+  [
+    "arrangement.grid",
+    "shortcuts.labelArrangementGrid",
+    "shortcuts.groupWindows",
+  ],
+  [
+    "arrangement.restore",
+    "shortcuts.labelArrangementRestore",
+    "shortcuts.groupWindows",
+  ],
   [
     "window.fitRight",
-    "Fit the active window to the right edge",
-    "Window arrangements",
+    "shortcuts.labelWindowFitRight",
+    "shortcuts.groupWindows",
   ],
+  ["window.fitLeft", "shortcuts.labelWindowFitLeft", "shortcuts.groupWindows"],
+  ...SHORTCUT_NUMBERS.map(
+    (n): [ShortcutId, ShortcutLabelKey, ShortcutGroupKey, number] => [
+      `tab.${n}`,
+      "shortcuts.labelTabNumber",
+      "shortcuts.groupTabsPanes",
+      n,
+    ],
+  ),
+  ...SHORTCUT_NUMBERS.map(
+    (n): [ShortcutId, ShortcutLabelKey, ShortcutGroupKey, number] => [
+      `command.${n}`,
+      "shortcuts.labelCommandNumber",
+      "shortcuts.groupCommand",
+      n,
+    ],
+  ),
+  ["terminal.focus", "shortcuts.labelTerminalFocus", "shortcuts.groupTerminal"],
   [
-    "window.fitLeft",
-    "Fit the active window to the left edge",
-    "Window arrangements",
+    "terminal.history",
+    "shortcuts.labelTerminalHistory",
+    "shortcuts.groupTerminal",
   ],
-  ...SHORTCUT_NUMBERS.map((n): [ShortcutId, string, string] => [
-    `tab.${n}`,
-    `Switch to tab ${n}`,
-    "Tabs & panes",
-  ]),
-  ...SHORTCUT_NUMBERS.map((n): [ShortcutId, string, string] => [
-    `command.${n}`,
-    `Run numbered action ${n} in the command menu`,
-    "Command menu",
-  ]),
-  ["terminal.focus", "Focus the terminal input on desktop", "Terminal"],
-  ["terminal.history", "Toggle agent chat", "Terminal"],
   [
     "terminal.pageUp",
-    "Page up in the application or shell history",
-    "Terminal",
+    "shortcuts.labelTerminalPageUp",
+    "shortcuts.groupTerminal",
   ],
   [
     "terminal.pageDown",
-    "Page down in the application or shell history",
-    "Terminal",
+    "shortcuts.labelTerminalPageDown",
+    "shortcuts.groupTerminal",
   ],
-  ["terminal.halfPageUp", "Scroll history up half a page", "Terminal"],
-  ["terminal.halfPageDown", "Scroll history down half a page", "Terminal"],
-  ["terminal.multiline", "Send multiline Enter to the agent", "Terminal"],
-  ["terminal.altEnter", "Send Alt-modified Enter to the agent", "Terminal"],
-  ["terminal.ctrlEnter", "Send Ctrl-modified Enter to the agent", "Terminal"],
-  ["terminal.lineStart", "Move to the beginning of the input line", "Terminal"],
-  ["terminal.lineEnd", "Move to the end of the input line", "Terminal"],
+  [
+    "terminal.halfPageUp",
+    "shortcuts.labelTerminalHalfPageUp",
+    "shortcuts.groupTerminal",
+  ],
+  [
+    "terminal.halfPageDown",
+    "shortcuts.labelTerminalHalfPageDown",
+    "shortcuts.groupTerminal",
+  ],
+  [
+    "terminal.multiline",
+    "shortcuts.labelTerminalMultiline",
+    "shortcuts.groupTerminal",
+  ],
+  [
+    "terminal.altEnter",
+    "shortcuts.labelTerminalAltEnter",
+    "shortcuts.groupTerminal",
+  ],
+  [
+    "terminal.ctrlEnter",
+    "shortcuts.labelTerminalCtrlEnter",
+    "shortcuts.groupTerminal",
+  ],
+  [
+    "terminal.lineStart",
+    "shortcuts.labelTerminalLineStart",
+    "shortcuts.groupTerminal",
+  ],
+  [
+    "terminal.lineEnd",
+    "shortcuts.labelTerminalLineEnd",
+    "shortcuts.groupTerminal",
+  ],
   [
     "terminal.deleteToStart",
-    "Delete to the beginning of the input line",
-    "Terminal",
+    "shortcuts.labelTerminalDeleteToStart",
+    "shortcuts.groupTerminal",
   ],
-  ["terminal.copy", "Copy selected terminal text", "Terminal"],
-  ["terminal.paste", "Paste text or images", "Terminal"],
-  ["terminal.link", "Open links or preview workspace paths", "Terminal"],
-  ["composer.send", "Send the terminal composer draft", "Terminal composer"],
-  ["preview.search", "Search the raw file preview or diff", "Preview & review"],
-  ["preview.selectAll", "Select all in the file preview", "Preview & review"],
-  ["annotation.submit", "Add a review comment", "Preview & review"],
-  ["annotations.copy", "Copy review feedback", "Preview & review"],
+  ["terminal.copy", "shortcuts.labelTerminalCopy", "shortcuts.groupTerminal"],
+  ["terminal.paste", "shortcuts.labelTerminalPaste", "shortcuts.groupTerminal"],
+  ["terminal.link", "shortcuts.labelTerminalLink", "shortcuts.groupTerminal"],
+  ["composer.send", "shortcuts.labelComposerSend", "shortcuts.groupComposer"],
+  ["preview.search", "shortcuts.labelPreviewSearch", "shortcuts.groupReview"],
+  [
+    "preview.selectAll",
+    "shortcuts.labelPreviewSelectAll",
+    "shortcuts.groupReview",
+  ],
+  [
+    "annotation.submit",
+    "shortcuts.labelAnnotationSubmit",
+    "shortcuts.groupReview",
+  ],
+  [
+    "annotations.copy",
+    "shortcuts.labelAnnotationsCopy",
+    "shortcuts.groupReview",
+  ],
   [
     "annotations.prefill",
-    "Pre-fill agent with review feedback",
-    "Preview & review",
+    "shortcuts.labelAnnotationsPrefill",
+    "shortcuts.groupReview",
   ],
-  ["town.next", "Go to the next thing that needs you", "Town"],
-  ["town.previous", "Go back to the previous thing that needs you", "Town"],
+  ["town.next", "shortcuts.labelTownNext", "shortcuts.groupTown"],
+  ["town.previous", "shortcuts.labelTownPrevious", "shortcuts.groupTown"],
 ];
+
 export const SHORTCUT_CATALOG: ShortcutDescription[] = descriptions.map(
-  ([id, label, group]) => ({ id, label, group }),
+  ([id, label, group, count]) =>
+    count === undefined ? { id, label, group } : { id, label, group, count },
 );
+
+/** Resolved label text; numbered entries interpolate their count. */
+export function shortcutLabel(
+  item: Pick<ShortcutDescription, "label" | "count">,
+): string {
+  return item.count === undefined
+    ? t(item.label)
+    : t(item.label, { count: item.count });
+}

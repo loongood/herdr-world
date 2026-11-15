@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { CloseButton } from "./CloseButton";
-import { ThemedSelect } from "./ThemedSelect";
-import { focusDialogElement } from "./dialogFocus";
-import { SHORTCUT_CATALOG } from "../shortcutCatalog";
+import { useT } from "../i18n";
 import {
   defaultShortcutBindings,
   formatShortcut,
   SHORTCUT_PLATFORMS,
+  type ShortcutId,
   shortcutConflicts,
   shortcutFromEvent,
   shortcutWarning,
   validateShortcutKeys,
-  type ShortcutId,
 } from "../shortcutBindings";
+import { SHORTCUT_CATALOG, shortcutLabel } from "../shortcutCatalog";
 import {
   deleteShortcutPreset,
   exportShortcutPreset,
@@ -22,6 +20,9 @@ import {
   updateShortcut,
   useShortcutPreferences,
 } from "../shortcutPreferences";
+import { CloseButton } from "./CloseButton";
+import { focusDialogElement } from "./dialogFocus";
+import { ThemedSelect } from "./ThemedSelect";
 import "./ShortcutLookupDialog.css";
 
 // Shares this lazy chunk so the cheat sheet adds no separate web assets.
@@ -36,6 +37,7 @@ export function ShortcutLookupDialog({
 }) {
   const { preferences, platform, preset, storageError, platformMismatch } =
     useShortcutPreferences();
+  const t = useT();
   const dialogRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const saveRef = useRef<HTMLButtonElement>(null);
@@ -49,7 +51,7 @@ export function ShortcutLookupDialog({
   const custom = preferences.presets.some((item) => item.id === preset.id);
   const format = (keys: string[]) =>
     keys.map((key) => formatShortcut(key, platform)).join(" / ") ||
-    "Unassigned";
+    t("shortcuts.unassigned");
   const clearEditor = () => {
     setEditing(null);
     setRecording(false);
@@ -93,7 +95,7 @@ export function ShortcutLookupDialog({
         if (["Control", "Alt", "Meta", "Shift"].includes(event.key)) return;
         const binding = shortcutFromEvent(event);
         if (!binding) {
-          setError("That key cannot be recorded. Try another combination.");
+          setError(t("shortcuts.errNotRecordable"));
           return;
         }
         setDraft(binding);
@@ -115,7 +117,7 @@ export function ShortcutLookupDialog({
   if (!open) return null;
 
   const visible = SHORTCUT_CATALOG.filter((item) =>
-    `${item.label} ${item.group} ${format(preset.bindings[item.id])}`
+    `${shortcutLabel(item)} ${t(item.group)} ${format(preset.bindings[item.id])}`
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
@@ -145,7 +147,7 @@ export function ShortcutLookupDialog({
         className="modal shortcut-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Keyboard shortcuts"
+        aria-label={t("shortcuts.title")}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
@@ -172,21 +174,23 @@ export function ShortcutLookupDialog({
       >
         <div className="modal-head">
           <div>
-            <h2>Keyboard shortcuts</h2>
-            <p>Choose a preset or customize shortcuts for this browser.</p>
+            <h2>{t("shortcuts.title")}</h2>
+            <p>{t("shortcuts.lookupIntro")}</p>
           </div>
-          <CloseButton label="Close keyboard shortcuts" onClick={onClose} />
+          <CloseButton label={t("shortcuts.lookupClose")} onClick={onClose} />
         </div>
         <div className="keybinding-settings">
           <label className="keybinding-preset">
-            <span>Active preset</span>
+            <span>{t("shortcuts.activePreset")}</span>
             <ThemedSelect
-              aria-label="Active preset"
+              aria-label={t("shortcuts.activePreset")}
               value={preferences.active}
               options={[
                 {
                   value: "auto",
-                  label: `Automatic (${SHORTCUT_PLATFORMS[platform]})`,
+                  label: t("shortcuts.automaticPreset", {
+                    platform: SHORTCUT_PLATFORMS[platform],
+                  }),
                 },
                 ...Object.entries(SHORTCUT_PLATFORMS).map(([id, label]) => ({
                   value: id,
@@ -207,8 +211,8 @@ export function ShortcutLookupDialog({
           </label>
           <div className="keybinding-preset-actions">
             <input
-              aria-label="New preset name"
-              placeholder="New preset name"
+              aria-label={t("shortcuts.presetName")}
+              placeholder={t("shortcuts.presetName")}
               value={name}
               maxLength={64}
               onChange={(event) => setName(event.target.value)}
@@ -224,17 +228,17 @@ export function ShortcutLookupDialog({
                 })
               }
             >
-              Save as
+              {t("shortcuts.saveAs")}
             </button>
             <button type="button" className="ghost" onClick={exportPreset}>
-              Export
+              {t("shortcuts.export")}
             </button>
             <button
               type="button"
               className="ghost"
               onClick={() => fileRef.current?.click()}
             >
-              Import
+              {t("shortcuts.import")}
             </button>
             {custom ? (
               <button
@@ -242,7 +246,7 @@ export function ShortcutLookupDialog({
                 className="ghost danger"
                 onClick={() => setDeleting(!deleting)}
               >
-                Delete
+                {t("shortcuts.delete")}
               </button>
             ) : null}
             <input
@@ -256,9 +260,7 @@ export function ShortcutLookupDialog({
                 if (!file) return;
                 try {
                   if (file.size > 100_000)
-                    throw new Error(
-                      "Preset files must be smaller than 100 KB.",
-                    );
+                    throw new Error(t("shortcuts.errPresetTooLarge"));
                   const imported = importShortcutPreset(await file.text());
                   saveShortcutPreset(imported.name, imported);
                   clearEditor();
@@ -270,7 +272,7 @@ export function ShortcutLookupDialog({
           </div>
           {deleting ? (
             <div className="keybinding-delete">
-              <span>Delete “{preset.name}”?</span>
+              <span>{t("shortcuts.deleteConfirm", { name: preset.name })}</span>
               <button
                 type="button"
                 className="danger"
@@ -279,27 +281,27 @@ export function ShortcutLookupDialog({
                   clearEditor();
                 }}
               >
-                Delete preset
+                {t("shortcuts.deletePreset")}
               </button>
               <button
                 type="button"
                 className="ghost"
                 onClick={() => setDeleting(false)}
               >
-                Cancel
+                {t("shortcuts.cancel")}
               </button>
             </div>
           ) : null}
           <p className="muted">
-            Detected {SHORTCUT_PLATFORMS[platform]}.{" "}
-            {custom
-              ? "Edits save to this preset immediately."
-              : "Editing a built-in preset creates a custom copy."}
+            {t("shortcuts.detected", {
+              platform: SHORTCUT_PLATFORMS[platform],
+            })}{" "}
+            {custom ? t("shortcuts.customSave") : t("shortcuts.builtinCopy")}
           </p>
           <input
             type="search"
-            aria-label="Search shortcuts"
-            placeholder="Search shortcuts..."
+            aria-label={t("shortcuts.searchAria")}
+            placeholder={t("shortcuts.searchPlaceholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -310,17 +312,18 @@ export function ShortcutLookupDialog({
           ) : null}
           {platformMismatch ? (
             <p className="keybinding-note" role="status">
-              <strong>{platformMismatch.name}</strong> was written for{" "}
-              {SHORTCUT_PLATFORMS[platformMismatch.base]}, so this browser is
-              using the {SHORTCUT_PLATFORMS[platform]} defaults instead. Edit it
-              here to save a set that applies on this platform too.
+              {t("shortcuts.mismatchNote", {
+                name: platformMismatch.name,
+                base: SHORTCUT_PLATFORMS[platformMismatch.base],
+                platform: SHORTCUT_PLATFORMS[platform],
+              })}
             </p>
           ) : null}
         </div>
         <div className="shortcut-list">
           {groups.map((group) => (
             <section className="shortcut-section" key={group}>
-              <h3>{group}</h3>
+              <h3>{t(group)}</h3>
               <dl>
                 {visible
                   .filter((item) => item.group === group)
@@ -330,12 +333,14 @@ export function ShortcutLookupDialog({
                       key={item.id}
                       data-shortcut-id={item.id}
                     >
-                      <dt>{item.label}</dt>
+                      <dt>{shortcutLabel(item)}</dt>
                       <dd>
                         <button
                           type="button"
                           className="keybinding-edit ghost"
-                          aria-label={`Edit ${item.label}`}
+                          aria-label={t("shortcuts.editAria", {
+                            label: shortcutLabel(item),
+                          })}
                           onClick={() => {
                             setEditing(item.id);
                             setDraft(preset.bindings[item.id].join("; "));
@@ -344,15 +349,17 @@ export function ShortcutLookupDialog({
                           }}
                         >
                           <kbd>{format(preset.bindings[item.id])}</kbd>
-                          <span>Edit</span>
+                          <span>{t("shortcuts.edit")}</span>
                         </button>
                       </dd>
                       {editing === item.id ? (
                         <div className="keybinding-editor">
                           <label>
-                            <span>Key combinations</span>
+                            <span>{t("shortcuts.keyCombinations")}</span>
                             <input
-                              aria-label={`Keys for ${item.label}`}
+                              aria-label={t("shortcuts.keysForAria", {
+                                label: shortcutLabel(item),
+                              })}
                               value={draft}
                               placeholder="Ctrl+Alt+K"
                               onChange={(event) => {
@@ -373,8 +380,8 @@ export function ShortcutLookupDialog({
                               }}
                             >
                               {recording
-                                ? "Press keys (Esc cancels)"
-                                : "Record"}
+                                ? t("shortcuts.pressKeys")
+                                : t("shortcuts.record")}
                             </button>
                             <button
                               type="button"
@@ -392,14 +399,25 @@ export function ShortcutLookupDialog({
                                   );
                                   if (conflicts.length)
                                     throw new Error(
-                                      `Already used by: ${conflicts.map((id) => SHORTCUT_CATALOG.find((entry) => entry.id === id)?.label ?? id).join(", ")}. Change that shortcut first.`,
+                                      t("shortcuts.conflictUsedBy", {
+                                        labels: conflicts
+                                          .map((id) => {
+                                            const entry = SHORTCUT_CATALOG.find(
+                                              (e) => e.id === id,
+                                            );
+                                            return entry
+                                              ? shortcutLabel(entry)
+                                              : id;
+                                          })
+                                          .join(", "),
+                                      }),
                                     );
                                   updateShortcut(item.id, keys);
                                   clearEditor();
                                 })
                               }
                             >
-                              Save binding
+                              {t("shortcuts.saveBinding")}
                             </button>
                             <button
                               type="button"
@@ -411,7 +429,7 @@ export function ShortcutLookupDialog({
                                 })
                               }
                             >
-                              Unassign
+                              {t("shortcuts.unassign")}
                             </button>
                             <button
                               type="button"
@@ -424,22 +442,21 @@ export function ShortcutLookupDialog({
                                 )
                               }
                             >
-                              Default
+                              {t("shortcuts.default")}
                             </button>
                             <button
                               type="button"
                               className="ghost"
                               onClick={clearEditor}
                             >
-                              Cancel
+                              {t("shortcuts.cancel")}
                             </button>
                           </div>
                           <p className="muted">
-                            Separate alternatives with a semicolon. Letter and
-                            number shortcuts use physical keys.{" "}
+                            {t("shortcuts.separateNote")}{" "}
                             {item.id === "terminal.link"
-                              ? "For links, enter a modifier plus Click."
-                              : "Escape and ordinary dialog navigation stay available."}
+                              ? t("shortcuts.linkNote")
+                              : t("shortcuts.escapeNote")}
                           </p>
                           {shortcutWarning(draft.split(";")) ? (
                             <p className="muted">
@@ -454,39 +471,21 @@ export function ShortcutLookupDialog({
             </section>
           ))}
           {visible.length === 0 ? (
-            <p className="muted">No matching shortcuts.</p>
+            <p className="muted">{t("shortcuts.noMatching")}</p>
           ) : null}
           {!search ? (
             <section className="shortcut-section keybinding-reference">
-              <h3>Navigation & native controls</h3>
-              <p>
-                Escape closes menus and dialogs or dismisses notifications. Tab
-                moves focus; arrow keys and Enter navigate lists. In the recent
-                pane switcher, use Up/Down and Enter, or release the modifier
-                used to open it.
-              </p>
-              <p>
-                Terminal copy uses the selected text; Ctrl+C remains terminal
-                input unless reassigned. Page Up/Down follows the application or
-                shell, while half-page shortcuts scroll terminal history. Native
-                text editing and editor search navigation follow those
-                applications. Browser and operating system shortcuts may take
-                precedence over configured bindings.
-              </p>
-              <p>
-                Touch controls have their own editor: Behavior & automation →
-                Mobile terminal shortcuts configures the two shortcut rows and
-                four side buttons.
-              </p>
+              <h3>{t("shortcuts.navControlsTitle")}</h3>
+              <p>{t("shortcuts.navControlsP1")}</p>
+              <p>{t("shortcuts.navControlsP2")}</p>
+              <p>{t("shortcuts.navControlsP3")}</p>
             </section>
           ) : null}
         </div>
         <div className="modal-actions">
-          <span className="muted">
-            Presets are saved in this browser. Export to use them elsewhere.
-          </span>
+          <span className="muted">{t("shortcuts.lookupFoot")}</span>
           <button type="button" onClick={onClose}>
-            Done
+            {t("shortcuts.done")}
           </button>
         </div>
       </div>
