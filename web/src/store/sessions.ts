@@ -6,6 +6,7 @@ import {
 import { emptyBrowserNavigation } from "../browserNavigation";
 import { type ConnectionSummary, bridge, parseConnectionSummary } from "../api";
 import { type Pane } from "../types";
+import { t } from "../i18n";
 
 const RECENT_PANE_LIMIT = 12;
 
@@ -325,7 +326,7 @@ export function numberedCreatedTabRename(
   ) {
     return null;
   }
-  return { tabId, label: `Tab ${number}` };
+  return { tabId, label: t("shell.tabName", { number }) };
 }
 
 /**

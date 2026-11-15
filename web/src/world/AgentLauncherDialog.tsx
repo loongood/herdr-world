@@ -30,6 +30,7 @@ import { HarnessReadinessSummary } from "./HarnessReadinessSummary";
 import { ProfileSprite } from "./ProfileSprite";
 import type { WorldObject } from "./worldObject";
 import { store } from "../store";
+import { useT } from "../i18n";
 import { WorldLoader } from "./WorldLoader";
 import {
   launchConfirmedTerminal,
@@ -64,6 +65,7 @@ export function AgentLauncherDialog({
   onEditProfiles(): void;
   onClose(): void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
   useEffect(() => {
@@ -299,7 +301,10 @@ export function AgentLauncherDialog({
       setOutcome(
         retainedOutcome(target, {
           status: "opened",
-          message: `A login tab for ${harnessLabel(kind)} is open in ${target.workspaceLabel}. Run this there, finish the login, then Check again:`,
+          message: t("launcher.loginTabOpen", {
+            harness: harnessLabel(kind),
+            room: target.workspaceLabel,
+          }),
           terminal_id: opened.terminal_id,
           command: opened.command,
         }),
@@ -332,18 +337,20 @@ export function AgentLauncherDialog({
         className="modal agent-launcher"
         role="dialog"
         aria-modal="true"
-        aria-label="New agent"
+        aria-label={t("launcher.title")}
       >
         <div className="modal-head">
-          <h2>New agent</h2>
-          <CloseButton onClick={dismiss} label="Close new agent" />
+          <h2>{t("launcher.title")}</h2>
+          <CloseButton onClick={dismiss} label={t("launcher.closeAria")} />
         </div>
         <div className="agent-launcher-status" role="status">
           {catalogError ? (
             <p className="agent-launcher-error">{catalogError}</p>
           ) : null}
           {loginBusy ? (
-            <p>Opening a login tab for {harnessLabel(loginBusy)}…</p>
+            <p>
+              {t("launcher.loginOpening", { harness: harnessLabel(loginBusy) })}
+            </p>
           ) : null}
           {busy && pressed ? (
             <WorldLoader
@@ -351,18 +358,18 @@ export function AgentLauncherDialog({
               since={pressed.since}
               label={
                 pressed.key === "terminal"
-                  ? "Creating a Terminal tab…"
-                  : `Starting ${busy}…`
+                  ? t("launcher.creatingTerminal")
+                  : t("launcher.starting", { name: busy })
               }
               longerLabel={
                 pressed.key === "terminal"
-                  ? "Taking longer than usual: still creating the Terminal tab…"
-                  : `Taking longer than usual: still starting ${busy}…`
+                  ? t("launcher.stillCreatingTerminal")
+                  : t("launcher.stillStarting", { name: busy })
               }
               detail={
                 pressed.key === "terminal"
                   ? undefined
-                  : "Creating its tab, starting it and waiting until it is ready."
+                  : t("launcher.creatingDetail")
               }
             />
           ) : null}
@@ -383,7 +390,7 @@ export function AgentLauncherDialog({
                         .catch(() => {})
                     }
                   >
-                    <Copy size={13} aria-hidden="true" /> Copy
+                    <Copy size={13} aria-hidden="true" /> {t("common.copy")}
                   </button>
                 </>
               ) : null}
@@ -397,7 +404,7 @@ export function AgentLauncherDialog({
                     dismiss();
                   }}
                 >
-                  Open its tab
+                  {t("launcher.openTab")}
                 </button>
               ) : null}
             </p>
@@ -406,19 +413,16 @@ export function AgentLauncherDialog({
         </div>
         <div className="agent-launcher-choices">
           {rooms.length === 0 ? (
-            <p className="agent-launcher-note">
-              Connect a host and create a room first.
-            </p>
+            <p className="agent-launcher-note">{t("launcher.needHost")}</p>
           ) : (
             <>
               {!room ? (
                 <p className="agent-launcher-note" role="status">
-                  The requested room is unavailable. Choose a current room to
-                  continue.
+                  {t("launcher.roomUnavailable")}
                 </p>
               ) : null}
               <label className="agent-field">
-                <span>Room</span>
+                <span>{t("launcher.room")}</span>
                 <select
                   value={room?.id ?? ""}
                   disabled={locked}
@@ -435,7 +439,7 @@ export function AgentLauncherDialog({
                 >
                   {!room ? (
                     <option value="" disabled>
-                      Choose a current room
+                      {t("launcher.chooseRoom")}
                     </option>
                   ) : null}
                   {rooms.map((space) => (
@@ -446,26 +450,30 @@ export function AgentLauncherDialog({
                 </select>
               </label>
               <label className="agent-field">
-                <span>Agent task (optional)</span>
+                <span>{t("launcher.taskLabel")}</span>
                 <textarea
                   value={task}
                   disabled={locked}
                   rows={2}
-                  placeholder="What should it do? It fills {{task}} in the profile's brief."
+                  placeholder={t("launcher.taskPlaceholder", {
+                    task: "{{task}}",
+                  })}
                   onChange={(event) => setTask(event.target.value)}
                 />
               </label>
               {loggedOut.map((kind) => (
                 <p key={kind} className="agent-launcher-login-row">
-                  {harnessLabel(kind)} is logged out on this host.
+                  {t("launcher.loggedOut", { harness: harnessLabel(kind) })}
                   <button
                     type="button"
                     className="agent-launcher-login"
                     disabled={locked}
-                    title={`Opens a tab and shows ${harnessLabel(kind)}'s login command to run there`}
+                    title={t("launcher.logInTitle", {
+                      harness: harnessLabel(kind),
+                    })}
                     onClick={() => void logIn(kind)}
                   >
-                    <LogIn size={13} aria-hidden="true" /> Log in
+                    <LogIn size={13} aria-hidden="true" /> {t("launcher.logIn")}
                   </button>
                 </p>
               ))}
@@ -479,17 +487,18 @@ export function AgentLauncherDialog({
                 <Terminal size={24} aria-hidden="true" />
                 <span>
                   <b>Terminal</b>
-                  <small>A plain shell in this room</small>
+                  <small>{t("launcher.plainShell")}</small>
                 </span>
               </button>
               <div className="agent-launcher-section-head">
-                <h3>From a profile</h3>
+                <h3>{t("launcher.fromProfile")}</h3>
                 <button
                   type="button"
                   onClick={onEditProfiles}
                   disabled={locked}
                 >
-                  <Settings2 size={13} aria-hidden="true" /> Edit profiles
+                  <Settings2 size={13} aria-hidden="true" />{" "}
+                  {t("launcher.editProfiles")}
                 </button>
               </div>
               <div className="agent-launcher-profiles">
@@ -501,8 +510,13 @@ export function AgentLauncherDialog({
                       type="button"
                       className="agent-launcher-card"
                       disabled={!target || locked || !catalog || note?.blocked}
-                      title={note?.text ?? `Start ${profile.name} here`}
-                      aria-label={`Start ${profile.name}`}
+                      title={
+                        note?.text ??
+                        t("launcher.startHere", { name: profile.name })
+                      }
+                      aria-label={t("launcher.startAria", {
+                        name: profile.name,
+                      })}
                       aria-busy={
                         pressed?.key === `profile:${profile.id}` || undefined
                       }
@@ -525,17 +539,18 @@ export function AgentLauncherDialog({
                 <h3>Quick start</h3>
                 <button
                   type="button"
-                  title="Check installed harnesses and logins again"
+                  title={t("launcher.checkAgainTitle")}
                   onClick={() => setChecks((n) => n + 1)}
                 >
-                  <RefreshCw size={13} aria-hidden="true" /> Check again
+                  <RefreshCw size={13} aria-hidden="true" />{" "}
+                  {t("launcher.checkAgain")}
                 </button>
               </div>
               {catalog ? <HarnessReadinessSummary catalog={catalog} /> : null}
               <div className="agent-launcher-kinds">
                 {target && !catalog && !catalogError ? (
                   <span className="agent-launcher-note">
-                    Asking the host which agents it supports…
+                    {t("launcher.askingHost")}
                   </span>
                 ) : null}
                 {quickKinds.map((kind) => {
@@ -546,7 +561,10 @@ export function AgentLauncherDialog({
                       type="button"
                       className="agent-launcher-kind"
                       disabled={!target || locked || note?.blocked}
-                      title={note?.text ?? `Start ${harnessLabel(kind)} here`}
+                      title={
+                        note?.text ??
+                        t("launcher.startHere", { name: harnessLabel(kind) })
+                      }
                       aria-busy={pressed?.key === `kind:${kind}` || undefined}
                       onClick={() => void launch({ kind })}
                     >

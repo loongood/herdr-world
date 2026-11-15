@@ -10,6 +10,7 @@ import type {
 } from "./worldObject";
 import type { Tab } from "../types";
 import { boundedOptionalText } from "./worldObject";
+import { t } from "../i18n";
 import { stableNumber } from "./stableNumber";
 export function projectAgent(
   leaf: WorldLeafObject & { kind: "agent" },
@@ -68,7 +69,7 @@ export function officeDeskLabel(
   return (
     singleNamedAgentLabelInTab(children, tab.tab_id) ??
     boundedOptionalText(tab.label, 100) ??
-    `Tab ${tab.number}`
+    t("shell.tabName", { number: tab.number })
   );
 }
 

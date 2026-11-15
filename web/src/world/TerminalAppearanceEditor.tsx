@@ -9,6 +9,7 @@ import {
   TERMINAL_COLOR_NAMES,
 } from "../../../shared/terminalColor";
 import { ColorSwatches } from "../components/ColorSwatch";
+import { useT } from "../i18n";
 import { AppearanceAvatar } from "./AppearanceAvatar";
 import {
   renameAppearanceTab,
@@ -46,6 +47,7 @@ export function TerminalAppearanceEditor(props: TerminalAppearanceEditorProps) {
     disabled,
     children,
   } = props;
+  const t = useT();
   const document = useAppearanceDocument();
   const tab: AppearanceIdentity = {
     connection_id: connectionId,
@@ -94,34 +96,34 @@ export function TerminalAppearanceEditor(props: TerminalAppearanceEditorProps) {
   return (
     <section
       className="terminal-appearance-editor"
-      aria-label="Terminal appearance"
+      aria-label={t("terminal.appearanceAria")}
     >
       <fieldset disabled={disabled || busy}>
-        <legend>Tab appearance</legend>
+        <legend>{t("appearance.tabAppearance")}</legend>
         <form
           onSubmit={(event) => {
             event.preventDefault();
             void run(async () => {
               await renameAppearanceTab(tab, name);
               setNameDraft(null);
-            }, "Native tab name saved");
+            }, t("appearance.nativeTabNameSaved"));
           }}
         >
           <label>
-            Tab name
+            {t("appearance.tabName")}
             <input
-              aria-label="Tab name"
+              aria-label={t("appearance.tabName")}
               value={name}
               maxLength={160}
               onChange={(event) => setNameDraft(event.target.value)}
             />
           </label>
           <button type="submit" disabled={!name.trim() || nameDraft === null}>
-            Save name
+            {t("appearance.saveName")}
           </button>
         </form>
         <ColorSwatches
-          label="Terminal colour"
+          label={t("inspector.terminalColour")}
           palette={color.palette}
           current={color.current}
           onColor={(id) => {
@@ -132,7 +134,7 @@ export function TerminalAppearanceEditor(props: TerminalAppearanceEditorProps) {
               return;
             void run(
               () => save(tab, { color: id as AppearanceFields["color"] }),
-              "Tab colour saved",
+              t("appearance.tabColourSaved"),
             );
           }}
         />
@@ -142,20 +144,20 @@ export function TerminalAppearanceEditor(props: TerminalAppearanceEditorProps) {
             void run(async () => {
               await save(tab, { status });
               setStatusDraft(null);
-            }, "Tab status saved");
+            }, t("appearance.tabStatusSaved"));
           }}
         >
           <label>
-            Status message
+            {t("appearance.statusMessage")}
             <input
-              aria-label="Tab status message"
+              aria-label={t("appearance.tabStatusMessage")}
               value={status}
               maxLength={160}
               onChange={(event) => setStatusDraft(event.target.value)}
             />
           </label>
           <button type="submit" disabled={statusDraft === null}>
-            Save status
+            {t("appearance.saveStatus")}
           </button>
           <button
             type="button"
@@ -164,25 +166,25 @@ export function TerminalAppearanceEditor(props: TerminalAppearanceEditorProps) {
               void run(async () => {
                 await save(tab, { status: null });
                 setStatusDraft(null);
-              }, "Tab status reset")
+              }, t("appearance.tabStatusReset"))
             }
           >
-            Clear status
+            {t("appearance.clearStatus")}
           </button>
         </form>
-        <div role="group" aria-label="Pane avatar">
-          <strong>Pane avatar</strong>
+        <div role="group" aria-label={t("appearance.paneAvatar")}>
+          <strong>{t("appearance.paneAvatar")}</strong>
           <div className="appearance-avatars">
             {AVATAR_CHOICES.map((choice) => (
               <button
                 type="button"
                 key={choice.id}
-                aria-label={`Avatar ${choice.name}`}
+                aria-label={t("appearance.avatarAria", { name: choice.name })}
                 aria-pressed={avatar === choice.id}
                 onClick={() =>
                   void run(
                     () => save(pane, { avatar: choice.id }),
-                    "Pane avatar saved",
+                    t("appearance.paneAvatarSaved"),
                   )
                 }
               >
@@ -195,17 +197,18 @@ export function TerminalAppearanceEditor(props: TerminalAppearanceEditorProps) {
             type="button"
             disabled={!avatar}
             onClick={() =>
-              void run(() => save(pane, { avatar: null }), "Pane avatar reset")
+              void run(
+                () => save(pane, { avatar: null }),
+                t("appearance.paneAvatarReset"),
+              )
             }
           >
-            Default avatar
+            {t("appearance.defaultAvatar")}
           </button>
         </div>
         {children}
       </fieldset>
-      {disabled ? (
-        <p>Appearance is unavailable while this terminal is stale.</p>
-      ) : null}
+      {disabled ? <p>{t("appearance.unavailableWhileStale")}</p> : null}
       {error ? <p role="alert">{error}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
     </section>

@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { t } from "../i18n";
 import type {
   WindowArrangementCommand,
   WindowArrangementControl,
@@ -69,7 +70,7 @@ export function useSpacesTabWindowArrangement(active: boolean): {
     () =>
       context?.tabs.map((tab) => ({
         id: tab.tab_id,
-        label: tab.label || `Tab ${tab.number}`,
+        label: tab.label || t("shell.tabName", { number: tab.number }),
       })) ?? [],
     [context],
   );
@@ -258,7 +259,8 @@ export function useSpacesTabWindowArrangement(active: boolean): {
             }) => {
               const tab = context.tabs.find((tab) => tab.tab_id === entry.id);
               if (!tab) return null;
-              const label = tab.label || `Tab ${tab.number}`;
+              const label =
+                tab.label || t("shell.tabName", { number: tab.number });
               const color = colorChoice({
                 connectionId: snapshot.activeConnectionId,
                 workspaceId: tab.workspace_id,

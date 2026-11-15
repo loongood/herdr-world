@@ -11,7 +11,9 @@ import { AppearanceAvatar } from "./AppearanceAvatar";
 import { appearanceFor } from "../../../shared/appearance";
 import { useAppearanceDocument } from "./appearance";
 import type { CSSProperties } from "react";
+import { useT } from "../i18n";
 export function TerminalAppearanceButton(props: TerminalAppearanceEditorProps) {
+  const t = useT();
   const document = useAppearanceDocument();
   const avatar = appearanceFor(document?.appearance, {
     connection_id: props.connectionId,
@@ -28,8 +30,8 @@ export function TerminalAppearanceButton(props: TerminalAppearanceEditorProps) {
         <button
           type="button"
           className="mobile-appearance-button"
-          aria-label="Terminal appearance"
-          title="Terminal appearance"
+          aria-label={t("terminal.appearanceAria")}
+          title={t("terminal.appearanceAria")}
           style={{ "--tab-color": hex } as CSSProperties}
         >
           {avatar ? (
@@ -42,7 +44,7 @@ export function TerminalAppearanceButton(props: TerminalAppearanceEditorProps) {
       <PopoverContent
         collisionPadding={8}
         align="start"
-        aria-label="Terminal appearance"
+        aria-label={t("terminal.appearanceAria")}
       >
         <TerminalAppearanceEditor {...props} />
       </PopoverContent>

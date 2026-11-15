@@ -1,4 +1,5 @@
 import { normalizeSearchText } from "./searchText";
+import { t } from "./i18n";
 import { shortId } from "./utils";
 import type { Pane, PaneLayout, Tab, Workspace } from "./types";
 import type {
@@ -212,7 +213,7 @@ function paneJumpEntry(
   const tabLabel = tab
     ? tab.label && tab.label !== String(tab.number)
       ? tab.label
-      : `Tab ${tab.number}`
+      : t("shell.tabName", { number: tab.number })
     : pane.tab_id;
 
   return {

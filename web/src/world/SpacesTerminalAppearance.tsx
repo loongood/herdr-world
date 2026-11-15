@@ -1,4 +1,5 @@
 import { shallowEqual, useStoreSelector } from "../store";
+import { t } from "../i18n";
 import type { Tab } from "../types";
 import { TerminalAppearanceButton } from "./TerminalAppearanceButton";
 import type { TerminalAppearanceEditorProps } from "./TerminalAppearanceEditor";
@@ -44,7 +45,7 @@ export function SpacesTerminalAppearance({
       <button
         type="button"
         className="mobile-appearance-button"
-        aria-label="Terminal appearance unavailable"
+        aria-label={t("appearance.unavailable")}
         disabled
       >
         ◉
@@ -67,7 +68,7 @@ export function SpacesTerminalAppearance({
       terminalId={pane.terminal_id}
       tabTerminals={panes.map((entry) => entry.terminal_id)}
       workspaceIds={state.workspaces.map((workspace) => workspace.workspace_id)}
-      tabName={tab.label || `Tab ${tab.number}`}
+      tabName={tab.label || t("shell.tabName", { number: tab.number })}
       color={color}
       disabled={state.status !== "connected" || !state.ready}
     />

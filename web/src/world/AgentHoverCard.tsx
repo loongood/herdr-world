@@ -2,6 +2,7 @@ import { MarkdownPreview } from "../components/markdown";
 import { AgentMark } from "../components/AgentMark";
 import { agentMarkKind } from "./agentMarks";
 import { formatUiDateTime } from "../uiLocale";
+import { useT } from "../i18n";
 import {
   useConversationRead,
   type LatestConversation,
@@ -22,13 +23,14 @@ export function AgentLatestMessage({
   taskSummary?: string;
   question?: readonly string[];
 }) {
+  const t = useT();
   const latest = conversation?.latest ?? null;
   const unavailable = conversation?.unavailable ?? null;
   return (
     <>
       {unavailable ? (
         <div className="town-peek-unavailable" role="status">
-          <strong>Conversation unavailable</strong>
+          <strong>{t("world.conversationUnavailable")}</strong>
           <span>{unavailable.detail}</span>
           {unavailable.command ? <code>{unavailable.command}</code> : null}
         </div>
@@ -48,8 +50,8 @@ export function AgentLatestMessage({
       ) : (
         <p className="town-peek-empty">
           {conversation
-            ? (taskSummary ?? "No messages yet.")
-            : "Loading conversation…"}
+            ? (taskSummary ?? t("world.noMessagesYet"))
+            : t("world.loadingConversation")}
         </p>
       )}
       {question.length ? (
@@ -78,6 +80,7 @@ export function AgentHoverCard({
   /** Shown over the content below instead of pushing it down (hover). */
   floating?: boolean;
 }) {
+  const t = useT();
   const read = useConversationRead(leaf, true);
   return (
     <div
@@ -90,7 +93,7 @@ export function AgentHoverCard({
         <b>{name}</b>
         <small>{where}</small>
       </header>
-      <div className="town-peek-screen" aria-label="Latest message">
+      <div className="town-peek-screen" aria-label={t("world.latestMessage")}>
         <AgentLatestMessage
           conversation={read.conversation}
           taskSummary={leaf.taskSummary}

@@ -1,4 +1,5 @@
 import { useState, useSyncExternalStore } from "react";
+import { useT } from "../../i18n";
 import type { TraceEntry, ViewTrace } from "./flag";
 import type { TracedView } from "./trace";
 import { TRACE_STYLES } from "./traceStyles";
@@ -28,6 +29,7 @@ export function TraceOverlay({
     },
     () => 0,
   );
+  const t = useT();
   const [copied, setCopied] = useState<string | null>(null);
   const entries = trace.entries().slice(-14).reverse();
   const now = status();
@@ -40,7 +42,7 @@ export function TraceOverlay({
     });
     try {
       await navigator.clipboard.writeText(text);
-      setCopied("Copied");
+      setCopied(t("world.copied"));
     } catch {
       // No clipboard (plain HTTP): show the text to copy by hand.
       setCopied(text);
@@ -51,29 +53,31 @@ export function TraceOverlay({
     <div
       className="world-trace"
       role="log"
-      aria-label={`${view === "board" ? "Board" : "Town"} event trace`}
+      aria-label={t("world.traceAria", {
+        view: view === "board" ? t("views.board") : t("views.town"),
+      })}
     >
       <style>{TRACE_STYLES}</style>
       <div className="world-trace-head">
-        <strong>Event trace</strong>
+        <strong>{t("world.traceTitle")}</strong>
         <span>
-          {now.mode} · {now.pointers} down
+          {t("world.traceMode", { mode: now.mode, pointers: now.pointers })}
         </span>
         <button type="button" onClick={() => void copy()}>
-          Copy trace
+          {t("world.copyTrace")}
         </button>
         <button type="button" onClick={() => trace.clear()}>
-          Clear
+          {t("world.clearTrace")}
         </button>
         <button
           type="button"
-          aria-label="Close the event trace"
+          aria-label={t("world.closeTraceAria")}
           onClick={onClose}
         >
           ×
         </button>
       </div>
-      {copied && copied !== "Copied" ? (
+      {copied && copied !== t("world.copied") ? (
         <textarea
           readOnly
           className="world-trace-copy"
@@ -90,8 +94,8 @@ export function TraceOverlay({
           </li>
         ))}
       </ol>
-      {copied === "Copied" ? (
-        <p className="world-trace-note">Copied to the clipboard.</p>
+      {copied === t("world.copied") ? (
+        <p className="world-trace-note">{t("world.copiedToClipboard")}</p>
       ) : null}
     </div>
   );

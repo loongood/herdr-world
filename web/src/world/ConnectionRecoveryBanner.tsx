@@ -2,6 +2,7 @@ import { useState } from "react";
 import { bridge, type ConnectionLifecycleState } from "../api";
 import { reconnectConnectionProfile } from "../connectionProfiles";
 import { store } from "../store";
+import { useT } from "../i18n";
 import { worldRuntimeStore } from "./runtimeStore";
 import "./connectionRecovery.css";
 
@@ -36,6 +37,7 @@ export function ConnectionRecoveryBanner({
   label: string;
   state?: ConnectionLifecycleState;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const reconnect = async () => {
@@ -59,18 +61,21 @@ export function ConnectionRecoveryBanner({
       onClick={(event) => event.stopPropagation()}
       onDoubleClick={(event) => event.stopPropagation()}
     >
-      <span>{state && state !== "ready" ? "Disconnected" : "Stale"} ·</span>
+      <span>
+        {state && state !== "ready"
+          ? t("connections.lifecycleDisconnected")
+          : t("world.stale")}
+        ·
+      </span>
       <button
         type="button"
         disabled={busy}
-        aria-label={`Reconnect ${label}`}
+        aria-label={t("world.reconnectAria", { label })}
         onClick={() => void reconnect()}
       >
-        {busy ? "Reconnecting…" : "Reconnect"}
+        {busy ? t("world.reconnecting") : t("connections.reconnect")}
       </button>
-      {failed ? (
-        <small>Reconnect failed. Open Manage connections for details.</small>
-      ) : null}
+      {failed ? <small>{t("world.reconnectFailed")}</small> : null}
     </div>
   );
 }
