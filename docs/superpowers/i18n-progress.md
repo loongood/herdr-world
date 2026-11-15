@@ -7,8 +7,8 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`33179cdb`(批次 31b,已推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **3460** 键,0 占位符不匹配
+- 最新提交:`b7073d6a`(批次 31c,待推送)
+- 词典规模:en / zh-Hans / zh-Hant 各 **3600** 键,0 占位符不匹配
 - 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
@@ -82,6 +82,15 @@
 - 既有环境问题(不修):isolated DOM 测试本地 preload 失败(CI 跑);
   townSceneBoundary.test.ts 在 Windows 上因路径分隔符失败(与改动无关);
   `[queue] machine-wide check queue unavailable here` 警告无害
+- **浏览器 fixture 依赖英文文案**:浏览器用例按英文按钮文本点击(如 "Edit pod…"、
+  "Roles…"、"Add…"、"Confirm"、"Pod · Chat"、"Group interest: Focused"、面板标题
+  "Pod ·" / "Team · Review pair"),en 词典值必须**逐字保留**这些字符串;
+  本地无 Chrome 时浏览器用例会 skip,只能靠单元测试 + 逐字保真兜底
+- **shared/ 层的共享枚举不能直接 i18n 化**:`shared/groupViews.ts` 的
+  GROUP_STATUS_LABELS 服务端同用,保持英文;web 层另建 `groups.status.*` 覆盖
+- **组类型词需要三套键**:展示用首字母大写(`groups.kind.*`,如 "Pod")、
+  句中小写(`groups.kindName.*`,如 "Edit pod…")、复数空态(`groups.kindPlural.*`,
+  如 "No Pods yet.")
 
 ---
 
@@ -131,16 +140,11 @@
 | 30d | `2aec6ccd` | shortcuts 20 键(绑定校验错误、保留组合警告、预设校验错误、存储/离线通知、导入错误)+ shortcutBindings、shortcutPreferences 两文件模块级 t 化 |
 | 31a | `7741061c` | 新增 common(11 键)+ toasts(12 键)域与 interest.saveFailed;CloseButton 默认 label、ModalDialogs(保存/取消/确认/确定)、ThemedSelect 空态、UpdateToast、StaleBuildToast、AppToasts、AgentInterestButton |
 | 31b | `33179cdb` | 新增 town.ask/rooms/team/move/room 组、board 33 键与 moves 顶层域(22 键);TownRail、TownTidyRooms、TownChooser、TownAccessibleTargets、townMoveActions(改名 useTownMoveActions)、townMoves、townMoveMenu、townTeamActions、roomRenameClose、boardPaneMove、useBoardPaneMoves、useBoardHerdrActions、worldAsks、WorldControlPlane(Close) |
+| 31c | `b7073d6a` | 新增 groups 域(140 键:kind/kindPlural/kindName/status/role/resolution/op/interest/errors 等);新增 groupLabels.ts(类型化标签 helper);groupActions、GroupDetail、GroupMembers、GroupsWindow、GroupsSummary、GroupInterestButton、GroupEditFeedback |
 
 ---
 
 ## 待完成(按顺序执行;完成一批更新本文件一次)
-
-### 批次 31c:分组(groups)模块
-
-world/groups/GroupDetail.tsx、groupActions.tsx、GroupMembers.tsx、
-GroupInterestButton.tsx、GroupsWindow.tsx —— 该模块此前**完全没有 i18n 引用**,
-约 42 条英文字面量,是 31 批次中体量最大的子模块。
 
 ### 批次 31d:散点收尾
 
