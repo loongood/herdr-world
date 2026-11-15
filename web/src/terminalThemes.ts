@@ -1,5 +1,6 @@
 import type { ITheme, Terminal } from "@xterm/xterm";
 import type { ResolvedTheme } from "./appearance";
+import { t } from "./i18n";
 
 export const TERMINAL_THEME_SELECTION_STORAGE_KEY = "terminalThemeSelection.v1";
 export const CUSTOM_TERMINAL_THEMES_STORAGE_KEY = "customTerminalThemes.v1";
@@ -498,11 +499,11 @@ export function customTerminalThemeToITheme(
 }
 
 function normalizeThemeName(value: unknown): string {
-  if (typeof value !== "string") return "Custom theme";
+  if (typeof value !== "string") return t("terminal.defaultCustomThemeName");
   const clipped = Array.from(value.trim())
     .slice(0, MAX_TERMINAL_THEME_NAME_LENGTH)
     .join("");
-  return clipped || "Custom theme";
+  return clipped || t("terminal.defaultCustomThemeName");
 }
 
 function normalizeCustomThemeId(

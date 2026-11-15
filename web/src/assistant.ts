@@ -16,6 +16,7 @@ import {
 import { bridge, type ConnectionStatus } from "./api";
 import { assistantChatSelection } from "./assistantModels";
 import { adjustAssistantMentions } from "./assistantMentions";
+import { t } from "./i18n";
 
 type AssistantClientState = {
   snapshot: AssistantSnapshot | null;
@@ -104,7 +105,7 @@ export function onAssistantShow(
 
 function acceptSnapshot(value: unknown, requestVersion?: number) {
   if (!isAssistantSnapshot(value)) {
-    throw new Error("Invalid Ranger state received from the bridge.");
+    throw new Error(t("assistant.errors.invalidState"));
   }
   const current = state.snapshot;
   if (retiredInstances.has(value.instance_id)) return;
@@ -192,7 +193,7 @@ export function setAssistantDraft(
     edit,
   );
   if (!isAssistantMentions(mentions, draft))
-    throw new Error("Invalid Ranger draft references.");
+    throw new Error(t("assistant.errors.invalidDraftReferences"));
   const next = { text: draft, mentions };
   if (inputType !== "historyUndo" && inputType !== "historyRedo") {
     history.entries.splice(history.index + 1);
@@ -217,17 +218,13 @@ export async function getAssistantMentions(
   scope: AssistantWorkspaceRef[],
 ): Promise<AssistantMentionCatalog> {
   if (state.connectionStatus !== "connected" || !state.supported)
-    throw new Error(
-      "Reconnect to the bridge before mentioning a workspace or agent.",
-    );
+    throw new Error(t("assistant.errors.reconnectBeforeMentions"));
   const epoch = socketEpoch;
   const value = await bridge.call("bridge.assistant.mentions", { scope });
   if (epoch !== socketEpoch)
-    throw new Error("The bridge connection changed. Reopen the mention menu.");
+    throw new Error(t("assistant.errors.mentionMenuStale"));
   if (!isAssistantMentionCatalog(value))
-    throw new Error(
-      "This bridge could not load Ranger references. Update or reconnect and try again.",
-    );
+    throw new Error(t("assistant.errors.mentionCatalogUnavailable"));
   return value;
 }
 
@@ -269,7 +266,7 @@ export function parseAssistantContext(
       (!Array.isArray(result.errors) ||
         !result.errors.every((error) => typeof error === "string")))
   )
-    throw new Error("Invalid Ranger workspace list received from the bridge.");
+    throw new Error(t("assistant.errors.invalidWorkspaceList"));
   return {
     workspaces: result.workspaces,
     errors: result.errors ?? [],
@@ -366,10 +363,10 @@ export async function callAssistant(
   params: Record<string, unknown> = {},
 ) {
   if (state.connectionStatus !== "connected") {
-    throw new Error("Reconnect to the bridge before using Ranger.");
+    throw new Error(t("assistant.errors.reconnectBeforeUse"));
   }
   if (!state.supported) {
-    throw new Error("This bridge does not support Ranger. Update Herdr World.");
+    throw new Error(t("assistant.errors.unsupported"));
   }
   if (
     assistantActionExecuting(state.snapshot) &&
@@ -379,15 +376,13 @@ export async function callAssistant(
     action !== "configure_chat" &&
     !action.startsWith("task.")
   ) {
-    throw new Error("Wait for the current action to finish.");
+    throw new Error(t("assistant.errors.actionRunning"));
   }
   if (
     (action === "action.confirm" || action === "action.cancel") &&
     state.snapshot?.running
   ) {
-    throw new Error(
-      "Wait for Ranger to finish before confirming or cancelling an action.",
-    );
+    throw new Error(t("assistant.errors.actionConfirmWhileRunning"));
   }
   const epoch = socketEpoch;
   const version = snapshotVersion;
@@ -416,20 +411,19 @@ export async function getAssistantTask(
   runId?: string,
 ): Promise<AssistantTaskDetail> {
   if (state.connectionStatus !== "connected" || !state.supported)
-    throw new Error("Reconnect to the bridge before viewing Ranger tasks.");
+    throw new Error(t("assistant.errors.reconnectBeforeTasks"));
   const epoch = socketEpoch;
   const value: unknown = await bridge.call("bridge.assistant.task.get", {
     task_id: taskId,
     ...(runId ? { run_id: runId } : {}),
   });
-  if (epoch !== socketEpoch)
-    throw new Error("The bridge connection changed. Reload the task.");
+  if (epoch !== socketEpoch) throw new Error(t("assistant.errors.taskStale"));
   if (
     !isAssistantTaskDetail(value) ||
     value.task.id !== taskId ||
     (runId && value.run?.id !== runId)
   )
-    throw new Error("Invalid Ranger task received from the bridge.");
+    throw new Error(t("assistant.errors.invalidTask"));
   return value;
 }
 
@@ -510,11 +504,9 @@ export async function sendAssistant(
   )
     return;
   if (!text.trim()) return;
-  if (!scope.length) throw new Error("Choose a workspace to read first.");
+  if (!scope.length) throw new Error(t("assistant.errors.chooseWorkspace"));
   if (!isAssistantMentions(mentions, text))
-    throw new Error(
-      "A Ranger reference changed. Select it again before sending.",
-    );
+    throw new Error(t("assistant.errors.referenceChanged"));
   const sessionId = state.snapshot?.session_id;
   const expected = state.snapshot?.chat_selection
     ? assistantChatSelection(state.snapshot)

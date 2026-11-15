@@ -221,5 +221,9 @@
   The world chrome follows too: the status line, the search results, the
   intent profile, the navigator, the view picker and toolbar, the mobile
   navigation, the foundation shell and the view error boundary.
+  The Ranger bridge errors follow too: its invalid state, draft and task
+  notices, its reconnect prompts and its stale-reference warnings.
+  The default name for an unnamed custom terminal theme follows as well;
+  the built-in theme names stay English, since they name external themes.
   Remaining surfaces keep English
   until their phase lands.

@@ -1625,6 +1625,24 @@ export const zhHans: Dictionary = {
     confirmDeleteMessage: "永久删除该任务及其全部运行历史。",
     confirmCancelMessage:
       "停止其当前运行并取消未来的运行。运行历史将保留可用。",
+    errors: {
+      invalidState: "从桥接收到无效的 Ranger 状态。",
+      invalidDraftReferences: "无效的 Ranger 草稿引用。",
+      reconnectBeforeMentions: "提及工作区或智能体前，请先重新连接桥接。",
+      mentionMenuStale: "桥接连接已更改。请重新打开提及菜单。",
+      mentionCatalogUnavailable:
+        "此桥接无法加载 Ranger 引用。请更新或重新连接后重试。",
+      invalidWorkspaceList: "从桥接收到无效的 Ranger 工作区列表。",
+      reconnectBeforeUse: "使用 Ranger 前，请先重新连接桥接。",
+      unsupported: "此桥接不支持 Ranger。请更新 Herdr World。",
+      actionRunning: "请等待当前操作完成。",
+      actionConfirmWhileRunning: "确认或取消操作前，请等待 Ranger 完成。",
+      reconnectBeforeTasks: "查看 Ranger 任务前，请先重新连接桥接。",
+      taskStale: "桥接连接已更改。请重新加载任务。",
+      invalidTask: "从桥接收到无效的 Ranger 任务。",
+      chooseWorkspace: "请先选择一个要读取的工作区。",
+      referenceChanged: "Ranger 引用已更改。请重新选择后再发送。",
+    },
   },
   terminal: {
     attachPopupFailed: "无法附加弹出终端。",

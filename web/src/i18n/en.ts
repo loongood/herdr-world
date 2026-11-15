@@ -1695,6 +1695,30 @@ export const en = {
       "Permanently delete this task and all of its run history.",
     confirmCancelMessage:
       "Stop its current run and cancel future runs. Run history will stay available.",
+    errors: {
+      invalidState: "Invalid Ranger state received from the bridge.",
+      invalidDraftReferences: "Invalid Ranger draft references.",
+      reconnectBeforeMentions:
+        "Reconnect to the bridge before mentioning a workspace or agent.",
+      mentionMenuStale:
+        "The bridge connection changed. Reopen the mention menu.",
+      mentionCatalogUnavailable:
+        "This bridge could not load Ranger references. Update or reconnect and try again.",
+      invalidWorkspaceList:
+        "Invalid Ranger workspace list received from the bridge.",
+      reconnectBeforeUse: "Reconnect to the bridge before using Ranger.",
+      unsupported: "This bridge does not support Ranger. Update Herdr World.",
+      actionRunning: "Wait for the current action to finish.",
+      actionConfirmWhileRunning:
+        "Wait for Ranger to finish before confirming or cancelling an action.",
+      reconnectBeforeTasks:
+        "Reconnect to the bridge before viewing Ranger tasks.",
+      taskStale: "The bridge connection changed. Reload the task.",
+      invalidTask: "Invalid Ranger task received from the bridge.",
+      chooseWorkspace: "Choose a workspace to read first.",
+      referenceChanged:
+        "A Ranger reference changed. Select it again before sending.",
+    },
   },
   terminal: {
     attachPopupFailed: "Unable to attach popup terminal.",

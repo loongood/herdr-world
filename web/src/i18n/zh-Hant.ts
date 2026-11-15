@@ -1628,6 +1628,24 @@ export const zhHant: Dictionary = {
     confirmDeleteMessage: "永久刪除該任務及其全部執行歷史。",
     confirmCancelMessage:
       "停止其目前執行並取消未來的執行。執行歷史將保留可用。",
+    errors: {
+      invalidState: "從橋接收到無效的 Ranger 狀態。",
+      invalidDraftReferences: "無效的 Ranger 草稿參照。",
+      reconnectBeforeMentions: "提及工作區或智慧代理前，請先重新連接橋接。",
+      mentionMenuStale: "橋接連線已變更。請重新開啟提及選單。",
+      mentionCatalogUnavailable:
+        "此橋接無法載入 Ranger 參照。請更新或重新連接後再試。",
+      invalidWorkspaceList: "從橋接收到無效的 Ranger 工作區清單。",
+      reconnectBeforeUse: "使用 Ranger 前，請先重新連接橋接。",
+      unsupported: "此橋接不支援 Ranger。請更新 Herdr World。",
+      actionRunning: "請等待目前的操作完成。",
+      actionConfirmWhileRunning: "確認或取消操作前，請等待 Ranger 完成。",
+      reconnectBeforeTasks: "檢視 Ranger 任務前，請先重新連接橋接。",
+      taskStale: "橋接連線已變更。請重新載入任務。",
+      invalidTask: "從橋接收到無效的 Ranger 任務。",
+      chooseWorkspace: "請先選擇一個要讀取的工作區。",
+      referenceChanged: "Ranger 參照已變更。請重新選擇後再傳送。",
+    },
   },
   terminal: {
     attachPopupFailed: "無法附加彈出終端機。",
