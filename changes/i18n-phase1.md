@@ -106,7 +106,11 @@
   worktree badge), the view tabs and selector, the dock/float/maximize
   window controls, stale and unavailable status lines, the repository
   status popover and phone sheet, the agent's appearance popover, and its
-  loading/empty states. The built-in
+  loading/empty states. The diff viewers round out the review flow: both
+  panels' headers, changed-file trees and empty states, the comparison
+  scope and branch selectors, the hunk navigation and file search
+  controls, image previews, the copy-path and reveal context menus, and
+  their copy confirmations. The built-in
   slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
