@@ -157,5 +157,13 @@
   nothing-to-show reading; the status labels reuse the agent-marks words.
   Store-level validation errors stay English: they are diagnostics, not
   World's own copy.
+  The answer outbox follows too: its heading, filters, delivery cards
+  (statuses, refusal reasons, duplicate confirmation and dismissal copy)
+  and the shared delivery status words. The workspace tab chips, rows and
+  agent rows follow as well: chip titles, tab counts, git status lines,
+  loading and empty states, and the agent context menu, with the shared
+  status words reused. The commit history follows too: the commit list,
+  metadata details, changed-file entries and the historical preview, with
+  `path (status)` tooltips kept as git notation.
   Remaining surfaces keep English
   until their phase lands.

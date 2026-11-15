@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { askerName } from "../worldAsks";
+import { t, useT } from "../../i18n";
 import {
-  sharedAnswerDeliveries,
-  useAnswerDeliveries,
   type AnswerNotice,
   type AnswerNotices,
+  sharedAnswerDeliveries,
+  useAnswerDeliveries,
   type WorldAnswerDeliveriesStore,
 } from "../worldAnswerDeliveries";
+import { askerName } from "../worldAsks";
 import type { AnswerRecipientView } from "./answerOutbox";
 import type { TownAsker } from "./townAskers";
 import "./answerDeliveries.css";
@@ -14,16 +15,18 @@ export type AnswerDeliveryActions = Pick<
   WorldAnswerDeliveriesStore,
   "decide" | "refresh" | "older"
 >;
+const DELIVERY_LABEL_KEYS = {
+  pending: "outbox.labelPending",
+  claimed: "outbox.labelClaimed",
+  dispatching: "outbox.labelDispatching",
+  uncertain: "outbox.labelUncertain",
+  refused: "outbox.labelRefused",
+  delivered: "outbox.labelDelivered",
+  cancelled: "outbox.labelCancelled",
+} as const;
+
 export const answerDeliveryLabel = (state: AnswerNotice["delivery"]["state"]) =>
-  ({
-    pending: "Waiting to send",
-    claimed: "Sending…",
-    dispatching: "Sending…",
-    uncertain: "Unconfirmed",
-    refused: "Not sent",
-    delivered: "Sent",
-    cancelled: "Dismissed",
-  })[state];
+  t(DELIVERY_LABEL_KEYS[state]);
 /** Full saved-answer cards live in Summary; the rail is only a route here. */
 export function AnswerDeliveries({
   state,
@@ -38,6 +41,7 @@ export function AnswerDeliveries({
   recipient?(notice: AnswerNotice): AnswerRecipientView;
   open?(target: TownAsker): void;
 }) {
+  const t = useT();
   const heading = useRef<HTMLHeadingElement>(null),
     region = useRef<HTMLElement>(null);
   const [status, setStatus] = useState("");
@@ -54,8 +58,8 @@ export function AnswerDeliveries({
     if (sent)
       setStatus(
         sent.delivery.received_at !== undefined
-          ? `Answer received by ${askerName(sent.ask)} through the CLI.`
-          : `Sent to ${askerName(sent.ask)}.`,
+          ? t("outbox.deliveryCli", { name: askerName(sent.ask) })
+          : t("outbox.sentTo", { name: askerName(sent.ask) }),
       );
   }, [state.entries]);
   const decide: AnswerDeliveryActions["decide"] = async (notice, action) => {
@@ -66,8 +70,8 @@ export function AnswerDeliveries({
     setStatus(
       error ??
         (action === "resend"
-          ? "Send requested. World checks the original session first."
-          : "Dismissed. Your answer stays saved."),
+          ? t("outbox.sendRequested")
+          : t("outbox.dismissedSaved")),
     );
     if (!error)
       requestAnimationFrame(() => {
@@ -80,17 +84,19 @@ export function AnswerDeliveries({
     return error;
   };
   return (
-    <section ref={region} className="answer-deliveries" aria-label="Outbox">
+    <section
+      ref={region}
+      className="answer-deliveries"
+      aria-label={t("outbox.outboxAria")}
+    >
       <h3 ref={heading} tabIndex={-1}>
-        Outbox{" "}
+        {t("outbox.outbox")}{" "}
         <span>
           {(state.counts?.checks ?? 0) +
             (state.counts?.waiting ?? state.entries.length)}
         </span>
       </h3>
-      <p className="answer-deliveries-help">
-        Your answers that World hasn't confirmed yet. Each stays saved.
-      </p>
+      <p className="answer-deliveries-help">{t("outbox.help")}</p>
       <p className="answer-delivery-live" role="status" aria-live="polite">
         {status}
       </p>
@@ -98,7 +104,7 @@ export function AnswerDeliveries({
         <p role="alert">
           {state.error}{" "}
           <button type="button" onClick={() => void actions.refresh()}>
-            Refresh
+            {t("outbox.refresh")}
           </button>
         </p>
       ) : null}
@@ -113,7 +119,7 @@ export function AnswerDeliveries({
           />
         ))}
         {!state.entries.length && !state.error && !state.loading ? (
-          <p className="answer-deliveries-help">No answers waiting here.</p>
+          <p className="answer-deliveries-help">{t("outbox.empty")}</p>
         ) : null}
       </div>
       {state.next || state.older ? (
@@ -124,7 +130,7 @@ export function AnswerDeliveries({
               disabled={state.loading}
               onClick={() => void actions.refresh()}
             >
-              Newest
+              {t("outbox.newest")}
             </button>
           ) : null}
           {state.next ? (
@@ -133,7 +139,7 @@ export function AnswerDeliveries({
               disabled={state.loading}
               onClick={() => void actions.older()}
             >
-              Older
+              {t("outbox.older")}
             </button>
           ) : null}
         </div>
@@ -152,6 +158,7 @@ export function AnswerDeliveryCard({
   recipient?: AnswerRecipientView;
   open?(target: TownAsker): void;
 }) {
+  const t = useT();
   const { ask, delivery } = notice,
     name = recipient?.name ?? askerName(ask);
   const [confirm, setConfirm] = useState<AnswerNotice | null>(null),
@@ -173,9 +180,7 @@ export function AnswerDeliveryCard({
         confirm.delivery.state !== delivery.state)
     ) {
       setConfirm(null);
-      setError(
-        "Delivery changed. Review the current result before sending again.",
-      );
+      setError(t("outbox.deliveryChanged"));
       requestAnimationFrame(() =>
         (sendButton.current ?? card.current)?.focus(),
       );
@@ -196,62 +201,63 @@ export function AnswerDeliveryCard({
   const refusedMessage = /session changed|binding changed/i.test(
     delivery.reason ?? "",
   )
-    ? `${name}'s session changed after it asked, so World didn't send your answer.`
+    ? t("outbox.refusedSession", { name })
     : /ended|removed/i.test(delivery.reason ?? "")
-      ? `${name}'s original session is no longer available. World didn't send your answer.`
-      : "World didn't send your answer. It stays saved.";
+      ? t("outbox.refusedEnded", { name })
+      : t("outbox.refusedDefault");
   const message = active
-    ? "Wait for the result."
+    ? t("outbox.waitResult")
     : delivery.state === "uncertain"
-      ? `World couldn't confirm that ${name} got your answer. It won't send it again on its own.`
+      ? t("outbox.uncertain", { name })
       : delivery.state === "delivered"
         ? delivery.received_at !== undefined
-          ? `Answer received by ${name} through the CLI.`
-          : `Sent to ${name}.`
+          ? t("outbox.deliveryCli", { name })
+          : t("outbox.sentTo", { name })
         : delivery.state === "refused"
           ? refusedMessage
           : /offline|reconnect/.test(delivery.reason ?? "")
-            ? "Waiting for the original host to reconnect."
-            : "Waiting for the original asking session to be ready.";
+            ? t("outbox.waitingReconnect")
+            : t("outbox.waitingSession");
 
   return (
     <article
       ref={card}
       tabIndex={-1}
       className={`answer-delivery answer-delivery-${delivery.state}`}
-      aria-label={`Answer delivery to ${name}`}
+      aria-label={t("outbox.cardAria", { name })}
     >
       <div className="answer-delivery-heading">
         <b>{name}</b>
         <span>
           {delivery.received_at !== undefined
-            ? "Received by CLI"
+            ? t("outbox.receivedCli")
             : answerDeliveryLabel(delivery.state)}
         </span>
       </div>
       <p>{ask.question}</p>
       <p className="answer-delivery-answer">
-        <span>Your answer</span> {ask.answer?.text}
+        <span>{t("outbox.yourAnswer")}</span> {ask.answer?.text}
       </p>
       <p className="answer-delivery-status">{message}</p>
       {delivery.prior_uncertainty && delivery.state !== "uncertain" ? (
-        <p className="answer-delivery-status">
-          An earlier send may also have arrived.
-        </p>
+        <p className="answer-delivery-status">{t("outbox.earlierArrived")}</p>
       ) : null}
       <details>
-        <summary>Delivery details</summary>
+        <summary>{t("outbox.details")}</summary>
         <p
-          title={`${ask.actor.connection_id ?? "unverified"} · ${ask.actor.pane_id ?? "unknown pane"}`}
+          title={`${ask.actor.connection_id ?? t("outbox.unverified")} · ${ask.actor.pane_id ?? t("outbox.unknownPane")}`}
         >
-          To {name} · {recipient?.location ?? "original host"}
+          {t("outbox.toLine", {
+            name,
+            location: recipient?.location ?? t("outbox.originalHost"),
+          })}
         </p>
         {delivery.reason ? <p>{delivery.reason}</p> : null}
         {delivery.attempts?.length ? (
           <ul>
             {delivery.attempts.map((attempt) => (
               <li key={attempt.attempt}>
-                Send {attempt.attempt}:{" "}
+                {t("outbox.attemptLabel", { count: attempt.attempt })}{" "}
                 {answerDeliveryLabel(
                   attempt.state as AnswerNotice["delivery"]["state"],
                 ) ?? attempt.state}{" "}
@@ -261,21 +267,19 @@ export function AnswerDeliveryCard({
           </ul>
         ) : null}
         <p>
-          The answer remains readable with{" "}
-          <code>herdr-world ask get {ask.id}</code>.
+          {t("outbox.readablePrefix")}
+          <code>herdr-world ask get {ask.id}</code>
+          {t("outbox.readableSuffix")}
         </p>
-        <p>Submission to Herdr does not prove the agent read or acted on it.</p>
+        <p>{t("outbox.submissionNote")}</p>
       </details>
       {confirm ? (
         <div
           className="answer-delivery-confirm"
           role="group"
-          aria-label="Confirm possible duplicate"
+          aria-label={t("outbox.confirmAria")}
         >
-          <p>
-            Send your answer to {name} again? If the first one arrived, {name}{" "}
-            sees it twice. World checks it's still the same session first.
-          </p>
+          <p>{t("outbox.confirmText", { name })}</p>
           <div className="answer-delivery-actions">
             <button
               ref={confirmation}
@@ -283,7 +287,7 @@ export function AnswerDeliveryCard({
               disabled={busy}
               onClick={() => void act("resend")}
             >
-              Send again
+              {t("outbox.sendAgain")}
             </button>
             <button
               type="button"
@@ -295,7 +299,7 @@ export function AnswerDeliveryCard({
                 );
               }}
             >
-              Cancel
+              {t("outbox.cancel")}
             </button>
           </div>
         </div>
@@ -308,21 +312,25 @@ export function AnswerDeliveryCard({
               disabled={busy}
               onClick={() => setConfirm(notice)}
             >
-              Send again…
+              {t("outbox.sendAgainEllipsis")}
             </button>
           ) : null}
           {delivery.state === "refused" && recipient?.target && open ? (
             <button type="button" onClick={() => open(recipient.target!)}>
-              Open {recipient.target.terminal ? "terminal" : "agent"}
+              {recipient.target.terminal
+                ? t("outbox.openTerminal")
+                : t("outbox.openAgent")}
             </button>
           ) : null}
           <button
             type="button"
-            aria-label={`Dismiss the delivery to ${name}; your answer stays saved`}
+            aria-label={t("outbox.dismissAria", { name })}
             disabled={busy}
             onClick={() => void act("close")}
           >
-            {delivery.state === "pending" ? "Cancel send" : "Dismiss"}
+            {delivery.state === "pending"
+              ? t("outbox.cancelSend")
+              : t("outbox.dismiss")}
           </button>
         </div>
       ) : null}

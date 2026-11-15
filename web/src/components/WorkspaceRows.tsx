@@ -1,11 +1,4 @@
-import { WorkspacePullRequestBadge as PullRequestBadge } from "./WorktreePullRequestBadge";
-import { subscribeLocalStorage } from "../browserStorage";
-import { worldLocalStorage } from "../browserStorage";
-import { shallowEqual, useOperationalStore, useStoreSelector } from "../store";
-import type { GitStatusSummary, Pane, Tab, Workspace } from "../types";
-import type { PullRequestSummary } from "../../../shared/pullRequest";
-import type { ConnectionSummary } from "../api";
-import { connectionLifecycleLabel } from "../connectionProfiles";
+import { ChevronDown, ChevronRight, Pin } from "lucide-react";
 import {
   useCallback,
   useContext,
@@ -14,15 +7,35 @@ import {
   useRef,
   useState,
 } from "react";
-import { type ContextMenuState } from "./ContextMenu";
-import { WorkspaceColorContext } from "./workspaceColor";
-import { buildWorkspaceHierarchy } from "../worktree";
-import { ChevronDown, ChevronRight, Pin } from "lucide-react";
+import type { PullRequestSummary } from "../../../shared/pullRequest";
+import type { ConnectionSummary } from "../api";
+import { subscribeLocalStorage, worldLocalStorage } from "../browserStorage";
+import { connectionLifecycleLabel } from "../connectionProfiles";
+import { connectionStorageKey } from "../connectionStorage";
+import { t, useT } from "../i18n";
+import { shallowEqual, useOperationalStore, useStoreSelector } from "../store";
+import type { GitStatusSummary, Pane, Tab, Workspace } from "../types";
 import {
-  WORKSPACE_PINS_STORAGE_KEY,
+  type ConnectionAgentSessions,
+  openServerSession,
+  type ServerSessionSource,
+} from "../useAllServerAgentSessions";
+import { type WorkspaceAgentLayout } from "../workspaceAgentLayout";
+import {
   isWorkspacePinned,
   parseWorkspacePins,
+  WORKSPACE_PINS_STORAGE_KEY,
 } from "../workspacePins";
+import {
+  visibleWorkspaceTabChips,
+  type WorkspaceTabChip,
+  workspaceTabChips,
+} from "../workspaceTabChips";
+import {
+  showWorkspaceBranchBadge,
+  workspaceDisplayName,
+  workspacePullRequest,
+} from "../workspaceTreeBadges";
 import {
   COLLAPSED_WORKTREE_GROUPS_STORAGE_KEY,
   isWorktreeGroupCollapsed,
@@ -30,37 +43,24 @@ import {
   serializeCollapsedWorktreeGroups,
   setWorktreeGroupCollapsed,
 } from "../workspaceTreeCollapse";
-import {
-  showWorkspaceBranchBadge,
-  workspaceDisplayName,
-  workspacePullRequest,
-} from "../workspaceTreeBadges";
-import { connectionStorageKey } from "../connectionStorage";
-import {
-  visibleWorkspaceTabChips,
-  type WorkspaceTabChip,
-  workspaceTabChips,
-} from "../workspaceTabChips";
+import { buildWorkspaceHierarchy } from "../worktree";
 import type { AgentStateKind } from "./agentSession";
-import { type WorkspaceAgentLayout } from "../workspaceAgentLayout";
-import {
-  type ServerSessionSource,
-  type ConnectionAgentSessions,
-  openServerSession,
-} from "../useAllServerAgentSessions";
-import {
-  type AgentMenuState,
-  AgentRow,
-  nestedAgentPaneIds,
-} from "./WorkspaceAgentRows";
 import { groupAgentPanesByWorkspace } from "./agentSession";
+import { type ContextMenuState } from "./ContextMenu";
+import { TREE_DEPTH_INDENT } from "./treeIndent";
 import {
   focusTreeItem,
   keyboardContextMenuPoint,
   treeKeyboardAction,
   workspaceTreeItemIsTabStop,
 } from "./treeKeyboard";
-import { TREE_DEPTH_INDENT } from "./treeIndent";
+import {
+  type AgentMenuState,
+  AgentRow,
+  nestedAgentPaneIds,
+} from "./WorkspaceAgentRows";
+import { WorkspacePullRequestBadge as PullRequestBadge } from "./WorktreePullRequestBadge";
+import { WorkspaceColorContext } from "./workspaceColor";
 import "./WorkspaceTree.css";
 
 /**
@@ -78,16 +78,24 @@ function gitChangedCount(status: GitStatusSummary) {
 
 function gitStatusTitle(status?: GitStatusSummary) {
   if (!status) return "";
-  if (status.error) return `git status unavailable: ${status.error}`;
+  if (status.error) return t("wsRows.gitUnavailable", { error: status.error });
   const parts = [
-    status.branch ? `branch: ${status.branch}` : null,
-    status.upstream ? `upstream: ${status.upstream}` : null,
-    status.ahead ? `ahead: ${status.ahead}` : null,
-    status.behind ? `behind: ${status.behind}` : null,
-    status.staged ? `staged: ${status.staged}` : null,
-    status.unstaged ? `unstaged: ${status.unstaged}` : null,
-    status.untracked ? `untracked: ${status.untracked}` : null,
-    status.conflicted ? `conflicted: ${status.conflicted}` : null,
+    status.branch ? t("wsRows.gitBranch", { value: status.branch }) : null,
+    status.upstream
+      ? t("wsRows.gitUpstream", { value: status.upstream })
+      : null,
+    status.ahead ? t("wsRows.gitAhead", { value: status.ahead }) : null,
+    status.behind ? t("wsRows.gitBehind", { value: status.behind }) : null,
+    status.staged ? t("wsRows.gitStaged", { value: status.staged }) : null,
+    status.unstaged
+      ? t("wsRows.gitUnstaged", { value: status.unstaged })
+      : null,
+    status.untracked
+      ? t("wsRows.gitUntracked", { value: status.untracked })
+      : null,
+    status.conflicted
+      ? t("wsRows.gitConflicted", { value: status.conflicted })
+      : null,
   ].filter(Boolean);
   return parts.join(" · ");
 }
@@ -174,6 +182,7 @@ export function ServerWorkspaceRows({
   onContextMenu: (menu: ContextMenuState) => void;
   onAgentContextMenu: (menu: AgentMenuState) => void;
 }) {
+  const t = useT();
   const pinsKey = connectionStorageKey(
     connection.id,
     WORKSPACE_PINS_STORAGE_KEY,
@@ -238,9 +247,9 @@ export function ServerWorkspaceRows({
       : snapshot?.error
         ? snapshot.error
         : !snapshot
-          ? "Loading..."
+          ? t("wsRows.loading")
           : topLevel.length === 0
-            ? "No workspaces."
+            ? t("wsRows.noWorkspaces")
             : null;
   if (message) {
     return (
@@ -313,12 +322,19 @@ function workspaceSubtreeContainsActiveItem(
   );
 }
 
-const TAB_CHIP_STATUS_LABELS: Record<AgentStateKind, string> = {
-  blocked: "Blocked",
-  done: "Done",
-  working: "Working",
-  idle: "Idle",
-  unknown: "No agent",
+const TAB_CHIP_STATUS_KEYS: Record<
+  AgentStateKind,
+  | "quest.statusBlocked"
+  | "marks.done"
+  | "marks.working"
+  | "marks.idle"
+  | "wsRows.noAgent"
+> = {
+  blocked: "quest.statusBlocked",
+  done: "marks.done",
+  working: "marks.working",
+  idle: "marks.idle",
+  unknown: "wsRows.noAgent",
 };
 
 function WorkspaceTabChips({
@@ -330,6 +346,7 @@ function WorkspaceTabChips({
   workspaceFocused: boolean;
   onOpen: (chip: WorkspaceTabChip) => void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLSpanElement>(null);
   const [availableWidth, setAvailableWidth] = useState<number>();
   useLayoutEffect(() => {
@@ -349,11 +366,12 @@ function WorkspaceTabChips({
       ref={ref}
       className="workspace-tab-chips"
       role="group"
-      aria-label="Tabs"
+      aria-label={t("wsRows.tabsAria")}
     >
       {visible.map((chip) => {
-        const status = TAB_CHIP_STATUS_LABELS[chip.status];
-        const name = chip.label.trim() || `Tab ${chip.number}`;
+        const status = t(TAB_CHIP_STATUS_KEYS[chip.status]);
+        const name =
+          chip.label.trim() || t("wsRows.tabName", { count: chip.number });
         return (
           <button
             key={chip.tabId}
@@ -361,8 +379,16 @@ function WorkspaceTabChips({
             className={`workspace-tab-chip is-${chip.status} ${
               workspaceFocused && chip.focused ? "is-active" : ""
             }`}
-            title={`${chip.number}: ${name} · ${status}`}
-            aria-label={`Tab ${chip.number}, ${name}, ${status}`}
+            title={t("wsRows.chipTitle", {
+              number: chip.number,
+              name,
+              status,
+            })}
+            aria-label={t("wsRows.chipAria", {
+              number: chip.number,
+              name,
+              status,
+            })}
             onPointerDown={stop}
             onPointerMove={stop}
             onPointerUp={stop}
@@ -380,8 +406,8 @@ function WorkspaceTabChips({
       {hidden > 0 ? (
         <span
           className="workspace-tab-chip-more"
-          title={`${hidden} more tabs`}
-          aria-label={`${hidden} more tabs`}
+          title={t("wsRows.moreTabs", { count: hidden })}
+          aria-label={t("wsRows.moreTabs", { count: hidden })}
         >
           +{hidden}
         </span>
@@ -429,6 +455,7 @@ export function WorkspaceRow({
   onContextMenu: (w: Workspace, x: number, y: number) => void;
   workspaceDrag?: WorkspaceDragProps;
 }) {
+  const t = useT();
   const workspaceColors = useContext(WorkspaceColorContext);
   const workspaceColor = workspaceColors?.colorOf(w.workspace_id);
   const store = useOperationalStore();
@@ -641,8 +668,10 @@ export function WorkspaceRow({
             type="button"
             className="workspace-group-toggle"
             tabIndex={-1}
-            title={collapsed ? "Expand workspace" : "Collapse workspace"}
-            aria-label={collapsed ? "Expand workspace" : "Collapse workspace"}
+            title={collapsed ? t("wsRows.expandWs") : t("wsRows.collapseWs")}
+            aria-label={
+              collapsed ? t("wsRows.expandWs") : t("wsRows.collapseWs")
+            }
             aria-expanded={!collapsed}
             onPointerDown={(event) => event.stopPropagation()}
             onPointerMove={(event) => event.stopPropagation()}
@@ -672,7 +701,7 @@ export function WorkspaceRow({
                 (entry) => entry.id === workspaceColor.id,
               )?.hex,
             }}
-            title={`Colour ${workspaceColor.id}`}
+            title={t("wsRows.colourTitle", { id: workspaceColor.id })}
             aria-hidden="true"
           />
         ) : null}
@@ -687,8 +716,8 @@ export function WorkspaceRow({
         {tabCountVisible && !tabChipsVisible ? (
           <span
             className="workspace-tab-count"
-            title={`${tabCount} tabs`}
-            aria-label={`${tabCount} tabs`}
+            title={t("wsRows.tabCountLabel", { count: tabCount })}
+            aria-label={t("wsRows.tabCountLabel", { count: tabCount })}
           >
             {tabCount}
           </span>
@@ -714,7 +743,7 @@ export function WorkspaceRow({
           <span
             className="workspace-server-badge"
             title={source.serverLabel}
-            aria-label={`Server: ${source.serverLabel}`}
+            aria-label={t("wsRows.serverAria", { label: source.serverLabel })}
           >
             {source.serverLabel}
           </span>
@@ -724,11 +753,11 @@ export function WorkspaceRow({
             className="workspace-pin"
             size={11}
             fill="currentColor"
-            aria-label="Pinned"
+            aria-label={t("wsRows.pinned")}
           />
         ) : null}
         {isPendingFocus ? (
-          <span className="row-spinner" aria-label="Loading workspace" />
+          <span className="row-spinner" aria-label={t("wsRows.loadingAria")} />
         ) : null}
         {w.worktree ? (
           <>

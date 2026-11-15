@@ -1,31 +1,31 @@
-import { useLayer } from "../layerStack";
-import { paneAgentTitle } from "../agentName";
-import type { Tab } from "../types";
 import { useEffect, useLayoutEffect, useRef } from "react";
-import {
-  focusTreeItem,
-  keyboardContextMenuPoint,
-  treeKeyboardAction,
-} from "./treeKeyboard";
+import { paneAgentTitle } from "../agentName";
+import { t, useT } from "../i18n";
+import { useLayer } from "../layerStack";
 import {
   store as sessionStore,
   useOperationalStore,
   useStoreSelector,
 } from "../store";
-import type { Pane } from "../types";
-import { agentClass, basename, shortId } from "../utils";
-import {
-  paneHasAgentHistory,
-  shouldShowAgentStatusLabel,
-} from "./agentSession";
-import { AgentStatusIcon } from "./AgentStatusIcon";
-import { hasAgentIcon } from "./AgentIcon";
-import { observeClampedContextMenu } from "./contextMenuPosition";
-import { TREE_DEPTH_INDENT } from "./treeIndent";
+import type { Pane, Tab } from "../types";
 import {
   isServerSourceAvailable,
   type ServerSessionSource,
 } from "../useAllServerAgentSessions";
+import { agentClass, basename, shortId } from "../utils";
+import { hasAgentIcon } from "./AgentIcon";
+import { AgentStatusIcon } from "./AgentStatusIcon";
+import {
+  paneHasAgentHistory,
+  shouldShowAgentStatusLabel,
+} from "./agentSession";
+import { observeClampedContextMenu } from "./contextMenuPosition";
+import { TREE_DEPTH_INDENT } from "./treeIndent";
+import {
+  focusTreeItem,
+  keyboardContextMenuPoint,
+  treeKeyboardAction,
+} from "./treeKeyboard";
 import "./WorkspaceAgentRows.css";
 import "./ContextMenu.css";
 
@@ -63,7 +63,7 @@ function meaningfulTabLabel(label: string): string {
 
 function nestedAgentTitle(pane: Pane, tabLabel: string): string[] {
   const location = agentLocationName(pane);
-  const agent = pane.agent?.trim() || "Agent";
+  const agent = pane.agent?.trim() || t("wsRows.agentWord");
   const name = pane.agent_name?.trim();
   const primary = name || meaningfulTabLabel(tabLabel) || location || agent;
   return [
@@ -138,6 +138,7 @@ export function AgentRow({
     onDragEnd: () => void;
   };
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const rawTabLabel = useStoreSelector(
     (state) =>
@@ -181,9 +182,11 @@ export function AgentRow({
     rawTabLabel,
   );
   const details = [
-    `${paneAgentTitle(pane) || "Agent"} pane ${pane.pane_id}`,
-    rawTabLabel ? `tab ${rawTabLabel}` : `tab ${pane.tab_id}`,
-    `status ${pane.agent_status}`,
+    `${paneAgentTitle(pane) || t("wsRows.agentWord")} ${t("wsRows.paneWord")} ${pane.pane_id}`,
+    rawTabLabel
+      ? `${t("wsRows.tabWord")} ${rawTabLabel}`
+      : `${t("wsRows.tabWord")} ${pane.tab_id}`,
+    `${t("wsRows.statusWord")} ${pane.agent_status}`,
     ...new Set([pane.foreground_cwd, pane.cwd].filter(Boolean)),
   ].join(", ");
 
@@ -303,7 +306,7 @@ export function AgentRow({
       aria-label={
         nested
           ? details
-          : `${serverLabel ? `${serverLabel}, ` : ""}${paneAgentTitle(pane) || "Agent"} pane${tabLabel ? `, tab ${tabLabel}` : ""}, status ${pane.agent_status}`
+          : `${serverLabel ? `${serverLabel}, ` : ""}${paneAgentTitle(pane) || t("wsRows.agentWord")} ${t("wsRows.paneWord")}${tabLabel ? `, ${t("wsRows.tabWord")} ${tabLabel}` : ""}, ${t("wsRows.statusWord")} ${pane.agent_status}`
       }
     >
       <AgentStatusIcon agent={pane.agent} status={pane.agent_status} />
@@ -336,7 +339,7 @@ export function AgentRow({
         {!nested ? (
           <div className="agent-sub muted">
             {serverLabel ? `${serverLabel} · ` : ""}
-            {paneAgentTitle(pane) || "Terminal"}
+            {paneAgentTitle(pane) || t("wsRows.terminalWord")}
             {pane.cwd ? ` · ${basename(pane.cwd)}` : ""}
           </div>
         ) : null}
@@ -364,6 +367,7 @@ export function AgentContextMenu({
   onExportSession: (pane: Pane) => void;
   onClosePane: (pane: Pane) => void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
 
   useLayer(state !== null, onClose, { element: () => ref.current });
@@ -374,11 +378,11 @@ export function AgentContextMenu({
       if (target instanceof Node && ref.current?.contains(target)) return;
       onClose();
     };
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       window.addEventListener("scroll", onScroll, true);
     }, 0);
     return () => {
-      clearTimeout(t);
+      clearTimeout(timer);
       window.removeEventListener("scroll", onScroll, true);
     };
   }, [state, onClose]);
@@ -403,23 +407,29 @@ export function AgentContextMenu({
         {
           label: state.source!.serverLabel,
           items: [
-            { label: "Open terminal", action: () => onFocus(state.pane) },
+            {
+              label: t("wsRows.openTerminal"),
+              action: () => onFocus(state.pane),
+            },
           ],
         },
       ]
     : [
         {
-          label: "Open",
+          label: t("wsRows.groupOpen"),
           items: [
-            { label: "Open terminal", action: () => onFocus(state.pane) },
+            {
+              label: t("wsRows.openTerminal"),
+              action: () => onFocus(state.pane),
+            },
             {
               label: paneHasAgentHistory(state.pane)
-                ? "Browse files at agent CWD"
-                : "Browse files at terminal CWD",
+                ? t("wsRows.browseAgentCwd")
+                : t("wsRows.browseTerminalCwd"),
               action: () => onBrowseFiles?.(state.pane),
             },
             {
-              label: "Review workspace changes",
+              label: t("wsRows.reviewChanges"),
               action: () => onReviewChanges?.(state.pane),
             },
           ],
@@ -427,14 +437,14 @@ export function AgentContextMenu({
         ...(paneHasAgentHistory(state.pane)
           ? [
               {
-                label: "Session",
+                label: t("wsRows.groupSession"),
                 items: [
                   {
-                    label: "View agent history",
+                    label: t("wsRows.viewHistory"),
                     action: () => onViewHistory?.(state.pane),
                   },
                   {
-                    label: "Export session",
+                    label: t("wsRows.exportSession"),
                     action: () => onExportSession(state.pane),
                   },
                 ],
@@ -442,11 +452,11 @@ export function AgentContextMenu({
             ]
           : []),
         {
-          label: "Pane",
+          label: t("wsRows.groupPane"),
           danger: true,
           items: [
             {
-              label: "Close pane",
+              label: t("wsRows.closePane"),
               danger: true,
               action: () => onClosePane(state.pane),
             },
@@ -459,13 +469,13 @@ export function AgentContextMenu({
     top: state.y,
     zIndex: 1000,
   };
-  const agentName = paneAgentTitle(state.pane) || "Agent";
+  const agentName = paneAgentTitle(state.pane) || t("wsRows.agentWord");
   const locationName = agentLocationName(state.pane);
 
   return (
     <div ref={ref} className="context-menu context-menu--grouped" style={style}>
       <div className="context-menu-header">
-        <span>Agent</span>
+        <span>{t("wsRows.agentWord")}</span>
         <strong title={agentName}>{agentName}</strong>
         <small>
           {state.pane.agent_status}

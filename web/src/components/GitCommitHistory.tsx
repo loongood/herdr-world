@@ -1,18 +1,19 @@
 import { ArrowLeft, Eye, GitCommitHorizontal, RefreshCw } from "lucide-react";
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useId,
   useRef,
   useState,
-  type CSSProperties,
 } from "react";
 import type { ConnectionClient } from "../api";
-import type { FilePreview, GitDiffEntry, GitDiffFile } from "../types";
 import { gitDiffCode } from "../gitDiffStatus";
+import { useT } from "../i18n";
 import { useSystemBack } from "../systemBack";
-import { InspectorSplitResizer } from "./InspectorSplitResizer";
+import type { FilePreview, GitDiffEntry, GitDiffFile } from "../types";
 import { DiffContentView } from "./DiffContentView";
+import { InspectorSplitResizer } from "./InspectorSplitResizer";
 import "./GitCommitHistory.css";
 
 type CommitItem = {
@@ -61,6 +62,7 @@ export function GitCommitHistory({
   compact: boolean;
   active: boolean;
 }) {
+  const t = useT();
   const [page, setPage] = useState<CommitPage | null>(null);
   const [selectedSha, setSelectedSha] = useState<string | null>(null);
   const [detail, setDetail] = useState<CommitDetail | null>(null);
@@ -316,11 +318,11 @@ export function GitCommitHistory({
     >
       <div id={navigationId} className="git-commit-navigation">
         <div className="git-commit-navigation-head">
-          <span>Commit history</span>
+          <span>{t("gitHistory.title")}</span>
           <button
             type="button"
-            title="Refresh commits"
-            aria-label="Refresh commits"
+            title={t("gitHistory.refresh")}
+            aria-label={t("gitHistory.refresh")}
             onClick={() => {
               setPage(null);
               setRefresh((value) => value + 1);
@@ -331,7 +333,8 @@ export function GitCommitHistory({
         </div>
         {loading ? (
           <div className="git-commit-state">
-            <span className="file-loading-spinner" /> Loading commits
+            <span className="file-loading-spinner" />{" "}
+            {t("gitHistory.loadingCommits")}
           </div>
         ) : null}
         {error ? (
@@ -340,12 +343,10 @@ export function GitCommitHistory({
           </div>
         ) : null}
         {page?.shallow ? (
-          <div className="git-commit-shallow">
-            Shallow clone · older commits may be unavailable
-          </div>
+          <div className="git-commit-shallow">{t("gitHistory.shallow")}</div>
         ) : null}
         {!loading && !error && page?.commits.length === 0 ? (
-          <div className="git-commit-state">No commits yet.</div>
+          <div className="git-commit-state">{t("gitHistory.empty")}</div>
         ) : null}
         <div className="git-commit-list">
           {page?.commits.map((item) => (
@@ -374,7 +375,9 @@ export function GitCommitHistory({
             onClick={loadMore}
             disabled={loadingMore}
           >
-            {loadingMore ? "Loading…" : "Load more commits"}
+            {loadingMore
+              ? t("gitHistory.loadingMore")
+              : t("gitHistory.loadMore")}
           </button>
         ) : null}
       </div>
@@ -384,7 +387,7 @@ export function GitCommitHistory({
           resetRatio={0.25}
           horizontalPadding={0}
           detailMinSize={528}
-          label="Resize commit list"
+          label={t("gitHistory.resizeLabel")}
           navigationId={navigationId}
           detailId={detailId}
           onChange={setNavigationRatio}
@@ -402,12 +405,13 @@ export function GitCommitHistory({
                 setPreviewPath(null);
               }}
             >
-              <ArrowLeft size={14} /> Commits
+              <ArrowLeft size={14} /> {t("gitHistory.commitsBack")}
             </button>
           ) : null}
           {detailLoading ? (
             <div className="git-commit-state">
-              <span className="file-loading-spinner" /> Loading commit
+              <span className="file-loading-spinner" />{" "}
+              {t("gitHistory.loadingCommit")}
             </div>
           ) : null}
           {detailError ? (
@@ -417,7 +421,7 @@ export function GitCommitHistory({
           ) : null}
           {!selectedSha && !loading ? (
             <div className="git-commit-state">
-              Select a commit to inspect its changes.
+              {t("gitHistory.selectForChanges")}
             </div>
           ) : null}
           {detail && detail.sha === selectedSha ? (
@@ -432,23 +436,23 @@ export function GitCommitHistory({
                   <span>{detail.author.name}</span>
                 </div>
                 <details className="git-commit-metadata">
-                  <summary>Commit details</summary>
+                  <summary>{t("gitHistory.detailsSummary")}</summary>
                   {messageBody ? (
                     <pre className="git-commit-message">{messageBody}</pre>
                   ) : null}
                   <dl>
-                    <dt>Commit</dt>
+                    <dt>{t("gitHistory.dtCommit")}</dt>
                     <dd>
                       <code>{detail.sha}</code>
                     </dd>
-                    <dt>Author</dt>
+                    <dt>{t("gitHistory.dtAuthor")}</dt>
                     <dd>
                       {detail.author.name} &lt;{detail.author.email}&gt;{" "}
                       <time dateTime={detail.author.date}>
                         {date(detail.author.date)}
                       </time>
                     </dd>
-                    <dt>Committer</dt>
+                    <dt>{t("gitHistory.dtCommitter")}</dt>
                     <dd>
                       {detail.committer.name} &lt;{detail.committer.email}&gt;{" "}
                       <time dateTime={detail.committer.date}>
@@ -456,18 +460,20 @@ export function GitCommitHistory({
                       </time>
                     </dd>
                     <dt>
-                      {detail.parents.length > 1 ? "First parent" : "Parent"}
+                      {detail.parents.length > 1
+                        ? t("gitHistory.dtFirstParent")
+                        : t("gitHistory.dtParent")}
                     </dt>
                     <dd>
                       {detail.base ? (
                         <code>{detail.base}</code>
                       ) : (
-                        "Empty tree (root commit)"
+                        t("gitHistory.emptyTree")
                       )}
                     </dd>
                     {detail.parents.length > 1 ? (
                       <>
-                        <dt>Other parents</dt>
+                        <dt>{t("gitHistory.dtOtherParents")}</dt>
                         <dd>
                           {detail.parents.slice(1).map((parent) => (
                             <code key={parent}>{parent} </code>
@@ -480,17 +486,21 @@ export function GitCommitHistory({
               </div>
               <div className="git-commit-files-head">
                 <strong>
-                  {detail.entries.length} changed{" "}
-                  {detail.entries.length === 1 ? "file" : "files"}
+                  {detail.entries.length === 1
+                    ? t("gitHistory.changedFilesOne", {
+                        count: detail.entries.length,
+                      })
+                    : t("gitHistory.changedFilesMany", {
+                        count: detail.entries.length,
+                      })}
                 </strong>
                 {detail.parents.length > 1 ? (
-                  <span>Compared with first parent</span>
+                  <span>{t("gitHistory.comparedFirstParent")}</span>
                 ) : null}
               </div>
               {detail.shallow_boundary ? (
                 <div className="git-commit-state">
-                  This commit's parent is outside the shallow history; its
-                  changes are unavailable.
+                  {t("gitHistory.shallowBoundary")}
                 </div>
               ) : null}
               {detail.entries.length ? (
@@ -518,12 +528,16 @@ export function GitCommitHistory({
                         <span className="git-commit-file-name">
                           {item.path}
                           {item.old_path ? (
-                            <small>from {item.old_path}</small>
+                            <small>
+                              {t("gitHistory.fromLabel", {
+                                path: item.old_path,
+                              })}
+                            </small>
                           ) : null}
                         </span>
                         <span className="git-commit-file-count">
                           {item.binary ? (
-                            "Binary"
+                            t("gitHistory.binary")
                           ) : item.additions === undefined ? (
                             ""
                           ) : (
@@ -538,7 +552,9 @@ export function GitCommitHistory({
                         type="button"
                         className="git-commit-preview-button"
                         onClick={() => openPreview(item)}
-                        aria-label={`Preview ${item.path} at this commit`}
+                        aria-label={t("gitHistory.previewFileAria", {
+                          path: item.path,
+                        })}
                       >
                         <Eye size={14} aria-hidden="true" />
                       </button>
@@ -547,7 +563,7 @@ export function GitCommitHistory({
                 </div>
               ) : detail.shallow_boundary ? null : (
                 <div className="git-commit-state">
-                  This commit has no changes against its first parent.
+                  {t("gitHistory.noChanges")}
                 </div>
               )}
             </>
@@ -560,7 +576,7 @@ export function GitCommitHistory({
               className="git-commit-back"
               onClick={backToFiles}
             >
-              <ArrowLeft size={14} /> Changed files
+              <ArrowLeft size={14} /> {t("gitHistory.changedFilesBack")}
             </button>
           ) : null}
           {detail && detail.sha === selectedSha ? (
@@ -568,18 +584,18 @@ export function GitCommitHistory({
               {previewPath ? (
                 <section
                   className="git-commit-preview"
-                  aria-label="Historical file preview"
+                  aria-label={t("gitHistory.previewAria")}
                 >
                   <div className="git-commit-preview-head">
                     <strong>{previewPath}</strong>
                     <button type="button" onClick={() => setPreviewPath(null)}>
-                      Back to diff
+                      {t("gitHistory.backToDiff")}
                     </button>
                   </div>
                   {previewLoading ? (
                     <div className="git-commit-state">
-                      <span className="file-loading-spinner" /> Loading
-                      historical file
+                      <span className="file-loading-spinner" />{" "}
+                      {t("gitHistory.loadingHistorical")}
                     </div>
                   ) : null}
                   {previewError ? (
@@ -589,7 +605,7 @@ export function GitCommitHistory({
                   ) : null}
                   {preview?.truncated ? (
                     <div className="git-commit-state">
-                      File is too large to preview.
+                      {t("gitHistory.tooLarge")}
                     </div>
                   ) : null}
                   {preview?.image_data_url ? (
@@ -603,7 +619,7 @@ export function GitCommitHistory({
                   preview.binary &&
                   !preview.image_data_url ? (
                     <div className="git-commit-state">
-                      Binary file preview unavailable.
+                      {t("gitHistory.binaryUnavailable")}
                     </div>
                   ) : null}
                 </section>
@@ -630,14 +646,14 @@ export function GitCommitHistory({
                     setSelectedPath(target.path);
                   }}
                   onOpenFile={openPreview}
-                  openFileLabel="Preview at commit"
+                  openFileLabel={t("gitHistory.openFileLabel")}
                   loadImagePreview={loadImagePreview}
                 />
               )}
             </>
           ) : (
             <div className="git-commit-state">
-              Select a commit to inspect its diff.
+              {t("gitHistory.selectForDiff")}
             </div>
           )}
         </div>
