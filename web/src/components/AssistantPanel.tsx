@@ -1506,7 +1506,7 @@ export function AssistantPanel({
       ref={panelRef}
       className={`assistant-panel ${floating ? "is-floating" : ""} ${mobile ? "is-mobile" : maximized ? "is-maximized" : ""}`}
       style={{ "--assistant-panel-width": `${width}px` } as CSSProperties}
-      aria-label="Ranger"
+      aria-label={t("aria.ranger")}
       onKeyDown={(event) => {
         // Global workspace shortcuts must not consume typing inside the panel.
         event.stopPropagation();

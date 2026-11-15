@@ -8,7 +8,7 @@
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
 - 最新提交:`b7073d6a`(批次 31c,待推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **3600** 键,0 占位符不匹配
+- 词典规模:en / zh-Hans / zh-Hant 各 **3641** 键,0 占位符不匹配
 - 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
@@ -77,8 +77,10 @@
   产生上百行无关 diff。批次里改用 `bunx biome format --write <files>`
 - **迁移脚本同一文件多条编辑要串行应用**:先在内存里逐条替换再一次性写盘;
   否则后一条用旧内容覆盖前一条,键会静默丢失(31b 曾丢 town.ask 三键)
-- **组件可能被测试当普通函数直接调用**(TownTidyRooms.test.ts):这种组件
-  不能用 useT(),只能用模块级 t()
+- **组件可能被测试当普通函数直接调用**(TownTidyRooms.test.ts、PopupOverlay.test.ts):
+  这种组件不能用 useT(),只能用模块级 t()
+- **check-en3 的 skip 正则里不能出现未转义的 `//`**(会提前结束正则字面量);
+  URL 之类的字面量用单独的 `isUrl()` 判断跳过
 - 既有环境问题(不修):isolated DOM 测试本地 preload 失败(CI 跑);
   townSceneBoundary.test.ts 在 Windows 上因路径分隔符失败(与改动无关);
   `[queue] machine-wide check queue unavailable here` 警告无害
@@ -141,17 +143,35 @@
 | 31a | `7741061c` | 新增 common(11 键)+ toasts(12 键)域与 interest.saveFailed;CloseButton 默认 label、ModalDialogs(保存/取消/确认/确定)、ThemedSelect 空态、UpdateToast、StaleBuildToast、AppToasts、AgentInterestButton |
 | 31b | `33179cdb` | 新增 town.ask/rooms/team/move/room 组、board 33 键与 moves 顶层域(22 键);TownRail、TownTidyRooms、TownChooser、TownAccessibleTargets、townMoveActions(改名 useTownMoveActions)、townMoves、townMoveMenu、townTeamActions、roomRenameClose、boardPaneMove、useBoardPaneMoves、useBoardHerdrActions、worldAsks、WorldControlPlane(Close) |
 | 31c | `b7073d6a` | 新增 groups 域(140 键:kind/kindPlural/kindName/status/role/resolution/op/interest/errors 等);新增 groupLabels.ts(类型化标签 helper);groupActions、GroupDetail、GroupMembers、GroupsWindow、GroupsSummary、GroupInterestButton、GroupEditFeedback |
+| 31d | 待提交 | web/src/components 残留文案:新增 aria / attachments 域,扩展 diff / preview / inspector / terminal / common;AttachmentChips、ConfigurationLoadingDialog、DiffContentView、DiffViewerPanel、FilePreviewTabs、InspectorLoadingShell、InspectorPaneMap、InspectorSplitResizer、PopupOverlay、ShortcutLookupDialog(菜单焦点选择器改用 data-menu-trigger)、ConfigMenu、WorkspaceInspectorHost、FileExplorerDialog、App、AssistantPanel |
 
 ---
 
 ## 待完成(按顺序执行;完成一批更新本文件一次)
 
-### 批次 31d:散点收尾
+### 批次 31e:world 目录残留文案
 
-world/SpacesTerminalAppearance.tsx(aria-label + `Tab \${tab.number}`)、
-world/windows/WorldPanel.tsx(title="Drag to move")。
-注意 `Tab \${tab.number}` 另有 3 处(paneJump.ts、store/sessions.ts、
-world/officeAgent.ts),可做共享 helper 或统一键。
+web/src/world/ 下的残余英文(属性与正文),已知清单:
+- world/windows/WorldPanel.tsx(title="Drag to move" → 已有 common.dragToMove)
+- world/WorldControlPlane.tsx(Close Inspector 标题与消息、"Tab close failed"、
+  "World context"、第 491 行 `${view} view`、"Loading view…/Loading Town…/
+  Loading Board…")
+- world/AgentLauncherDialog.tsx、world/HarnessReadinessSummary.tsx
+- world/board/(BoardFacts、BoardHub、BoardPeek、WorkLens)、
+  world/town/(TownLenses、TownPeek、TownZoomControls、TownCenterMenu、
+  TownSummaryPanel、TownWorldLayer、TownCanvas)、world/windows/(WindowFrame、
+  WindowSwitcher)
+- world/(WorldSearchResults、WorldIntentProfile、WorldNavigator、WorldViewPicker、
+  WorldViewToolbar、WorldMobileNav、WorldFoundationApp、WorldStatus、
+  WorldInspectorConversation、WorldViewErrorBoundary、TerminalAppearanceEditor、
+  TerminalAppearanceButton、SpacesTerminalAppearance、TraceOverlay、
+  ConnectionRecoveryBanner、DeskView、DeskOtherHosts、NeedsYouItem)
+- 6 处 `Tab \${tab.number}`:paneJump.ts:215、store/sessions.ts:328、
+  world/officeAgent.ts:71、world/SpacesTerminalAppearance.tsx:70、
+  world/useSpacesTabWindowArrangement.tsx:72 与 :261 —— 可复用既有
+  `shell.tabName`("Tab {number}")
+- `views` 域需新增 `back: "Back to {view}"`
+注意:`*.browser.ts(x)` 里的 `[aria-label="..."]` 选择器必须与 en 词典值逐字一致;
 已确认无需改动:LazyFilePreviewContent.tsx(已 useT 化)、
 components/ui/command.tsx(仅 displayName)、components/GlobalTooltip.tsx。
 

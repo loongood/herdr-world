@@ -2025,7 +2025,10 @@ export const DiffViewerPanel = forwardRef<
             ))}
           </span>
           {stats.hasStats ? (
-            <span className="diff-tree-stats" aria-label="Line changes">
+            <span
+              className="diff-tree-stats"
+              aria-label={t("diff.lineChanges")}
+            >
               <span className="diff-stat-add">+{stats.additions}</span>
               <span className="diff-stat-del">-{stats.deletions}</span>
             </span>
@@ -2039,7 +2042,9 @@ export const DiffViewerPanel = forwardRef<
   const resolvedBase =
     diffScope === "branch-main" ? sharedSummaryState.summary?.base : undefined;
   const baseLabel = comparisonBranchLabel(baseBranch || resolvedBase || "");
-  const comparisonLabel = baseLabel ? `Against ${baseLabel}` : "Against branch";
+  const comparisonLabel = baseLabel
+    ? t("diff.against", { branch: baseLabel })
+    : t("diff.againstBranch");
   const baseBranches = [
     ...new Set([
       ...(sharedSummaryState.summary?.base_branches ?? []),
@@ -2048,9 +2053,9 @@ export const DiffViewerPanel = forwardRef<
   ];
 
   return (
-    <aside className="diff-viewer-side" aria-label="Diff Viewer">
+    <aside className="diff-viewer-side" aria-label={t("diff.panelAria")}>
       <div className="diff-panel-toolbar">
-        <div className="diff-scope-toggle" aria-label="Diff scope">
+        <div className="diff-scope-toggle" aria-label={t("diff.scopeAria")}>
           <button
             type="button"
             className={diffScope === "last-step" ? "is-active" : ""}

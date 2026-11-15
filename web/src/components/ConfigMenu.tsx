@@ -274,6 +274,7 @@ export function ConfigMenu({
       <div className="config-menu" ref={ref}>
         <button
           ref={triggerRef}
+          data-menu-trigger=""
           className={`topbar-button menu-button ${open ? "is-active" : ""}`}
           onClick={() => {
             setExpanded(false);

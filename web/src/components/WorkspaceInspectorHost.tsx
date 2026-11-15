@@ -1333,13 +1333,13 @@ export function WorkspaceInspectorHost({
                   className="workspace-inspector-terminal-detached"
                   role="status"
                 >
-                  <span>The terminal is in its tab window.</span>
+                  <span>{t("inspector.terminalInTabWindow")}</span>
                   <button
                     type="button"
                     className="workspace-inspector-focus-tab-action"
                     onClick={onFocusTabWindow}
                   >
-                    Focus tab window
+                    {t("inspector.focusTabWindow")}
                   </button>
                 </div>
               ) : state.view === "terminal" && terminalDetached ? (

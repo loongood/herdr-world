@@ -7,6 +7,7 @@ import {
   DEFAULT_INSPECTOR_NAVIGATION_RATIO,
   inspectorNavigationRatioAtPosition,
 } from "../workspaceResource";
+import { useT } from "../i18n";
 import "./InspectorSplitResizer.css";
 
 function navigationRatioForPointer(
@@ -27,7 +28,7 @@ function navigationRatioForPointer(
 export function InspectorSplitResizer({
   ratio,
   horizontalPadding = 16,
-  label = "Resize file navigation",
+  label,
   detailMinSize,
   resetRatio = DEFAULT_INSPECTOR_NAVIGATION_RATIO,
   navigationId,
@@ -45,6 +46,7 @@ export function InspectorSplitResizer({
   onChange: (ratio: number) => void;
   onCommit: (ratio: number) => void;
 }) {
+  const t = useT();
   const dragRatioRef = useRef(ratio);
   dragRatioRef.current = ratio;
 
@@ -92,13 +94,13 @@ export function InspectorSplitResizer({
       className="workspace-inspector-split-resizer"
       role="separator"
       tabIndex={0}
-      aria-label={label}
+      aria-label={label ?? t("aria.resizeNavigation")}
       aria-orientation="vertical"
       aria-controls={`${navigationId} ${detailId}`}
       aria-valuemin={15}
       aria-valuemax={75}
       aria-valuenow={Math.round(ratio * 100)}
-      title="Drag to resize; double-click to reset"
+      title={t("aria.dragToResize")}
       onPointerDown={(event) => {
         event.preventDefault();
         event.currentTarget.setPointerCapture(event.pointerId);

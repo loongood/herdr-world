@@ -77,7 +77,7 @@ export function ShortcutLookupDialog({
         previous.focus({ preventScroll: true });
       else
         document
-          .querySelector<HTMLButtonElement>('button[aria-label="Menu"]')
+          .querySelector<HTMLButtonElement>("[data-menu-trigger]")
           ?.focus({ preventScroll: true });
     };
   }, [open]);

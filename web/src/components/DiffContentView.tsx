@@ -369,7 +369,9 @@ function DiffImagePreview({
   if (!state.preview?.image_data_url) {
     return (
       <div className="diff-image-preview">
-        <div className="diff-content-state">Image preview unavailable.</div>
+        <div className="diff-content-state">
+          {t("diff.imagePreviewUnavailable")}
+        </div>
       </div>
     );
   }
@@ -704,7 +706,7 @@ const DiffFileSection = memo(function DiffFileSection({
             />
           ) : null}
           {section.file?.truncated ? (
-            <div className="diff-truncated">Diff truncated at 512 KB.</div>
+            <div className="diff-truncated">{t("diff.truncated")}</div>
           ) : null}
           {section.file?.diff && !section.imagePreview ? (
             <div className="pierre-diff-surface">
@@ -1821,7 +1823,7 @@ export function DiffContentView({
         </div>
         {!mobile ? (
           <div className="diff-display-controls">
-            <div className="diff-view-toggle" aria-label="Diff view mode">
+            <div className="diff-view-toggle" aria-label={t("diff.viewMode")}>
               <button
                 type="button"
                 className={viewMode === "split" ? "is-active" : ""}

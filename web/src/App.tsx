@@ -4855,7 +4855,7 @@ export default function App({
                   assistantVisible ? (
                     <aside
                       className={`assistant-panel ${assistantFloating && !mobile ? "is-floating" : ""} ${mobile ? "is-mobile" : ""}`}
-                      aria-label="Ranger"
+                      aria-label={t("aria.ranger")}
                     >
                       <div className="assistant-panel-empty">
                         {t("app.loadingRanger")}

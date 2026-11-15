@@ -2394,7 +2394,9 @@ function FileExplorerContent({
           )}
         </div>
         {previewPlacement === "inline" ? (
-          <Suspense fallback={<div role="status">Loading preview...</div>}>
+          <Suspense
+            fallback={<div role="status">{t("preview.loadingFallback")}</div>}
+          >
             <FilePreviewContent
               entry={previewEntry}
               preview={preview}

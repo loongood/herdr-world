@@ -1,5 +1,6 @@
 import { File, X } from "lucide-react";
 import { useId, useLayoutEffect, useRef } from "react";
+import { useT } from "../i18n";
 import type { ResourceFileTabs } from "../workspaceResource";
 import "./FilePreviewTabs.css";
 
@@ -19,6 +20,7 @@ export function FilePreviewTabs({
   onEmptyFocus: () => void;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
+  const t = useT();
   const id = useId();
   useLayoutEffect(() => {
     listRef.current
@@ -49,7 +51,7 @@ export function FilePreviewTabs({
     <div
       className="file-preview-tabs"
       role="tablist"
-      aria-label="Open files"
+      aria-label={t("preview.openFiles")}
       ref={listRef}
     >
       {tabs.paths.map((path, index) => {
@@ -82,11 +84,9 @@ export function FilePreviewTabs({
               aria-controls={panelId}
               aria-selected={active}
               aria-label={path}
-              title={preview ? `${path} · Double-click to keep open` : path}
+              title={preview ? t("preview.keepOpenHint", { path }) : path}
               aria-description={
-                preview
-                  ? "Temporary preview. Press Enter to keep open."
-                  : undefined
+                preview ? t("preview.temporaryPreview") : undefined
               }
               tabIndex={active ? 0 : -1}
               className="file-preview-tab-select"
@@ -129,8 +129,8 @@ export function FilePreviewTabs({
             <button
               type="button"
               className="file-preview-tab-close"
-              aria-label={`Close ${path}`}
-              title="Close file (Delete on tab)"
+              aria-label={t("preview.closeFileAria", { path })}
+              title={t("preview.closeFile")}
               tabIndex={active ? 0 : -1}
               onClick={(event) =>
                 close(path, event.currentTarget === document.activeElement)

@@ -15,6 +15,7 @@ import { terminalFontOptions } from "../appearance";
 import { isMobileLayout } from "../layoutPreferences";
 import { terminalPushMatches } from "../terminalConnection";
 import { terminalCellAt, terminalWheelScroll } from "../terminalScroll";
+import { t } from "../i18n";
 
 const RESIZE_DEBOUNCE_MS = 150;
 
@@ -178,7 +179,7 @@ export function PopupOverlay({
         }
       })
       .catch(() => {
-        if (!detached) term.writeln("Unable to attach popup terminal.");
+        if (!detached) term.writeln(t("terminal.attachPopupFailed"));
       });
 
     const offTerminal = bridge.onTerminal((t) => {
@@ -370,7 +371,7 @@ export function PopupOverlay({
           <span>{popup.title}</span>
           <button
             type="button"
-            aria-label="Close popup"
+            aria-label={t("aria.closePopup")}
             onClick={() => void store.closePopup()}
             style={{
               background: "transparent",

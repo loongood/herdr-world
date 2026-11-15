@@ -4,6 +4,7 @@ import type { Pane, PaneLayout, Workspace } from "../types";
 import { useVisibleTabLayoutState } from "../visibleTabLayout";
 import { agentName, inspectorAgentContext } from "./agentDisplayName";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { useT } from "../i18n";
 import "./InspectorPaneMap.css";
 
 type MapPane = {
@@ -47,21 +48,29 @@ function PaneMapButton({
   onSelect,
 }: Parameters<typeof InspectorPaneMap>[0]) {
   const { layout } = useVisibleTabLayoutState(workspaceId, tabId);
+  const t = useT();
   const [open, setOpen] = useState(false);
   const cells = layout ? mapPanes(layout, tabPanes, workspace) : [];
   if (cells.length < 2) return null;
   const selected = cells.find((cell) => cell.paneId === selectedPaneId);
-  const title = `${tabLabel ? `${tabLabel} · ` : ""}${cells.length} panes`;
+  const title = t("inspector.paneMapTitle", {
+    tab: tabLabel ? `${tabLabel} · ` : "",
+    count: cells.length,
+  });
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
           className="inspector-pane-map-glyph"
-          aria-label={`Panes in this tab: ${cells.length}${
-            selected ? `, showing ${selected.name}` : ""
+          aria-label={`${t("inspector.paneMapAria", {
+            count: cells.length,
+          })}${
+            selected
+              ? t("inspector.paneMapShowing", { name: selected.name })
+              : ""
           }`}
-          title="Switch to another pane in this tab"
+          title={t("inspector.switchPaneTitle")}
         >
           {cells.map((cell) => (
             <i
@@ -76,7 +85,7 @@ function PaneMapButton({
       <PopoverContent
         className="inspector-pane-map"
         align="start"
-        aria-label="Panes in this tab"
+        aria-label={t("inspector.panesInTab")}
       >
         <strong className="inspector-pane-map-title">{title}</strong>
         <div className="inspector-pane-map-area">

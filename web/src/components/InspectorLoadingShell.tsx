@@ -4,6 +4,7 @@ import {
   WindowControls,
   type ManagedWindowControls,
 } from "../world/windows/WindowControls";
+import { useT } from "../i18n";
 import "./WorkspaceInspectorFrame.css";
 
 /**
@@ -24,12 +25,13 @@ export function InspectorLoadingShell({
   windowControls?: ManagedWindowControls;
   onClose: () => void;
 }) {
+  const t = useT();
   // The Inspector's own frame and bar classes, so World's managed-window,
   // Town and phone styles apply to the shell exactly as to the Inspector.
   return (
     <aside
       className={`workspace-inspector workspace-inspector-${dock}`}
-      aria-label="Workspace Inspector"
+      aria-label={t("inspector.hostAria")}
       aria-busy="true"
     >
       <header
@@ -40,20 +42,23 @@ export function InspectorLoadingShell({
         {windowControls ? (
           <WindowBackButton
             controls={windowControls}
-            label="Inspector window"
+            label={t("inspector.windowLabel")}
           />
         ) : null}
         <div className="workspace-inspector-identity">
           <span className="workspace-inspector-repo">{title}</span>
         </div>
         {windowControls ? (
-          <WindowControls controls={windowControls} label="Inspector window" />
+          <WindowControls
+            controls={windowControls}
+            label={t("inspector.windowLabel")}
+          />
         ) : (
           <div className="workspace-inspector-actions">
             <button
               type="button"
-              title="Close Inspector"
-              aria-label="Close Workspace Inspector"
+              title={t("inspector.closeInspector")}
+              aria-label={t("inspector.closeWorkspaceInspector")}
               onClick={onClose}
             >
               <X size={16} />
@@ -63,7 +68,7 @@ export function InspectorLoadingShell({
       </header>
       <div className="terminal-loading" role="status">
         <span className="terminal-loading-dot" />
-        Loading Inspector
+        {t("inspector.loadingShell")}
       </div>
     </aside>
   );

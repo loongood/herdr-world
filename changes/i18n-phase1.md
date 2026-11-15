@@ -190,5 +190,11 @@
   the member roster with its add, inspect and remove actions, the role
   editor, the group interest choices, the conflict feedback and the refusals
   the Group edits report.
+  The shared component surfaces follow too: the attachment chips (their
+  upload progress, failures and retry and remove controls), the configuration
+  loading dialog, the file preview tabs (their hints and close control), the
+  Inspector's loading shell, its pane map and its split resizer, the diff
+  viewer's mode, scope and comparison labels, the popup terminal's close
+  control, and the accessibility names the panels and popovers carry.
   Remaining surfaces keep English
   until their phase lands.

@@ -1,16 +1,18 @@
 import { useEffect, useRef } from "react";
 import { focusDialogElement } from "./dialogFocus";
 import { MobileSheetHandle } from "./MobileSheetHandle";
+import { useT } from "../i18n";
 import "./ConfigurationDialog.css";
 
 export function ConfigurationLoadingDialog({
   onClose,
-  buttonLabel = "Cancel",
+  buttonLabel,
 }: {
   onClose: () => void;
   buttonLabel?: string;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const t = useT();
   useEffect(() => {
     const cancelFocus = focusDialogElement(buttonRef.current);
     const onKey = (event: KeyboardEvent) => {
@@ -48,15 +50,15 @@ export function ConfigurationLoadingDialog({
         className="modal configuration-loading-modal mobile-sheet"
         role="dialog"
         aria-modal="true"
-        aria-label="Loading Configuration"
+        aria-label={t("aria.loadingConfiguration")}
       >
         <MobileSheetHandle
-          label="Dismiss loading configuration"
+          label={t("aria.dismissLoadingConfiguration")}
           onClose={onClose}
         />
-        <p role="status">Loading configuration...</p>
+        <p role="status">{t("aria.loadingConfigurationText")}</p>
         <button ref={buttonRef} type="button" onClick={onClose}>
-          {buttonLabel}
+          {buttonLabel ?? t("common.cancel")}
         </button>
       </div>
     </div>
