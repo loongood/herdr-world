@@ -328,7 +328,9 @@ export function AnnotationPanel({
             )}
           >
             <Clipboard size={14} /> {t("annotations.copyButton")}
-            {copyShortcut !== "Unassigned" ? <kbd>{copyShortcut}</kbd> : null}
+            {copyShortcut !== t("shortcuts.unassigned") ? (
+              <kbd>{copyShortcut}</kbd>
+            ) : null}
           </button>
           <button
             type="button"
@@ -345,7 +347,7 @@ export function AnnotationPanel({
             {agentPanes.length
               ? t("annotations.prefillAgent")
               : t("annotations.copyFeedback")}
-            {prefillShortcut !== "Unassigned" ? (
+            {prefillShortcut !== t("shortcuts.unassigned") ? (
               <kbd>{prefillShortcut}</kbd>
             ) : null}
           </button>

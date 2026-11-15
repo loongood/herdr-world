@@ -258,7 +258,7 @@ export function WindowArrangementMenu({
                 const reason = control.disabledReasons[command];
                 const shortcut = shortcutId
                   ? shortcutLabel(shortcutId)
-                  : "Unassigned";
+                  : t("shortcuts.unassigned");
                 return (
                   <button
                     key={command}
@@ -291,7 +291,7 @@ export function WindowArrangementMenu({
                       <strong>{arrangementLabel(command)}</strong>
                       <small>{reason ?? arrangementDescription(command)}</small>
                     </span>
-                    {shortcut !== "Unassigned" ? (
+                    {shortcut !== t("shortcuts.unassigned") ? (
                       <kbd className="window-arrangement-shortcut">
                         {shortcut}
                       </kbd>

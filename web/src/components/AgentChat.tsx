@@ -136,7 +136,7 @@ export function AgentChat({
         if (seq !== seqRef.current || !connectionClient.isCurrent()) return;
         const reply = result as Partial<Conversation> | null;
         if (!reply || (reply.status !== "ok" && reply.status !== "unavailable"))
-          throw new Error("World sent an unreadable conversation.");
+          throw new Error(t("components.agentChat.unreadableConversation"));
         const next = reply as Conversation;
         // A transcript caught mid-write must not replace what was readable.
         if (
@@ -162,7 +162,7 @@ export function AgentChat({
           loadRef.current();
         }
       });
-  }, [connectionClient, pane.pane_id]);
+  }, [connectionClient, pane.pane_id, t]);
   const loadRef = useRef(load);
   loadRef.current = load;
   // Chat's interactions belong to this connection, runtime, pane and session.

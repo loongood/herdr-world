@@ -1347,7 +1347,7 @@ export function WorkspaceInspectorHost({
                   className="workspace-inspector-terminal-detached"
                   role="status"
                 >
-                  Terminal is floating.
+                  {t("inspector.terminalFloating")}
                 </div>
               ) : state.view === "terminal" ? (
                 <div

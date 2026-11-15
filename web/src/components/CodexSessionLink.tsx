@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { ConnectionClient } from "../api";
+import { useT } from "../i18n";
 import { formatUiDateTime } from "../uiLocale";
 import "./CodexSessionLink.css";
 
@@ -20,6 +21,7 @@ export function CodexSessionLink({
   client: ConnectionClient;
   onLinked: () => void;
 }) {
+  const t = useT();
   const inputId = useId();
   const [sessionId, setSessionId] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -50,7 +52,7 @@ export function CodexSessionLink({
         );
         if (!mounted.current || !client.isCurrent()) return;
         setPreview(null);
-        setMessage("Session linked.");
+        setMessage(t("components.codexSession.linked"));
         onLinked();
       } else {
         const result = await client.call(
@@ -75,7 +77,7 @@ export function CodexSessionLink({
 
   return (
     <details className="codex-session-link">
-      <summary>Link Codex session</summary>
+      <summary>{t("components.codexSession.title")}</summary>
       <form
         aria-busy={busy}
         onSubmit={(event) => {
@@ -83,11 +85,10 @@ export function CodexSessionLink({
           void submit();
         }}
       >
-        <p>
-          Enter the ID of the conversation currently open in this pane. Linking
-          also works with the shared Codex background server.
-        </p>
-        <label htmlFor={inputId}>Codex session ID</label>
+        <p>{t("components.codexSession.intro")}</p>
+        <label htmlFor={inputId}>
+          {t("components.codexSession.sessionIdLabel")}
+        </label>
         <input
           id={inputId}
           value={sessionId}
@@ -104,14 +105,27 @@ export function CodexSessionLink({
         />
         {preview ? (
           <div className="codex-session-link-preview">
-            <span>Session: {preview.session_id}</span>
-            <span>Directory: {preview.cwd || "Unknown"}</span>
-            <span>Updated: {formatUiDateTime(preview.updated_at)}</span>
-            <span>Transcript: {preview.path}</span>
-            <p>
-              Confirm this is the conversation currently shown in this pane.
-              This replaces its existing session link for all viewers.
-            </p>
+            <span>
+              {t("components.codexSession.sessionField", {
+                id: preview.session_id,
+              })}
+            </span>
+            <span>
+              {t("components.codexSession.directoryField", {
+                path: preview.cwd || t("components.codexSession.unknown"),
+              })}
+            </span>
+            <span>
+              {t("components.codexSession.updatedField", {
+                when: formatUiDateTime(preview.updated_at),
+              })}
+            </span>
+            <span>
+              {t("components.codexSession.transcriptField", {
+                path: preview.path,
+              })}
+            </span>
+            <p>{t("components.codexSession.confirmNote")}</p>
           </div>
         ) : null}
         <button
@@ -121,11 +135,11 @@ export function CodexSessionLink({
         >
           {busy
             ? preview
-              ? "Linking..."
-              : "Checking..."
+              ? t("components.codexSession.linking")
+              : t("components.codexSession.checking")
             : preview
-              ? "Confirm session link"
-              : "Check session"}
+              ? t("components.codexSession.confirmTitle")
+              : t("components.codexSession.checkSession")}
         </button>
         {message ? <p role="status">{message}</p> : null}
       </form>

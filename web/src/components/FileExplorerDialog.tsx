@@ -1997,7 +1997,9 @@ function FileExplorerContent({
           <span
             className="file-name"
             title={
-              entry.ignored ? `${entry.path} · Ignored by Git` : entry.path
+              entry.ignored
+                ? `${entry.path} · ${t("files.ignoredByGit")}`
+                : entry.path
             }
           >
             {entry.name}
@@ -2262,13 +2264,11 @@ function FileExplorerContent({
                 <div className="file-upload-status" role="status">
                   {moving
                     ? t("files.movingFiles")
-                    : `${selectedPaths.size} files selected`}
+                    : t("files.countSelected", { count: selectedPaths.size })}
                 </div>
               ) : null}
               {rootInfo?.truncated ? (
-                <p className="modal-error">
-                  This directory is truncated at 1000 entries.
-                </p>
+                <p className="modal-error">{t("files.truncatedDirectory")}</p>
               ) : null}
 
               <div
@@ -2300,7 +2300,7 @@ function FileExplorerContent({
                 {uploadingPaths.has("") ? (
                   <div className="file-upload-status">
                     <span className="row-spinner" />
-                    Uploading to workspace root
+                    {t("files.uploadingToRoot")}
                   </div>
                 ) : dropTargetPath === "" ? (
                   <div className="file-upload-status">
@@ -2317,18 +2317,20 @@ function FileExplorerContent({
                     )
                   ) : (
                     <div className="file-row file-row-muted">
-                      No loaded files match.
+                      {t("files.noLoadedMatches")}
                     </div>
                   )
                 ) : query ? (
                   <div className="file-search-results">
                     {searchState.loading ? (
                       <div className="file-row file-row-muted" role="status">
-                        Searching checkout...
+                        {t("files.searchingCheckout")}
                       </div>
                     ) : searchState.error ? (
                       <div className="file-row file-row-muted" role="alert">
-                        Search failed: {searchState.error}
+                        {t("files.searchFailed", {
+                          error: searchState.error,
+                        })}
                       </div>
                     ) : searchState.response?.results.length ? (
                       <>
@@ -2374,13 +2376,13 @@ function FileExplorerContent({
                             className="file-row file-row-muted"
                             role="status"
                           >
-                            Results truncated at 100. Refine the search.
+                            {t("files.resultsTruncated")}
                           </div>
                         ) : null}
                       </>
                     ) : (
                       <div className="file-row file-row-muted" role="status">
-                        No matches in this checkout.
+                        {t("files.noMatchesInCheckout")}
                       </div>
                     )}
                   </div>

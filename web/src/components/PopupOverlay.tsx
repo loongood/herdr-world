@@ -201,9 +201,7 @@ export function PopupOverlay({
       ) {
         retryAttach((value) => value + 1);
       } else {
-        term.writeln(
-          "Popup terminal stream closed; reopen the popup to retry.",
-        );
+        term.writeln(t("components.popup.streamClosed"));
       }
     });
 

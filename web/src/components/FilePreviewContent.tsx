@@ -339,7 +339,7 @@ function FilePreviewBody({
               ? `${pendingAnnotation.path} · ${fileReviewLineLabel(pendingAnnotation)}`
               : pendingAnnotation.section.length
                 ? `${pendingAnnotation.path} · ${pendingAnnotation.section.join(" › ")}`
-                : `${pendingAnnotation.path} · selected passage`,
+                : `${pendingAnnotation.path} · ${t("preview.selectedPassage")}`,
           quote: pendingAnnotation.quote,
         }
       : null;
@@ -658,14 +658,11 @@ function FilePreviewBody({
             />
           ) : null}
           {!loading && !error && pdfTooLarge ? (
-            <div className="file-preview-state">
-              PDF is too large to preview. Use Download from the file menu.
-            </div>
+            <div className="file-preview-state">{t("preview.pdfTooLarge")}</div>
           ) : null}
           {!loading && !error && audioTooLarge ? (
             <div className="file-preview-state">
-              Audio is too large to preview (25 MiB maximum). Use Download from
-              the file menu.
+              {t("preview.audioTooLarge")}
             </div>
           ) : null}
           {!loading &&
@@ -814,7 +811,7 @@ function FilePreviewBody({
                 setMarkdownSelection(null);
               }}
             >
-              Annotate selection
+              {t("preview.annotateSelection")}
             </button>,
             document.body,
           )

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useT } from "../i18n";
 import { useOperationalStore, useStoreSelector } from "../store";
 import {
   connectionClientScopeKey,
@@ -23,6 +24,7 @@ export function HistoryTerminalComposer({
   open: boolean;
   onSent: () => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const client = useConnectionClient();
   const connectionId = useStoreSelector((state) => state.activeConnectionId);
@@ -54,9 +56,7 @@ export function HistoryTerminalComposer({
   const send = useCallback(
     async (text: string) => {
       if (!open || current.current !== identity || !client.isCurrent())
-        throw new Error(
-          "The terminal connection changed. Reopen History to send.",
-        );
+        throw new Error(t("components.historyComposer.connectionChanged"));
       await sendTerminalComposerText(client, pane.pane_id, text, true);
       if (current.current !== identity || !client.isCurrent()) return;
       if (timer.current !== null) clearTimeout(timer.current);
@@ -67,7 +67,7 @@ export function HistoryTerminalComposer({
           refresh.current();
       }, 1000);
     },
-    [client, identity, open, pane.pane_id],
+    [client, identity, open, pane.pane_id, t],
   );
   return (
     <AgentHistoryComposer
@@ -79,12 +79,18 @@ export function HistoryTerminalComposer({
       onSend={send}
       onUploadImage={async (file) => {
         if (!open || current.current !== identity || !client.isCurrent())
-          throw new Error("The terminal connection changed.");
+          throw new Error(
+            t("components.historyComposer.connectionChangedShort"),
+          );
         // Preserve successful paths in this captured draft even after retirement.
         return uploadTerminalImage(client, file);
       }}
       onError={(detail) =>
-        store.notify({ kind: "error", message: "Message input failed", detail })
+        store.notify({
+          kind: "error",
+          message: t("components.historyComposer.messageFailed"),
+          detail,
+        })
       }
     />
   );

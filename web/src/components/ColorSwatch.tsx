@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../i18n";
 import { cn } from "../utils";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import "./ColorSwatch.css";
@@ -24,6 +25,7 @@ export function ColorSwatches({
   onColor: (id: string | null) => void;
   label: string;
 }) {
+  const t = useT();
   return (
     <div className="color-swatches" role="group" aria-label={label}>
       {palette.map((entry) => (
@@ -43,7 +45,7 @@ export function ColorSwatches({
         disabled={!current.custom}
         onClick={() => onColor(null)}
       >
-        Default colour
+        {t("components.colorSwatch.defaultColour")}
       </button>
     </div>
   );

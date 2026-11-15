@@ -12,6 +12,8 @@ import {
   type PullRequestStatus,
 } from "../../../shared/pullRequest";
 import type { ConnectionClient } from "../api";
+import { useT } from "../i18n";
+import { formatUiDateTime } from "../uiLocale";
 import { useConnectionReady } from "../useConnectionClient";
 import { ThemedSelect } from "./ThemedSelect";
 import "./PullRequestCard.css";
@@ -25,6 +27,7 @@ export function PullRequestCard({
   workspaceId: string;
   branch?: string;
 }) {
+  const t = useT();
   const ready = useConnectionReady(client);
   const [remote, setRemote] = useState("");
   const [match, setMatch] = useState("");
@@ -69,7 +72,7 @@ export function PullRequestCard({
           typeof value.state !== "string" ||
           !Array.isArray(value.remotes)
         )
-          throw new Error("Invalid PR/MR status");
+          throw new Error(t("components.pullRequest.invalidStatus"));
         setLoading(false);
         if (
           pullRequestUnavailable(value) &&
@@ -84,8 +87,7 @@ export function PullRequestCard({
       .catch(() => {
         if (sequence.current !== request || !client.isCurrent()) return;
         setLoading(false);
-        const message =
-          "PR/MR status unavailable. Check the connection and refresh.";
+        const message = t("components.pullRequest.statusUnavailableDetail");
         if (fallBack(new Date().toISOString(), message)) return;
         setStatus(null);
         setStale(null);
@@ -95,7 +97,7 @@ export function PullRequestCard({
     return () => {
       sequence.current = request + 1;
     };
-  }, [client, ready, workspaceId, branch, remote, match, refresh]);
+  }, [client, ready, workspaceId, branch, remote, match, refresh, t]);
 
   const current = client.isCurrent() ? status : null;
   const reset = () => {
@@ -112,7 +114,9 @@ export function PullRequestCard({
       loading={loading}
       stale={current ? stale : null}
       error={
-        client.isCurrent() ? error : "Waiting for the connection to recover."
+        client.isCurrent()
+          ? error
+          : t("components.pullRequest.waitingForRecovery")
       }
       finishedAt={finishedAt}
       onRefresh={() => setRefresh((value) => value + 1)}
@@ -152,6 +156,7 @@ export function PullRequestCardView({
   onRemoteChange: (value: string) => void;
   onMatchChange: (value: string) => void;
 }) {
+  const t = useT();
   const pr = current?.state === "ready" ? current.request : undefined;
   const provider =
     current?.provider === "github"
@@ -160,34 +165,36 @@ export function PullRequestCardView({
         ? "GitLab"
         : "PR/MR";
   const label = error
-    ? "Status unavailable"
+    ? t("components.pullRequest.statusUnavailable")
     : current
       ? {
-          ready: "Request found",
-          select_remote: "Choose a source remote",
-          select_match: "Choose a request",
-          unsupported: "Provider not configured",
-          missing_cli: "CLI setup needed",
-          unauthenticated: "Authentication needed",
-          no_match: "No linked request",
-          detached: "No branch selected",
-          error: "Status unavailable",
+          ready: t("components.pullRequest.requestFound"),
+          select_remote: t("components.pullRequest.selectRemote"),
+          select_match: t("components.pullRequest.selectMatch"),
+          unsupported: t("components.pullRequest.providerNotConfigured"),
+          missing_cli: t("components.pullRequest.missingCli"),
+          unauthenticated: t("components.pullRequest.unauthenticated"),
+          no_match: t("components.pullRequest.noMatch"),
+          detached: t("components.pullRequest.detached"),
+          error: t("components.pullRequest.statusUnavailable"),
         }[current.state]
       : loading
-        ? "Checking this branch..."
-        : "Status unavailable";
+        ? t("components.pullRequest.checkingBranch")
+        : t("components.pullRequest.statusUnavailable");
   const needsAttention =
     !!error ||
     !!stale ||
     ["error", "missing_cli", "unauthenticated"].includes(current?.state ?? "");
   const message = error || stale?.message || current?.message;
   const staleLabel = stale
-    ? `Refresh failed; showing last known status from ${new Date(current?.refreshedAt ?? stale.failedAt).toLocaleString()}`
+    ? t("components.pullRequest.staleLabel", {
+        when: formatUiDateTime(current?.refreshedAt ?? stale.failedAt),
+      })
     : "";
   return (
     <section
       className="pull-request-card"
-      aria-label="Pull or merge request status"
+      aria-label={t("components.pullRequest.statusAria")}
       aria-busy={loading || undefined}
       data-attention={needsAttention || undefined}
       data-stale={stale ? true : undefined}
@@ -205,15 +212,20 @@ export function PullRequestCardView({
                   href={pr.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Open ${provider} #${pr.number} in a new tab`}
-                  title={`Open on ${provider}`}
+                  aria-label={t("components.pullRequest.openProviderAria", {
+                    provider,
+                    number: pr.number,
+                  })}
+                  title={t("components.pullRequest.openOnProvider", {
+                    provider,
+                  })}
                   onClick={(event) => event.stopPropagation()}
                 >
                   {provider} #{pr.number}
                   <ArrowUpRight size={13} aria-hidden="true" />
                 </a>
               ) : (
-                `${provider} status`
+                t("components.pullRequest.providerStatus", { provider })
               )}
             </span>
             <span
@@ -229,7 +241,9 @@ export function PullRequestCardView({
               className="pull-request-card-badge"
               data-state={pr.draft ? "draft" : pr.state}
             >
-              {pr.draft ? `Draft / ${pr.state}` : pr.state}
+              {pr.draft
+                ? t("components.pullRequest.draftBadge", { state: pr.state })
+                : pr.state}
             </span>
           ) : null}
           {stale ? (
@@ -239,7 +253,7 @@ export function PullRequestCardView({
               aria-label={staleLabel}
               role="img"
             >
-              Last known
+              {t("components.pullRequest.lastKnown")}
             </span>
           ) : null}
           <ChevronRight
@@ -250,8 +264,8 @@ export function PullRequestCardView({
           <button
             className="pull-request-card-refresh"
             type="button"
-            title="Refresh PR/MR status"
-            aria-label="Refresh PR/MR status"
+            title={t("components.pullRequest.refreshStatus")}
+            aria-label={t("components.pullRequest.refreshStatus")}
             disabled={loading}
             onClick={(event) => {
               event.stopPropagation();
@@ -273,7 +287,7 @@ export function PullRequestCardView({
             <div className="pull-request-card-signals">
               <div
                 className="pull-request-card-route"
-                aria-label="Source and target branches"
+                aria-label={t("components.pullRequest.branchesAria")}
               >
                 <code>{pr.source}</code>
                 <ArrowRight size={13} aria-hidden="true" />
@@ -283,18 +297,24 @@ export function PullRequestCardView({
                 <div>
                   <dt>
                     <CircleDot size={12} aria-hidden="true" />
-                    {current?.provider === "github" ? "Checks" : "Pipeline"}
+                    {current?.provider === "github"
+                      ? t("components.pullRequest.checks")
+                      : t("components.pullRequest.pipeline")}
                   </dt>
-                  <dd>{current?.ci ?? "Unavailable"}</dd>
+                  <dd>
+                    {current?.ci ?? t("components.pullRequest.unavailable")}
+                  </dd>
                 </div>
                 <div>
                   <dt>
                     <CircleDot size={12} aria-hidden="true" />
                     {current?.provider === "github"
-                      ? "Review decision"
-                      : "Approvals"}
+                      ? t("components.pullRequest.reviewDecision")
+                      : t("components.pullRequest.approvals")}
                   </dt>
-                  <dd>{current?.review ?? "Unavailable"}</dd>
+                  <dd>
+                    {current?.review ?? t("components.pullRequest.unavailable")}
+                  </dd>
                 </div>
               </dl>
             </div>
@@ -303,7 +323,9 @@ export function PullRequestCardView({
             <details className="pull-request-card-context">
               <summary>
                 <ChevronRight size={12} aria-hidden="true" />
-                {message ? "Details & troubleshooting" : "Checkout details"}
+                {message
+                  ? t("components.pullRequest.detailsTroubleshooting")
+                  : t("components.pullRequest.checkoutDetails")}
               </summary>
               {message ? (
                 <p className="pull-request-card-message">{message}</p>
@@ -311,13 +333,17 @@ export function PullRequestCardView({
               <dl>
                 {pr ? (
                   <div>
-                    <dt>Author</dt>
+                    <dt>{t("components.pullRequest.author")}</dt>
                     <dd>{pr.author}</dd>
                   </div>
                 ) : null}
                 {current?.remotes.map((remote) => (
                   <div key={remote.name}>
-                    <dt>Remote / {remote.name}</dt>
+                    <dt>
+                      {t("components.pullRequest.remoteOf", {
+                        name: remote.name,
+                      })}
+                    </dt>
                     <dd>
                       {remote.host}/{remote.repository}
                     </dd>
@@ -326,26 +352,28 @@ export function PullRequestCardView({
                 {current ? (
                   <>
                     <div>
-                      <dt>Checkout</dt>
+                      <dt>{t("components.pullRequest.checkout")}</dt>
                       <dd>
                         <code>{current.root}</code>
                       </dd>
                     </div>
                     <div>
-                      <dt>Branch</dt>
+                      <dt>{t("components.pullRequest.branch")}</dt>
                       <dd>
                         <code>{current.branch || "Detached HEAD"}</code>
-                        {current.rebasing ? " (rebase in progress)" : null}
+                        {current.rebasing
+                          ? t("components.pullRequest.rebaseInProgress")
+                          : null}
                       </dd>
                     </div>
                   </>
                 ) : null}
                 {stale ? (
                   <div>
-                    <dt>Last refresh failed</dt>
+                    <dt>{t("components.pullRequest.lastRefreshFailed")}</dt>
                     <dd>
                       <time dateTime={stale.failedAt}>
-                        {new Date(stale.failedAt).toLocaleString()}
+                        {formatUiDateTime(stale.failedAt)}
                       </time>
                     </dd>
                   </div>
@@ -353,11 +381,13 @@ export function PullRequestCardView({
                 {finishedAt ? (
                   <div>
                     <dt>
-                      {stale ? "Last successful refresh" : "Last refreshed"}
+                      {stale
+                        ? t("components.pullRequest.lastSuccessfulRefresh")
+                        : t("components.pullRequest.lastRefreshed")}
                     </dt>
                     <dd>
                       <time dateTime={finishedAt}>
-                        {new Date(finishedAt).toLocaleString()}
+                        {formatUiDateTime(finishedAt)}
                       </time>
                     </dd>
                   </div>
@@ -380,17 +410,18 @@ export function PullRequestSelectors({
   onRemoteChange: (value: string) => void;
   onMatchChange: (value: string) => void;
 }) {
+  const t = useT();
   const pr = current.state === "ready" ? current.request : undefined;
   return (
     <>
       {current.remotes.length > 1 || current.state === "select_remote" ? (
         <label>
-          Source remote
+          {t("components.pullRequest.sourceRemoteAria")}
           <ThemedSelect
             className="pull-request-card-remote-select"
-            aria-label="Source remote"
+            aria-label={t("components.pullRequest.sourceRemoteAria")}
             value={current.remote ?? ""}
-            placeholder="Select remote"
+            placeholder={t("components.pullRequest.selectRemotePlaceholder")}
             options={current.remotes.map((item) => ({
               value: item.name,
               label: `${item.name}: ${item.host}/${item.repository}`,
@@ -402,7 +433,7 @@ export function PullRequestSelectors({
       {current.matches &&
       (current.matches.length > 1 || current.state === "select_match") ? (
         <label>
-          Matching request
+          {t("components.pullRequest.matchingRequest")}
           <select
             value={pr?.id ?? ""}
             onChange={(event) => {
@@ -410,7 +441,7 @@ export function PullRequestSelectors({
             }}
           >
             <option value="" disabled>
-              Select PR/MR
+              {t("components.pullRequest.selectPrMr")}
             </option>
             {current.matches.map((item) => (
               <option key={item.id} value={item.id}>

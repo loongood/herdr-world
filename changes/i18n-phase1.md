@@ -236,5 +236,25 @@
   action-outcome warnings, the update and Herdr upgrade progress, the git
   and worktree lifecycle notices, the notification bodies and their actions,
   and the pane-move and command failures.
+  The component surfaces follow too: the agent checkout panel (its heading,
+  its reasons and its workspace-changes action), the Codex session link (its
+  preview, its fields and its confirm note), the Herdr version card (its
+  compatibility verdicts, its freshness notes and its upgrade hint), the
+  conversation minimap's empty placeholder, the History terminal composer
+  (its connection-changed errors), the Inspector's source links, the instance
+  name settings, the speech settings, the terminal file-link menu, the
+  worktree command settings, the worktree open dialog, the World skill rows
+  (their states, their share notes and their install, update and uninstall
+  actions) and the pane move menu (its directions, its sides and its drag
+  hints).
+  The pull and merge request card follows too: its status words, its badges,
+  its refresh and provider links, its review and checks rows and its checkout
+  details.
+  The remaining file surfaces follow: the file explorer's truncation,
+  upload, search and selection notices, the file preview's PDF and audio
+  limits and its annotation action, the colour swatch's reset, the markdown
+  diagram placeholder and the terminal's copy and paste failures.
+  The "Unassigned" shortcut placeholder now follows the language, and the
+  command palette matches its visual-selection heading in any language.
   Remaining surfaces keep English
   until their phase lands.

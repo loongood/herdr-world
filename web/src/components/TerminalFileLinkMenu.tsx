@@ -4,6 +4,7 @@ import {
   directoryPreviewPath,
   normalizeFilesystemPath,
 } from "../filesystemPaths";
+import { useT } from "../i18n";
 import { useStoreSelector } from "../store";
 import { ActionsMenu } from "./ActionsMenu";
 import { requestFilePreview } from "./fileExplorerResources";
@@ -29,6 +30,7 @@ export function TerminalFileLinkMenu({
   onWorkspace: (path: string) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const workspaces = useStoreSelector((state) => state.workspaces);
   const [directory, setDirectory] = useState<string | null>(null);
   const alreadyOpen =
@@ -67,18 +69,20 @@ export function TerminalFileLinkMenu({
       onClose={onClose}
       groups={[
         {
-          label: "File actions",
+          label: t("components.fileLinkMenu.actions"),
           items: [
             {
               key: "preview",
-              label: directory ? "Preview directory" : "Preview file",
+              label: directory
+                ? t("components.fileLinkMenu.previewDirectory")
+                : t("components.fileLinkMenu.previewFile"),
               action: () => onPreview(state.path),
             },
             ...(directory && !alreadyOpen
               ? [
                   {
                     key: "workspace",
-                    label: "Open directory as workspace...",
+                    label: t("components.fileLinkMenu.openAsWorkspace"),
                     action: () => onWorkspace(directory),
                   },
                 ]
@@ -87,7 +91,7 @@ export function TerminalFileLinkMenu({
               ? [
                   {
                     key: "checking",
-                    label: "Checking directory...",
+                    label: t("components.fileLinkMenu.checkingDirectory"),
                     disabled: true,
                     action: () => {},
                   },

@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   type RefObject,
 } from "react";
+import { useT } from "../i18n";
 import { prefersReducedMotion } from "../utils";
 import "./ConversationMinimap.css";
 
@@ -182,7 +183,7 @@ export const ConversationMinimap = memo(function ConversationMinimap({
   orientation = "auto",
   label,
   className = "",
-  emptyText = "No text yet",
+  emptyText,
   onSelect,
   onLayout,
 }: {
@@ -199,6 +200,8 @@ export const ConversationMinimap = memo(function ConversationMinimap({
   // Runs after the map lays out, including orientation switches.
   onLayout?: () => void;
 }) {
+  const t = useT();
+  const resolvedEmptyText = emptyText ?? t("components.minimap.noTextYet");
   const rootRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -391,7 +394,7 @@ export const ConversationMinimap = memo(function ConversationMinimap({
           aria-valuemin={1}
           aria-valuemax={count}
           aria-valuenow={currentIndex + 1}
-          aria-valuetext={`${current.label}: ${previewText(current.text, emptyText)}`}
+          aria-valuetext={`${current.label}: ${previewText(current.text, resolvedEmptyText)}`}
           style={
             {
               "--preview-index":
@@ -501,7 +504,7 @@ export const ConversationMinimap = memo(function ConversationMinimap({
                 {previewIndex + 1} / {count}
               </span>
             </strong>
-            <span>{previewText(preview.text, emptyText)}</span>
+            <span>{previewText(preview.text, resolvedEmptyText)}</span>
           </div>
         ) : null}
       </div>

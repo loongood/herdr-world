@@ -1,4 +1,5 @@
 import { useEffectCallback } from "../useEffectCallback";
+import { t, useT } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { useOperationalStore } from "../store";
 import { useStoreSelector } from "../store";
@@ -18,7 +19,7 @@ import "./WorktreeOpenDialog.css";
 function worktreeTitle(worktree: ExistingWorktree) {
   if (worktree.branch) return worktree.branch;
   if (worktree.is_detached) return "Detached HEAD";
-  if (worktree.is_bare) return "Bare repository";
+  if (worktree.is_bare) return t("components.worktreeOpen.bareRepository");
   return worktree.label || worktree.path;
 }
 
@@ -48,6 +49,7 @@ export function WorktreeOpenDialog({
   sourceCwd?: string | null;
   onClose: () => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const connectionClient = useConnectionClient();
   const ready = useConnectionReady(connectionClient);
@@ -152,7 +154,7 @@ export function WorktreeOpenDialog({
     }
     setActionError({
       scope,
-      message: "Repository source unavailable.",
+      message: t("components.worktreeOpen.repositoryUnavailable"),
     });
     return undefined;
   };
@@ -193,7 +195,7 @@ export function WorktreeOpenDialog({
         className="modal worktree-open-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Open Worktree"
+        aria-label={t("components.worktreeOpen.title")}
         onSubmit={openManual}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -218,7 +220,9 @@ export function WorktreeOpenDialog({
         ) : null}
 
         {loading ? (
-          <p className="modal-body-text">Loading worktrees...</p>
+          <p className="modal-body-text">
+            {t("components.worktreeOpen.loading")}
+          </p>
         ) : null}
         {error ? <p className="modal-error">{error}</p> : null}
 
@@ -229,7 +233,7 @@ export function WorktreeOpenDialog({
               ref={searchRef}
               value={query}
               onChange={(e) => setQuery(e.currentTarget.value)}
-              placeholder="Branch name or checkout path"
+              placeholder={t("components.worktreeOpen.branchOrPathLabel")}
             />
           </label>
         ) : null}
@@ -276,13 +280,13 @@ export function WorktreeOpenDialog({
         ) : !loading && !error ? (
           <p className="modal-body-text">
             {list?.worktrees.length
-              ? "No matching worktrees."
-              : "No worktrees found."}
+              ? t("components.worktreeOpen.noMatching")
+              : t("components.worktreeOpen.noneFound")}
           </p>
         ) : null}
 
         <label className="form-field">
-          <span>Branch or absolute path</span>
+          <span>{t("components.worktreeOpen.branchOrAbsolutePath")}</span>
           <input
             ref={manualTargetRef}
             value={manualTarget}

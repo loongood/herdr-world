@@ -197,9 +197,7 @@ export function FilesystemBrowser({
         </p>
       ) : null}
       {list?.truncated ? (
-        <p className="modal-error">
-          This directory is truncated at 1000 entries.
-        </p>
+        <p className="modal-error">{t("files.truncatedDirectory")}</p>
       ) : null}
       <div
         className="file-tree"
@@ -209,7 +207,7 @@ export function FilesystemBrowser({
       >
         {loading ? (
           <div className="file-row file-row-muted" role="status">
-            Loading directory...
+            {t("files.loadingDirectoryEllipsis")}
           </div>
         ) : null}
         {!loading && !error && !entries.length ? (

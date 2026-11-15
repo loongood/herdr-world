@@ -694,7 +694,7 @@ function OwnedCommandCombobox({
       icon: <GitBranch size={15} />,
       title:
         workspace.workspace_id === focusedWorkspace?.workspace_id
-          ? "New worktree"
+          ? t("commands.newWorktree")
           : t("commands.newWorktreeFor", { name: workspaceName(workspace) }),
       detail: workspace.worktree?.checkout_path,
       keywords: [
@@ -722,7 +722,7 @@ function OwnedCommandCombobox({
       icon: <FolderOpen size={15} />,
       title:
         workspace.workspace_id === focusedWorkspace?.workspace_id
-          ? "Open worktree"
+          ? t("commands.openWorktree")
           : t("commands.openWorktreeFor", { name: workspaceName(workspace) }),
       detail: workspace.worktree?.checkout_path,
       keywords: [
@@ -740,7 +740,7 @@ function OwnedCommandCombobox({
       icon: <GitBranch size={15} />,
       title:
         workspace.workspace_id === focusedWorkspace?.workspace_id
-          ? "Worktree hooks"
+          ? t("commands.worktreeHooks")
           : t("commands.worktreeHooksFor", { name: workspaceName(workspace) }),
       detail: workspace.worktree?.repo_name,
       keywords: [
@@ -999,7 +999,7 @@ function OwnedCommandCombobox({
         ({ command, shortcutId }) => {
           const shortcut = shortcutId
             ? shortcutLabel(shortcutId)
-            : "Unassigned";
+            : t("shortcuts.unassigned");
           return {
             key: `arrangement-${command}`,
             icon: <LayoutGrid size={15} />,
@@ -1016,7 +1016,8 @@ function OwnedCommandCombobox({
                           label: arrangementLabel(command),
                         }),
             detail: arrangementDescription(command),
-            shortcut: shortcut === "Unassigned" ? undefined : shortcut,
+            shortcut:
+              shortcut === t("shortcuts.unassigned") ? undefined : shortcut,
             keywords: ["layout", "tile", "windows", command],
             disabledReason: arrangementControl.disabledReasons[command],
             run: () => arrangementControl.onSelect(command),
@@ -1075,7 +1076,8 @@ function OwnedCommandCombobox({
           open &&
           capturedExtension &&
           capturedExtension.captureKey !== extension.captureKey &&
-          (group.heading === "Visual selection" || action.key === "visual-pin")
+          (group.heading === t("worldActions.headingVisual") ||
+            action.key === "visual-pin")
             ? {
                 ...action,
                 disabledReason: t("commands.selectionStale"),

@@ -12,6 +12,7 @@ import {
   parseSourceFileLink,
   sourceFileWithinWorktree,
 } from "../sourceFileLinks";
+import { useT } from "../i18n";
 import { requestFilePreview } from "./fileExplorerResources";
 import type { ActiveFilePreviewSelection } from "./FilePreviewContent";
 
@@ -35,6 +36,7 @@ export function InspectorSourceFiles({
   source: InspectorSourceFilesProps;
   children: ReactNode;
 }) {
+  const t = useT();
   const { client, worktree } = source;
   const identity = JSON.stringify([
     client.connectionId,
@@ -65,15 +67,11 @@ export function InspectorSourceFiles({
     const parsed = parseSourceFileLink(href);
     const target = worktree?.target;
     if (!client.isCurrent() || current.current !== binding) {
-      setNotice(
-        "This source link is unavailable because its host or worktree changed. Refresh or choose a worktree.",
-      );
+      setNotice(t("components.inspectorSources.hostChanged"));
       return;
     }
     if (!target || !worktree?.selected || !source.onSelection) {
-      setNotice(
-        "Choose a current agent worktree before opening this source link.",
-      );
+      setNotice(t("components.inspectorSources.chooseWorktree"));
       return;
     }
     if (
@@ -85,18 +83,14 @@ export function InspectorSourceFiles({
       target.candidateId !== worktree.selected.candidateId ||
       JSON.stringify(client.agentWorktree) !== JSON.stringify(target)
     ) {
-      setNotice(
-        "This source link is unavailable for the current agent. Refresh or choose a worktree.",
-      );
+      setNotice(t("components.inspectorSources.unavailableForAgent"));
       return;
     }
     const link =
       parsed &&
       sourceFileWithinWorktree(worktree.selected.canonicalRoot, parsed);
     if (!link) {
-      setNotice(
-        "This source link is outside the selected worktree or has an unsupported location. Choose its worktree and try again.",
-      );
+      setNotice(t("components.inspectorSources.outsideWorktree"));
       return;
     }
     setNotice("");
@@ -146,7 +140,7 @@ export function InspectorSourceFiles({
         <div className="workspace-inspector-unavailable" role="alert">
           <span>{notice}</span>
           <button type="button" onClick={source.onChoose}>
-            Choose a worktree
+            {t("components.inspectorSources.chooseWorktreeButton")}
           </button>
         </div>
       ) : null}

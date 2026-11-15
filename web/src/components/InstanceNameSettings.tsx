@@ -6,6 +6,7 @@ import {
   type InstanceSettings,
 } from "../../../shared/instanceName";
 import { instanceNameClient, type InstanceNameClient } from "../instanceName";
+import { useT } from "../i18n";
 import "./InstanceNameSettings.css";
 
 export function InstanceNameSettings({
@@ -13,6 +14,7 @@ export function InstanceNameSettings({
 }: {
   client?: InstanceNameClient;
 }) {
+  const t = useT();
   const [saved, setSaved] = useState<InstanceSettings | null>(null);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
@@ -77,7 +79,7 @@ export function InstanceNameSettings({
       if (!mounted.current || current !== sequence.current) return;
       setSaved(settings);
       setDraft(settings.title_suffix);
-      setMessage("Saved for this Herdr World instance.");
+      setMessage(t("components.instanceName.saved"));
     } catch (cause) {
       if (!mounted.current || current !== sequence.current) return;
       setError({ kind: "save", message: (cause as Error).message });
@@ -90,9 +92,7 @@ export function InstanceNameSettings({
   return (
     <div className="instance-name-settings">
       <p className="instance-name-scope">
-        Saved on this Herdr World server and shared across all devices and
-        connections at this URL. Other Herdr World instances keep their own
-        names.
+        {t("components.instanceName.scope")}
       </p>
       <form
         onSubmit={(event) => {
@@ -102,13 +102,13 @@ export function InstanceNameSettings({
         aria-busy={loading || saving}
       >
         <label htmlFor="instance-title-suffix">
-          App and webpage title suffix
+          {t("components.instanceName.titleSuffixLabel")}
         </label>
         <input
           id="instance-title-suffix"
           type="text"
           value={draft}
-          placeholder="For example, Work or Home"
+          placeholder={t("components.instanceName.placeholder")}
           disabled={loading || saving || !saved}
           spellCheck={false}
           autoComplete="off"
@@ -121,8 +121,9 @@ export function InstanceNameSettings({
           }}
         />
         <p id="instance-name-hint" className="instance-name-hint">
-          Up to {MAX_TITLE_SUFFIX_LENGTH} characters. Extra spaces are trimmed.
-          Leave empty for the default name, Herdr World.
+          {t("components.instanceName.hint", {
+            count: MAX_TITLE_SUFFIX_LENGTH,
+          })}
         </p>
         <p
           id="instance-name-validation"
@@ -133,12 +134,12 @@ export function InstanceNameSettings({
         {saved ? (
           <div className="instance-name-preview" id="instance-name-preview">
             <p>
-              Saved name:{" "}
+              {t("components.instanceName.savedName")}{" "}
               <strong>{instanceDisplayName(saved.title_suffix)}</strong>
             </p>
             {changed && !validationError ? (
               <p>
-                Preview (not saved):{" "}
+                {t("components.instanceName.preview")}{" "}
                 <output>{instanceDisplayName(normalized)}</output>
               </p>
             ) : null}
@@ -146,9 +147,9 @@ export function InstanceNameSettings({
         ) : null}
         <p className="instance-name-status" role="status">
           {loading
-            ? "Loading instance name..."
+            ? t("components.instanceName.loading")
             : saving
-              ? "Saving..."
+              ? t("components.instanceName.saving")
               : message}
         </p>
         {error ? (
@@ -161,7 +162,7 @@ export function InstanceNameSettings({
                 void (error.kind === "load" ? load() : save(draft))
               }
             >
-              Retry
+              {t("common.retry")}
             </button>
           </div>
         ) : null}
@@ -176,7 +177,7 @@ export function InstanceNameSettings({
               Boolean(validationError)
             }
           >
-            Save
+            {t("common.save")}
           </button>
           <button
             type="button"
@@ -188,15 +189,12 @@ export function InstanceNameSettings({
             }
             onClick={() => void save("")}
           >
-            Reset to default
+            {t("components.instanceName.resetToDefault")}
           </button>
         </div>
       </form>
       <p className="instance-name-hint">
-        Save before installing this instance as an app. Existing Android
-        installs may need browser confirmation or reinstallation to update their
-        launcher name. Reset to default saves the name Herdr World for this
-        instance.
+        {t("components.instanceName.installHint")}
       </p>
     </div>
   );

@@ -440,12 +440,14 @@ export function shortcutLabel(id: ShortcutId) {
   return (
     preset.bindings[id]
       .map((key) => formatShortcut(key, platform))
-      .join(" / ") || "Unassigned"
+      .join(" / ") || t("shortcuts.unassigned")
   );
 }
 export function shortcutTitle(label: string, id: ShortcutId) {
   const binding = shortcutLabel(id);
-  return binding === "Unassigned" ? label : `${label} (${binding})`;
+  return binding === t("shortcuts.unassigned")
+    ? label
+    : `${label} (${binding})`;
 }
 export function selectShortcutPreset(id: string) {
   const { preferences } = getShortcutSnapshot();

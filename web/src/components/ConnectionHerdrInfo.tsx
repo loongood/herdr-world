@@ -5,6 +5,7 @@ import {
   type HerdrServerIdentity,
 } from "../../../shared/herdrIdentity";
 import { bridge, type ConnectionSummary } from "../api";
+import { useT } from "../i18n";
 import { connectionHttpResource } from "../connectionHttp";
 import { useStoreSelector } from "../store";
 
@@ -14,6 +15,7 @@ export function ConnectionHerdrInfo({
 }: {
   connection: ConnectionSummary;
 }) {
+  const t = useT();
   const transport = useStoreSelector((state) => state.status);
   const transportGeneration = useStoreSelector(
     (state) => state.connectionGeneration,
@@ -57,7 +59,8 @@ export function ConnectionHerdrInfo({
           await response.json(),
           Date.now(),
         );
-        if (!observation) throw new Error("Herdr identity unavailable");
+        if (!observation)
+          throw new Error(t("components.connectionHerdr.identityUnavailable"));
         return observation;
       },
       { signal: abort.signal },
@@ -76,7 +79,7 @@ export function ConnectionHerdrInfo({
       abort.abort();
       window.clearTimeout(timeout);
     };
-  }, [client, owner, ready, retry]);
+  }, [client, owner, ready, retry, t]);
 
   const observation = result?.owner === owner ? result.observation : null;
   useEffect(() => {
@@ -96,54 +99,57 @@ export function ConnectionHerdrInfo({
   return (
     <div
       className="connection-profile-version"
-      aria-label={`Herdr version on ${connection.label}`}
+      aria-label={t("components.connectionHerdr.versionAria", {
+        label: connection.label,
+      })}
     >
       <p role="status">
         {fresh ? (
           <>
-            Running Herdr {fresh.version} · protocol {fresh.protocol}.{" "}
+            {t("components.connectionHerdr.running", {
+              version: fresh.version,
+              protocol: fresh.protocol,
+            })}{" "}
             {compatibility === "supported"
-              ? "Supported by this World."
+              ? t("components.connectionHerdr.supported")
               : compatibility === "too-old"
-                ? "This Herdr is too old for World; update Herdr."
+                ? t("components.connectionHerdr.tooOld")
                 : compatibility === "too-new"
-                  ? "This Herdr is too new for World; update World. Do not downgrade Herdr."
-                  : "This protocol is incompatible with World; use a World version supporting it. Do not downgrade Herdr."}
+                  ? t("components.connectionHerdr.tooNew")
+                  : t("components.connectionHerdr.incompatible")}
           </>
         ) : observation ? (
-          `Last observed Herdr ${observation.version} · protocol ${observation.protocol}; stale, compatibility unknown.`
+          t("components.connectionHerdr.lastObserved", {
+            version: observation.version,
+            protocol: observation.protocol,
+          })
         ) : loading ? (
-          "Checking this host's running Herdr…"
+          t("components.connectionHerdr.checkingHost")
         ) : (
-          "Running Herdr version unknown."
+          t("components.connectionHerdr.versionUnknown")
         )}
       </p>
       {observation ? (
         <p>
-          Checked{" "}
+          {t("components.connectionHerdr.checkedLabel")}{" "}
           <time dateTime={new Date(observation.readAt).toISOString()}>
             {new Date(observation.readAt).toLocaleTimeString()}
           </time>
-          ; expires after one minute.
+          {t("components.connectionHerdr.expiresAfter")}
         </p>
       ) : null}
-      {!ready ? (
-        <p>Reconnect this host to read its running server version.</p>
-      ) : null}
+      {!ready ? <p>{t("components.connectionHerdr.reconnectHint")}</p> : null}
       <button
         type="button"
         disabled={!ready || loading}
         onClick={() => setRetry((value) => value + 1)}
       >
-        {loading ? "Checking version…" : "Check version again"}
+        {loading
+          ? t("components.connectionHerdr.checkingVersion")
+          : t("components.connectionHerdr.checkVersionAgain")}
       </button>
-      <p>
-        Installed binary: unknown (the check reads the running server only).
-      </p>
-      <p>
-        Upgrade unavailable here: the installed binary, newer target and safe
-        handoff are unverified. Nothing is updated.
-      </p>
+      <p>{t("components.connectionHerdr.installedBinaryUnknown")}</p>
+      <p>{t("components.connectionHerdr.upgradeUnavailable")}</p>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { paneAgentTitle } from "../agentName";
+import { t } from "../i18n";
 import type { Pane, Workspace } from "../types";
 import type { WorkspaceInspectorContext } from "../workspaceResource";
 
@@ -37,7 +38,7 @@ export function inspectorAgentContext(
     kind: "agent",
     label: paneAgentTitle(pane, pane.display_agent?.trim() || pane.agent),
     stateLabel: pane.state_labels?.[status]?.trim() || status,
-    locationLabel: workspace?.label || "Workspace",
+    locationLabel: workspace?.label || t("app.workspaceFallback"),
     agent: pane.agent,
     // Spaces shows the same state badge as World: Herdr's statuses are the tones.
     statusTone: status,

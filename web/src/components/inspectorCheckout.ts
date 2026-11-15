@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Workspace } from "../types";
 
 /** The Inspector header's checkout facts. */
@@ -10,7 +11,7 @@ export function changedCount(workspace?: Workspace) {
 }
 
 export function checkoutLabel(workspace?: Workspace) {
-  if (!workspace) return "Unavailable checkout";
+  if (!workspace) return t("components.checkout.unavailable");
   return (
     workspace.worktree?.git_status?.branch ||
     workspace.worktree?.repo_name ||

@@ -1954,7 +1954,9 @@ export function TerminalView({
         );
         if (text) {
           void copyTextFromUserGesture(text).catch((error) => {
-            setUploadError(`Copy failed: ${(error as Error).message}`);
+            setUploadError(
+              t("terminal.copyFailed", { detail: (error as Error).message }),
+            );
           });
         }
         return false;
@@ -1971,7 +1973,9 @@ export function TerminalView({
         e.preventDefault();
         e.stopPropagation();
         pasteFromBrowserClipboard().catch((err) => {
-          setUploadError(`Paste failed: ${(err as Error).message}`);
+          setUploadError(
+            t("terminal.pasteFailed", { detail: (err as Error).message }),
+          );
         });
         return false;
       }
@@ -2202,7 +2206,12 @@ export function TerminalView({
         void runPasteOperation(() =>
           pasteText(pastedText, destinationPaneId),
         ).catch((error) => {
-          setUploadError(`Text paste failed: ${(error as Error).message}`);
+          setUploadError(
+            t("terminal.pasteOperationFailed", {
+              what: t("terminal.pasteWhatText"),
+              detail: (error as Error).message,
+            }),
+          );
         });
         return;
       }
@@ -2351,7 +2360,12 @@ export function TerminalView({
             void runPasteOperation(() =>
               pasteText(text, destinationPaneId),
             ).catch((error) => {
-              setUploadError(`Text paste failed: ${(error as Error).message}`);
+              setUploadError(
+                t("terminal.pasteOperationFailed", {
+                  what: t("terminal.pasteWhatText"),
+                  detail: (error as Error).message,
+                }),
+              );
             });
           }, 0);
         }
@@ -3703,7 +3717,7 @@ export function TerminalView({
                 )
               }
             >
-              Add comment
+              {t("terminal.addComment")}
             </button>,
             document.body,
           )

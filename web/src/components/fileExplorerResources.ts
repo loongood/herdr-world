@@ -1,4 +1,5 @@
 import { worldLocalStorage } from "../browserStorage";
+import { t } from "../i18n";
 import type { ConnectionClient } from "../api";
 import { connectionHttpResource } from "../connectionHttp";
 import { connectionStorageKey } from "../connectionStorage";
@@ -385,22 +386,22 @@ function gitStatusTone(entry: Pick<GitDiffEntry, "kind" | "status">) {
 }
 
 function gitStatusLabel(entry: Pick<GitDiffEntry, "kind" | "status">) {
-  if (entry.kind === "conflicted") return "Conflict";
-  if (entry.kind === "untracked") return "Untracked";
+  if (entry.kind === "conflicted") return t("components.gitStatus.conflict");
+  if (entry.kind === "untracked") return t("components.gitStatus.untracked");
   switch (entry.status) {
     case "added":
-      return "Added";
+      return t("components.gitStatus.added");
     case "deleted":
-      return "Deleted";
+      return t("components.gitStatus.deleted");
     case "renamed":
-      return "Renamed";
+      return t("components.gitStatus.renamed");
     case "copied":
-      return "Copied";
+      return t("components.gitStatus.copied");
     case "type changed":
-      return "Type changed";
+      return t("components.gitStatus.typeChanged");
     case "modified":
     default:
-      return "Modified";
+      return t("components.gitStatus.modified");
   }
 }
 

@@ -1,3 +1,4 @@
+import { useT } from "../i18n";
 import { resolveWorkspaceMarkdownLink } from "../workspaceFileUrl";
 import {
   Suspense,
@@ -305,6 +306,7 @@ export function MarkdownPreview({
   fragment?: string;
   onSelectionChange?: (target: MarkdownSelectionTarget | null) => void;
 }) {
+  const t = useT();
   const openSourceFile = useContext(SourceFileLinkContext);
   const sourceFileLinks = Boolean(openSourceFile) && !documentPath;
   const html = useMemo(
@@ -432,7 +434,7 @@ export function MarkdownPreview({
           <Suspense
             fallback={
               <div className="file-preview-state" role="status">
-                Rendering diagram
+                {t("components.markdown.renderingDiagram")}
               </div>
             }
           >

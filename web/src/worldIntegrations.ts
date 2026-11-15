@@ -1,3 +1,5 @@
+import { t } from "./i18n";
+
 /** World's own skill per harness on the service's host (`world.integration.list`). */
 export type WorldIntegration = {
   harness: string;
@@ -33,7 +35,7 @@ export function parseWorldIntegrations(result: unknown): WorldIntegration[] {
         item.shared_with.every((name: unknown) => typeof name === "string"),
     )
   )
-    throw new Error("Invalid World integration list received.");
+    throw new Error(t("worldIntegrations.invalidList"));
   return items;
 }
 
@@ -42,18 +44,28 @@ export const worldHarnessFor = (herdrTarget: string) =>
   herdrTarget.replace(/_/g, "-");
 
 export function worldStateLabel(item: WorldIntegration) {
-  const installed = item.version === undefined ? "" : ` (v${item.version})`;
+  const installed =
+    item.version === undefined
+      ? ""
+      : t("worldIntegrations.versionSuffix", { version: item.version });
   switch (item.state) {
     case "current":
-      return `Current${installed}`;
+      return `${t("worldIntegrations.stateCurrent")}${installed}`;
     case "outdated":
       return item.version === undefined
-        ? `Outdated, v${item.available_version} available`
-        : `Outdated (v${item.version} → v${item.available_version})`;
+        ? t("worldIntegrations.stateOutdatedAvailable", {
+            version: item.available_version,
+          })
+        : t("worldIntegrations.stateOutdated", {
+            current: item.version,
+            available: item.available_version,
+          });
     case "not_installed":
-      return "Not installed";
+      return t("worldIntegrations.stateNotInstalled");
     default:
-      return `Unsupported: ${item.reason}`;
+      return t("worldIntegrations.stateUnsupported", {
+        reason: item.reason ?? "",
+      });
   }
 }
 
@@ -65,21 +77,37 @@ export function worldChangePrompt(
 ) {
   const name = label(item.harness);
   const others = item.shared_with.map(label);
+  const separator = t("worldIntegrations.listSeparator");
+  const conjunction = t("worldIntegrations.listAnd");
+  const sharedNames = others.length
+    ? `${name}${separator}${others.join(conjunction)}`
+    : name;
   const shared = others.length
-    ? ` ${name}, ${others.join(" and ")} share this file`
+    ? ` ${t("worldIntegrations.sharedFile", { names: sharedNames })}`
     : "";
   if (action === "uninstall")
     return (
-      `Uninstall World's skill for ${name}?\n\nThis deletes ${item.path}.` +
+      t("worldIntegrations.uninstallTitle", { name }) +
+      "\n\n" +
+      t("worldIntegrations.deleteNote", { path: item.path ?? "" }) +
       (others.length
-        ? `${shared}, so ${others.join(" and ")} lose it too.`
+        ? `${shared}${t("worldIntegrations.sharedLoss", {
+            others: others.join(conjunction),
+          })}`
         : "") +
-      " Herdr's own integration is not changed."
+      t("worldIntegrations.herdrUnchanged")
     );
   return (
-    `${item.state === "outdated" ? "Update" : "Install"} World's skill for ${name}?\n\n` +
-    `This writes ${item.path} on World's own host.` +
-    (others.length ? `${shared}, so it applies to them too.` : "") +
-    " Start a new agent session to load it."
+    t("worldIntegrations.installTitle", {
+      verb:
+        item.state === "outdated"
+          ? t("agents.verbUpdate")
+          : t("agents.verbInstall"),
+      name,
+    }) +
+    "\n\n" +
+    t("worldIntegrations.writeNote", { path: item.path ?? "" }) +
+    (others.length ? `${shared}${t("worldIntegrations.sharedApply")}` : "") +
+    t("worldIntegrations.newSessionNote")
   );
 }

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { browserPaneInDirection } from "../browserNavigation";
+import { useT } from "../i18n";
 import { nearestPaneSide } from "../paneDrop";
 import type { PaneLayout } from "../types";
 import { type PaneSide, useOperationalStore, useStoreSelector } from "../store";
@@ -16,25 +17,41 @@ import "./PaneMoveMenu.css";
 
 type Direction = "left" | "right" | "up" | "down";
 
+type PaneMoveDirectionLabelKey =
+  | "components.paneMove.up"
+  | "components.paneMove.left"
+  | "components.paneMove.right"
+  | "components.paneMove.down";
+
 const DIRECTIONS: {
   direction: Direction;
-  label: string;
+  labelKey: PaneMoveDirectionLabelKey;
   Icon: typeof ArrowUp;
 }[] = [
-  { direction: "up", label: "Move pane up", Icon: ArrowUp },
-  { direction: "left", label: "Move pane left", Icon: ArrowLeft },
-  { direction: "right", label: "Move pane right", Icon: ArrowRight },
-  { direction: "down", label: "Move pane down", Icon: ArrowDown },
+  { direction: "up", labelKey: "components.paneMove.up", Icon: ArrowUp },
+  { direction: "left", labelKey: "components.paneMove.left", Icon: ArrowLeft },
+  {
+    direction: "right",
+    labelKey: "components.paneMove.right",
+    Icon: ArrowRight,
+  },
+  { direction: "down", labelKey: "components.paneMove.down", Icon: ArrowDown },
 ];
 
 /** How long a dragged pane hovers over a tab before that tab opens. */
 const TAB_OPEN_DELAY_MS = 600;
 
-const SIDE_LABELS: Record<PaneSide, string> = {
-  left: "on the left",
-  right: "on the right",
-  up: "above",
-  down: "below",
+type PaneMoveSideLabelKey =
+  | "components.paneMove.sideLeft"
+  | "components.paneMove.sideRight"
+  | "components.paneMove.sideAbove"
+  | "components.paneMove.sideBelow";
+
+const SIDE_LABEL_KEYS: Record<PaneSide, PaneMoveSideLabelKey> = {
+  left: "components.paneMove.sideLeft",
+  right: "components.paneMove.sideRight",
+  up: "components.paneMove.sideAbove",
+  down: "components.paneMove.sideBelow",
 };
 
 type DropTarget =
@@ -74,6 +91,7 @@ export function PaneDragHandle({
   layout: PaneLayout | null;
   onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const drag = useRef<{ cancel: () => void; leftTab: boolean } | null>(null);
   // Opening another tab unmounts this handle, so only an in-tab drag ends here.
@@ -229,19 +247,21 @@ export function PaneDragHandle({
     const hintText = () => {
       switch (target?.kind) {
         case "swap":
-          return "Release to swap";
+          return t("components.paneMove.releaseToSwap");
         case "place":
-          return `Release to place ${SIDE_LABELS[target.side]}`;
+          return t("components.paneMove.releaseToPlace", {
+            side: t(SIDE_LABEL_KEYS[target.side]),
+          });
         case "tab": {
           const name =
             target.element.querySelector(".tabbar-name")?.textContent ||
-            "this tab";
-          return `Release to move to ${name}, or hold to open it`;
+            t("components.paneMove.thisTab");
+          return t("components.paneMove.releaseToMoveTo", { name });
         }
         case "new-tab":
-          return "Release to move to a new tab";
+          return t("components.paneMove.releaseToNewTab");
         default:
-          return "Drag onto a pane or tab";
+          return t("components.paneMove.dropOntoPaneOrTab");
       }
     };
     const cleanup = () => {
@@ -369,10 +389,10 @@ export function PaneDragHandle({
       className="pane-drag-handle"
       title={
         canSwap
-          ? "Drag to swap panes or onto a tab to move (arrow keys to move)"
-          : "Drag onto a tab to move"
+          ? t("components.paneMove.dragHint")
+          : t("components.paneMove.dropOntoTab")
       }
-      aria-label="Drag pane"
+      aria-label={t("components.paneMove.dragPane")}
       aria-keyshortcuts={
         canSwap ? "ArrowLeft ArrowRight ArrowUp ArrowDown" : undefined
       }
@@ -405,6 +425,7 @@ export function PaneMoveMenu({
   layout: PaneLayout | null;
   onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
@@ -431,8 +452,8 @@ export function PaneMoveMenu({
       <button
         type="button"
         className={`terminal-pane-action${open ? " is-active" : ""}`}
-        title="Move pane"
-        aria-label="Move pane"
+        title={t("components.paneMove.movePane")}
+        aria-label={t("components.paneMove.movePane")}
         aria-haspopup="true"
         aria-expanded={open}
         onPointerDown={onPointerDown}
@@ -441,14 +462,18 @@ export function PaneMoveMenu({
         <Move size={14} />
       </button>
       {open ? (
-        <div className="pane-move-pad" role="group" aria-label="Move pane">
-          {DIRECTIONS.map(({ direction, label, Icon }) => (
+        <div
+          className="pane-move-pad"
+          role="group"
+          aria-label={t("components.paneMove.movePane")}
+        >
+          {DIRECTIONS.map(({ direction, labelKey, Icon }) => (
             <button
               type="button"
               key={direction}
               className={`terminal-pane-action pane-move-${direction}`}
-              title={label}
-              aria-label={label}
+              title={t(labelKey)}
+              aria-label={t(labelKey)}
               disabled={!targets[direction]}
               onPointerDown={onPointerDown}
               onClick={() => store.movePane(paneId, direction)}

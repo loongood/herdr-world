@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { bridge } from "../api";
+import { useT } from "../i18n";
 import {
   parseWorldIntegrations,
   worldChangePrompt,
@@ -17,6 +18,7 @@ export function useWorldIntegrations(
   /** Reload whenever this changes, such as World's connection after a restart. */
   epoch?: unknown,
 ) {
+  const t = useT();
   const [items, setItems] = useState<WorldIntegration[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -40,10 +42,14 @@ export function useWorldIntegrations(
     } catch (e) {
       if (mounted.current && request === sequence.current) {
         setItems(null);
-        setLoadError(`Could not load World skills: ${(e as Error).message}`);
+        setLoadError(
+          t("components.integrationRow.loadFailed", {
+            error: (e as Error).message,
+          }),
+        );
       }
     }
-  }, [enabled, epoch]);
+  }, [enabled, epoch, t]);
 
   useEffect(() => {
     mounted.current = true;
@@ -60,10 +66,10 @@ export function useWorldIntegrations(
     if (busy || !window.confirm(worldChangePrompt(item, action, label))) return;
     const verb =
       action === "uninstall"
-        ? "Uninstall"
+        ? t("agents.verbUninstall")
         : item.state === "outdated"
-          ? "Update"
-          : "Install";
+          ? t("agents.verbUpdate")
+          : t("agents.verbInstall");
     setBusy(item.harness);
     setChangeError(null);
     setMessage(null);
@@ -73,12 +79,19 @@ export function useWorldIntegrations(
       });
       if (mounted.current)
         setMessage(
-          `${verb} of World's skill for ${label(item.harness)} completed.`,
+          t("components.integrationRow.changeCompleted", {
+            verb,
+            name: label(item.harness),
+          }),
         );
     } catch (e) {
       if (mounted.current)
         setChangeError(
-          `${verb} of World's skill for ${label(item.harness)} failed: ${(e as Error).message}`,
+          t("components.integrationRow.changeFailed", {
+            verb,
+            name: label(item.harness),
+            error: (e as Error).message,
+          }),
         );
     } finally {
       await load();
@@ -107,6 +120,7 @@ export function WorldIntegrationRow({
   disabled: boolean;
   onChange: (item: WorldIntegration, action: "install" | "uninstall") => void;
 }) {
+  const t = useT();
   const name = label(item.harness);
   const installable =
     item.state === "not_installed" || item.state === "outdated";
@@ -114,7 +128,9 @@ export function WorldIntegrationRow({
   return (
     <div className="agent-integrations-world" data-state={item.state}>
       <div className="agent-integrations-world-copy">
-        <span className="agent-integrations-world-name">World skill</span>
+        <span className="agent-integrations-world-name">
+          {t("components.integrationRow.skillName")}
+        </span>
         <span className="agent-integrations-badge" data-state={item.state}>
           {worldStateLabel(item)}
         </span>
@@ -123,7 +139,11 @@ export function WorldIntegrationRow({
         ) : null}
         {item.shared_with.length > 0 ? (
           <span className="agent-integrations-world-shared">
-            Shared with {item.shared_with.map(label).join(" and ")}
+            {t("components.integrationRow.sharedWith", {
+              names: item.shared_with
+                .map(label)
+                .join(t("worldIntegrations.listAnd")),
+            })}
           </span>
         ) : null}
       </div>
@@ -135,25 +155,35 @@ export function WorldIntegrationRow({
               className={
                 item.state === "outdated" ? "agent-integrations-update" : ""
               }
-              aria-label={`${item.state === "outdated" ? "Update" : "Install"} World skill for ${name}`}
+              aria-label={t("components.integrationRow.installAria", {
+                verb:
+                  item.state === "outdated"
+                    ? t("agents.verbUpdate")
+                    : t("agents.verbInstall"),
+                name,
+              })}
               aria-disabled={disabled}
               onClick={() => {
                 if (!disabled) onChange(item, "install");
               }}
             >
-              {item.state === "outdated" ? "Update" : "Install"}
+              {item.state === "outdated"
+                ? t("agents.verbUpdate")
+                : t("agents.verbInstall")}
             </button>
           ) : null}
           {removable ? (
             <button
               type="button"
-              aria-label={`Uninstall World skill for ${name}`}
+              aria-label={t("components.integrationRow.uninstallAria", {
+                name,
+              })}
               aria-disabled={disabled}
               onClick={() => {
                 if (!disabled) onChange(item, "uninstall");
               }}
             >
-              Uninstall
+              {t("agents.verbUninstall")}
             </button>
           ) : null}
         </div>

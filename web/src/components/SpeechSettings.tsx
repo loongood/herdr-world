@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { useT } from "../i18n";
 import {
   updateSpeechPreferences,
   useSpeechPreferences,
@@ -6,6 +7,7 @@ import {
 import "./SpeechSettings.css";
 
 export function SpeechSettings() {
+  const t = useT();
   const id = useId();
   const preferences = useSpeechPreferences();
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -25,17 +27,12 @@ export function SpeechSettings() {
     !voices.some((voice) => voice.voiceURI === preferences.voiceURI);
   return (
     <fieldset className="speech-settings">
-      <legend>Speech</legend>
-      <p id={`${id}-description`}>
-        Listen to agent replies with Speak in Agent History Chat. Some browser
-        voices use an online service and may send message text to the voice
-        provider. Playback may stop when the browser is in the background or the
-        screen is locked.
-      </p>
+      <legend>{t("components.speech.title")}</legend>
+      <p id={`${id}-description`}>{t("components.speech.description")}</p>
       {!supported ? (
-        <p role="status">Speech is not supported by this browser.</p>
+        <p role="status">{t("components.speech.unsupported")}</p>
       ) : null}
-      <label htmlFor={`${id}-voice`}>Voice</label>
+      <label htmlFor={`${id}-voice`}>{t("components.speech.voice")}</label>
       <select
         id={`${id}-voice`}
         disabled={!supported}
@@ -45,23 +42,23 @@ export function SpeechSettings() {
           updateSpeechPreferences({ voiceURI: event.target.value })
         }
       >
-        <option value="">On-device default</option>
+        <option value="">{t("components.speech.onDeviceDefault")}</option>
         {missingVoice ? (
           <option value={preferences.voiceURI}>
-            Saved voice unavailable (using an on-device voice)
+            {t("components.speech.savedVoiceUnavailable")}
           </option>
         ) : null}
         {voices.map((voice) => (
           <option key={voice.voiceURI} value={voice.voiceURI}>
             {voice.name} ({voice.lang})
-            {voice.localService
-              ? ""
-              : " - network: sends text to the browser vendor"}
+            {voice.localService ? "" : t("components.speech.networkNote")}
           </option>
         ))}
       </select>
       <label htmlFor={`${id}-rate`}>
-        Speaking rate: {preferences.rate.toFixed(1)}x
+        {t("components.speech.speakingRate", {
+          rate: preferences.rate.toFixed(1),
+        })}
       </label>
       <input
         id={`${id}-rate`}
@@ -71,7 +68,9 @@ export function SpeechSettings() {
         step="0.1"
         disabled={!supported}
         value={preferences.rate}
-        aria-valuetext={`${preferences.rate.toFixed(1)} times normal speed`}
+        aria-valuetext={t("components.speech.rateTimesNormal", {
+          rate: preferences.rate.toFixed(1),
+        })}
         onChange={(event) =>
           updateSpeechPreferences({ rate: Number(event.target.value) })
         }

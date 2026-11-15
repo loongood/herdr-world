@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ConnectionClient } from "../api";
+import { useT } from "../i18n";
 type Context =
   | { available: false; reason: string }
   | {
@@ -37,6 +38,7 @@ export function AgentCheckoutPanel({
   client: ConnectionClient;
   onWorkspaceChanges(): void;
 }) {
+  const t = useT();
   const [context, setContext] = useState<Context | null>(null);
   const request = useRef(0);
   useEffect(() => {
@@ -44,11 +46,7 @@ export function AgentCheckoutPanel({
     request.current = current;
     setContext(null);
     if (!paneId || !sessionFingerprint) {
-      setContext(
-        unavailable(
-          "Agent checkout unavailable: this agent has no current session metadata.",
-        ),
-      );
+      setContext(unavailable(t("components.agentCheckout.noSessionMetadata")));
       return;
     }
     void client
@@ -61,55 +59,52 @@ export function AgentCheckoutPanel({
           setContext(
             isContext(next)
               ? next
-              : unavailable("Agent checkout unavailable: context was invalid."),
+              : unavailable(t("components.agentCheckout.invalidContext")),
           );
       })
       .catch(() => {
         if (client.isCurrent() && request.current === current)
           setContext(
-            unavailable(
-              "Agent checkout unavailable: context could not be read.",
-            ),
+            unavailable(t("components.agentCheckout.unreadableContext")),
           );
       });
     return () => {
       request.current += 1;
     };
-  }, [client, paneId, sessionFingerprint]);
+  }, [client, paneId, sessionFingerprint, t]);
   if (!context)
     return (
       <div className="agent-checkout-panel" role="status">
-        Loading Agent checkout…
+        {t("components.agentCheckout.loading")}
       </div>
     );
   if (!context.available)
     return (
       <div className="agent-checkout-panel">
-        <strong>Agent checkout unavailable</strong>
-        <span>
-          {context.reason.replace(/^Agent checkout unavailable:\s*/u, "")}
-        </span>
+        <strong>{t("components.agentCheckout.unavailable")}</strong>
+        <span>{context.reason}</span>
         <button type="button" onClick={onWorkspaceChanges}>
-          Workspace changes
+          {t("components.agentCheckout.workspaceChanges")}
         </button>
       </div>
     );
   return (
     <div className="agent-checkout-panel">
       <div className="agent-checkout-heading">
-        <strong>Agent checkout</strong>
+        <strong>{t("components.agentCheckout.title")}</strong>
         <button type="button" onClick={onWorkspaceChanges}>
-          Workspace changes
+          {t("components.agentCheckout.workspaceChanges")}
         </button>
       </div>
       <code>{context.checkout_path}</code>
       <span>
-        {context.branch ?? "Detached HEAD"} · {context.worktree} worktree ·{" "}
-        {context.changed_count} changed
+        {context.branch ?? "Detached HEAD"} · {context.worktree}{" "}
+        {t("components.agentCheckout.worktreeSuffix")} · {context.changed_count}{" "}
+        {t("components.agentCheckout.changedSuffix")}
       </span>
       {context.reported_pr ? (
         <a href={context.reported_pr} target="_blank" rel="noreferrer">
-          Reported PR
+          {t("components.agentCheckout.reportedPr")}
         </a>
       ) : null}
       <div className="agent-checkout-files" role="list">
@@ -120,7 +115,7 @@ export function AgentCheckoutPanel({
           </div>
         ))}
         {context.truncated ? (
-          <span>Additional changed files are not shown.</span>
+          <span>{t("components.agentCheckout.additionalFilesHidden")}</span>
         ) : null}
       </div>
     </div>

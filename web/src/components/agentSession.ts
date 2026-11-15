@@ -356,7 +356,7 @@ export function downloadSession(
   }).catch((error: unknown) => {
     store.notify({
       kind: "error",
-      message: "Session download failed",
+      message: t("components.agentSession.downloadFailed"),
       detail: error instanceof Error ? error.message : String(error),
     });
   });
@@ -396,7 +396,7 @@ export function downloadSessionAtif(
   }).catch((error: unknown) => {
     store.notify({
       kind: "error",
-      message: "Session download failed",
+      message: t("components.agentSession.downloadFailed"),
       detail: error instanceof Error ? error.message : String(error),
     });
   });
@@ -416,12 +416,12 @@ export async function exportSessionForConnection(
     if (summary.status !== "ok" || !summary.session?.value) {
       store.notify({
         kind: "error",
-        message: "Session unavailable",
+        message: t("components.agentSession.unavailable"),
         detail: summary.command
           ? `${summary.detail ?? summary.status} (${summary.command})`
           : (summary.detail ??
             (summary.status === "ok"
-              ? "Original session identity is unavailable"
+              ? t("components.agentSession.originalIdentityUnavailable")
               : summary.status)),
       });
       return;
@@ -434,7 +434,7 @@ export async function exportSessionForConnection(
     if (!delivered || !client.isCurrent()) return;
     store.notify({
       kind: "info",
-      message: "Session export started",
+      message: t("components.agentSession.exportStarted"),
       detail: summary.path,
       autoDismissMs: 5000,
     });
@@ -442,7 +442,7 @@ export async function exportSessionForConnection(
     if (!client.isCurrent()) return;
     store.notify({
       kind: "error",
-      message: "Failed to export session",
+      message: t("components.agentSession.exportFailed"),
       detail: e instanceof Error ? e.message : String(e),
     });
   }

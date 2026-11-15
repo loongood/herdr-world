@@ -7,9 +7,9 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`69744a0f`(批次 34,待推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **4441** 键,0 占位符不匹配
-- 工作区:干净
+- 最新提交:`7cc4d662`(批次 34 进度文档;批次 35 代码待提交)
+- 词典规模:en / zh-Hans / zh-Hant 各 **4649** 键,0 占位符不匹配
+- 工作区:批次 35 变更已格式化、类型检查通过、lint 39 warnings(与基线一致)
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
 ## 项目与设计文档
@@ -154,6 +154,7 @@
 | 32 | `4dba95e5` | assistant.ts 15 条 Ranger 桥接错误(新增 assistant.errors 域)+ terminalThemes.ts 自定义主题默认名(复用 terminal.defaultCustomThemeName);内置主题名保持英文 |
 | 33 | `ff6d1b97` | BoardView.tsx(新增顶层 boardView 域,约 145 键):toast/通知、卡片与便条操作条、便条编辑器未保存提示、串接托盘、窗格选择器、新建标签页对话框、移动对话框、颜色词表 |
 | 34 | `69744a0f` | store 通知文案(新增 storeNotices 域,约 111 键):连接与恢复通知、操作结果警告、更新与 Herdr 升级进度、git 与 worktree 生命周期通知、通知正文与动作、窗格移动与命令失败;store 级验证错误消息仍保持英文 |
+| 35 | 待提交 | web/src/components 剩余 + worldIntegrations:新增顶层 components 域(18 子域)与 worldIntegrations 域;AgentChat、AgentCheckoutPanel(拆出前缀与细节)、CodexSessionLink、ConnectionHerdrInfo、ConversationMinimap、HistoryTerminalComposer、InspectorSourceFiles、InstanceNameSettings、SpeechSettings、TerminalFileLinkMenu、WorktreeCommandSettings、WorktreeOpenDialog、WorldIntegrationRow、PaneMoveMenu、PullRequestCard、CommandCombobox、FileExplorerDialog、FilePreviewContent、FilesystemBrowser、TerminalView、ColorSwatch、markdown、PopupOverlay、WorkspaceInspectorHost、agentSession、agentDisplayName、fileExplorerResources、inspectorCheckout;修复两处语言相关哨兵("Unassigned" 与 "Visual selection") |
 
 ---
 
@@ -179,15 +180,45 @@ assistant.ts(15 条)、terminalThemes.ts 已完成;browserInput.worker.ts **无�
 `web/src/store/*.ts` 的 notice 文案;store 级验证错误消息与 DOM API 名称
 保持英文。
 
-### 批次 35:components 目录剩余(当前)
+### 批次 35:components 目录剩余 —— **已完成**
 
-AgentLauncherDialog + HarnessReadinessSummary + BoardView。重新 grep 确认:
-AgentLauncherDialog、HarnessReadinessSummary 已全部翻译(31e-1),
-故本批**仅剩 `web/src/world/BoardView.tsx`**(4898 行,约 100 条残余英文)。
+覆盖 `web/src/components/` 的全部残余英文 + `web/src/worldIntegrations.ts`。
+新增顶层 `components` 域(18 子域)与 `worldIntegrations` 域;同时给
+`terminal`、`files`、`preview`、`inspector` 域补键。
 
-方案:新增顶层 `boardView` 域承载全部新键(便于审计),尽量复用既有键
-(`common.cancel`、`common.close`、`world.colourOf`、`chat.theAgentSentence`、
-`shell.tabName` 等)。en 值需与浏览器用例的 `[aria-label="..."]` 选择器逐字一致。
+**两处语言相关的哨兵 bug 已修**(此前中文下会失效):
+- `shortcutPreferences.shortcutLabel/shortcutTitle` 与
+  `AnnotationPanel`/`WindowArrangementMenu`/`CommandCombobox` 的
+  `"Unassigned"` 比较 → 改用 `t("shortcuts.unassigned")`
+- `CommandCombobox` 的 `group.heading === "Visual selection"` →
+  改与 `t("worldActions.headingVisual")` 比较
+
+**注意**:`AgentCheckoutPanel` 原来把 "Agent checkout unavailable: <细节>"
+整句塞进 `reason`,渲染时再用正则剥前缀。现拆成
+`components.agentCheckout.unavailable`(标题)与三个细节键
+(`noSessionMetadata`/`invalidContext`/`unreadableContext`),
+`reason` 只存细节文本。渲染结果与原来一致,但整句英文不再逐字存在于 en.ts
+(check-en3 会报这三条,属预期)。
+
+### 批次 36:`web/src/world/` 剩余(当前)
+
+world 目录剩余英文(约 80 条)。已知文件与条数:
+`worldInspectorSelection.ts` 11、`officeObservability.ts` 11、`townSteps.ts` 8、
+`townScaleScene.ts` 11、`useWorldInspectorWindows.ts` 9、
+`useWorldCreatedTerminal.ts` 6、`useWorldInspectorController.ts` 6、
+`useDeskPins.ts` 6、`visualRouteActions.ts` 5、`herdrOrder.ts` 4、
+`useSpacesTabWindowArrangement.tsx` 4、`runtimeStore.ts` 3、
+`worldCommandBox.tsx` 1、`BoardView.tsx` 3 等。
+沿用扫描脚本:`node .agents/tmp/scan-*.js web/src/world` 找 JSX 文本与
+字符串字面量。
+
+### 批次 37:`web/src/` 顶层(当前之后)
+
+`agentOrder.ts`、`agentWorktreeClient.ts`、`api.ts`、`assistantMentions.ts`、
+`assistantModels.ts`、`attachmentUploads.ts`、`browserChrome.ts`、
+`connectionProfiles.ts`、`gitDiffStatus.ts`、`markdownToSpeech.ts`、
+`shortcutBindings.ts`、`useAgentWorktree.ts`、`useAllServerAgentSessions.ts`、
+`visibleTabLayout.ts`、`worldSnapshotDecode.ts` 等。
 
 ### 阶段 3(远期):服务端消息
 
