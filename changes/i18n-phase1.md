@@ -128,6 +128,13 @@
   states and close-pane confirmation), the world command box's visual
   selection and creation actions, the tab/workspace creation progress
   and failure notices, and the terminal portal's file-browse error.
+  The pull-request card follows too: its CI dots and per-check rows, the
+  readiness rules and their details, reviewer evidence (confirmations,
+  RESULT links and the reviews note), the merge verbs with their confirm
+  sheets and consequences, the blocked-merge reasons and the copyable
+  merge command, the detail-health line, and the stalled/ready attention
+  words — through a web-side wrapper (`prCopy`) that re-renders the
+  server-shared English decisions in the selected language.
   The built-in
   slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's

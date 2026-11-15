@@ -71,7 +71,7 @@ if (process.env.HERDR_PR_EXPIRY_DOM_TEST !== "1") {
         root.render(
           h(PullRequestCard, {
             item,
-            attention: { reason: "ready", label: "Ready to merge" },
+            attention: { reason: "ready", label: "Ready to merge", agents: [] },
           }),
         ),
       );

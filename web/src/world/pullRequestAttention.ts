@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import {
-  pullRequestAttention,
-  stalledAt,
   type PullRequestAttention,
   type PullRequestAuthor,
+  pullRequestAttention,
+  stalledAt,
 } from "../../../shared/pullRequests";
 import type { WorkItem } from "../../../shared/worldSources";
 
@@ -14,6 +14,12 @@ export const clockTime = (time: number) =>
   });
 
 /**
+ * The shared attention with the agent labels kept alongside, so the card
+ * can render the stalled reason in the viewer's language.
+ */
+export type PrAttention = PullRequestAttention & { agents: readonly string[] };
+
+/**
  * Why each of your pull requests needs you (Ready to merge; Stalled: CI red,
  * agent idle), for Reception, the Town summary and the Work lens. It
  * remembers when it first saw each one stalled, so a turn ending doesn't
@@ -22,7 +28,7 @@ export const clockTime = (time: number) =>
 export function usePullRequestAttention(
   entries: readonly { item: WorkItem; authors: PullRequestAuthor[] }[],
   now = Date.now(),
-): ReadonlyMap<string, PullRequestAttention> {
+): ReadonlyMap<string, PrAttention> {
   const stalled = useRef(new Map<string, number>());
   return pullRequestAttentionAt(entries, now, stalled.current);
 }
@@ -32,8 +38,8 @@ export function pullRequestAttentionAt(
   entries: readonly { item: WorkItem; authors: PullRequestAuthor[] }[],
   now: number,
   seen: Map<string, number>,
-): ReadonlyMap<string, PullRequestAttention> {
-  const result = new Map<string, PullRequestAttention>();
+): ReadonlyMap<string, PrAttention> {
+  const result = new Map<string, PrAttention>();
   const current = new Set<string>();
   for (const { item, authors } of entries) {
     if (stalledAt(item, authors) !== null) {
@@ -47,7 +53,11 @@ export function pullRequestAttentionAt(
       seen.get(item.key) ?? null,
       clockTime,
     );
-    if (attention) result.set(item.key, attention);
+    if (attention)
+      result.set(item.key, {
+        ...attention,
+        agents: authors.map((author) => author.label),
+      });
   }
   for (const key of seen.keys()) if (!current.has(key)) seen.delete(key);
   return result;

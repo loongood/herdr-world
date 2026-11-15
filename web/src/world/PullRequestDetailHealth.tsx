@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { WorkItem } from "../../../shared/worldSources";
+import { useT } from "../i18n";
 import { worldSourcesStore } from "./worldSources";
 
 /** GitHub list health never stands in for the time the detail was read. */
@@ -10,25 +11,30 @@ export function PullRequestDetailHealth({
   item: WorkItem;
   fresh: boolean;
 }) {
+  const t = useT();
   const [refreshing, setRefreshing] = useState(false);
   const observation = item.prObservation;
   const readAt = observation?.readAt;
+  const state = current
+    ? t("pr.healthFresh")
+    : item.pr
+      ? t("pr.healthStale")
+      : t("pr.healthUnavailable");
   return (
     <p
       className="pr-card-facts"
       data-detail-state={current ? "fresh" : item.pr ? "stale" : "unavailable"}
     >
-      GitHub details{" "}
-      {current ? "fresh" : item.pr ? "stale · cached evidence" : "unavailable"}
+      {t("pr.detailsHealth", { state })}
       {readAt !== undefined && readAt !== null ? (
         <>
-          {" · read "}
+          {t("pr.readPrefix")}
           <time dateTime={new Date(readAt).toISOString()}>
             {new Date(readAt).toLocaleString()}
           </time>
         </>
       ) : (
-        " · Read time unknown"
+        t("pr.readTimeUnknown")
       )}
       {!current ? (
         <>
@@ -45,7 +51,7 @@ export function PullRequestDetailHealth({
               }
             }}
           >
-            {refreshing ? "Refreshing…" : "Refresh Sources"}
+            {refreshing ? t("pr.refreshing") : t("pr.refreshSources")}
           </button>
         </>
       ) : null}
