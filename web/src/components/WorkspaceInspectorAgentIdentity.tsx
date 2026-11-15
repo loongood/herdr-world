@@ -1,4 +1,5 @@
 import { AppearanceAvatar } from "../world/AppearanceAvatar";
+import { useT } from "../i18n";
 import type { CSSProperties, ReactNode } from "react";
 import { Check, FolderTree, SquareTerminal } from "lucide-react";
 import type { ManagedWindowControls } from "../world/windows/WindowControls";
@@ -31,6 +32,7 @@ export function WorkspaceInspectorAgentIdentity({
   /** A multi-pane tab's map (InspectorPaneMap), first in the title. */
   paneMap?: ReactNode;
 }) {
+  const t = useT();
   const name = context.tabName ?? agentName(context);
   // The state is a badge on the icon; the word stays in its label and title.
   const badge = context.statusTone ? (
@@ -78,8 +80,13 @@ export function WorkspaceInspectorAgentIdentity({
               type="button"
               className="workspace-inspector-agent-avatar is-settings"
               style={avatarColour(terminalColor)}
-              aria-label={`Appearance for ${name}, ${context.stateLabel}${reading}`}
-              title={`${context.stateLabel}${reading} · terminal appearance`}
+              aria-label={t("inspector.appearanceAria", {
+                name,
+                state: context.stateLabel + reading,
+              })}
+              title={t("inspector.appearanceTitle", {
+                state: context.stateLabel + reading,
+              })}
             >
               {icon}
               {badge}
@@ -90,16 +97,18 @@ export function WorkspaceInspectorAgentIdentity({
             collisionPadding={8}
             className="workspace-inspector-agent-settings"
             align="start"
-            aria-label={`Agent settings for ${context.label}`}
+            aria-label={t("inspector.agentSettingsAria", {
+              name: context.label,
+            })}
           >
             <strong>{name}</strong>
             {!agentSettings ? (
               <>
                 <span className="workspace-inspector-agent-settings-label">
-                  Colour
+                  {t("inspector.colourLabel")}
                 </span>
                 <ColorSwatches
-                  label="Terminal colour"
+                  label={t("inspector.terminalColour")}
                   palette={terminalColor.palette}
                   current={terminalColor.current}
                   onColor={terminalColor.onColor}

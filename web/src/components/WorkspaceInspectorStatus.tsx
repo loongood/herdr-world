@@ -1,4 +1,5 @@
 import type { InspectorView } from "../workspaceResource";
+import { useT } from "../i18n";
 
 /** The views that read the agent's worktree. */
 const WORKTREE_VIEWS: ReadonlySet<InspectorView> = new Set([
@@ -20,23 +21,22 @@ export function WorkspaceInspectorStatus({
   view?: InspectorView;
   available: boolean;
 }) {
+  const t = useT();
   return (
     <>
       {stale ? (
         <div className="world-inspector-stale" role="status">
-          Disconnected · Showing last observation
+          {t("inspector.staleDisconnected")}
         </div>
       ) : worktreeStale && view && WORKTREE_VIEWS.has(view) ? (
         <div className="world-inspector-stale" role="status">
-          Worktree changed · Showing last observation
+          {t("inspector.staleWorktree")}
         </div>
       ) : null}
       {!available ? (
         <div className="workspace-inspector-unavailable">
-          <strong>Checkout unavailable</strong>
-          <span>
-            The workspace used to route this Inspector is no longer open.
-          </span>
+          <strong>{t("inspector.checkoutUnavailable")}</strong>
+          <span>{t("inspector.checkoutUnavailableDetail")}</span>
         </div>
       ) : null}
     </>

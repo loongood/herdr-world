@@ -1,9 +1,10 @@
 import {
   WorkspaceInspectorViewSelect,
   WorkspaceInspectorSecondaryControls,
-  INSPECTOR_TAB_LABELS,
+  inspectorTabLabel,
   INSPECTOR_TAB_ORDER,
 } from "./WorkspaceInspectorViewSelect";
+import { useT } from "../i18n";
 import { WorkspaceInspectorLocation } from "./WorkspaceInspectorLocation";
 import { WorkspaceInspectorStatus } from "./WorkspaceInspectorStatus";
 import { AgentWorktreeResource } from "./AgentWorktreePicker";
@@ -209,6 +210,7 @@ export function WorkspaceInspectorHost({
   historySessionFingerprint?: string;
   chatFocusIntent?: ChatFocusIntent | null;
 }) {
+  const t = useT();
   const [locationOpen, setLocationOpen] = useState(false);
   const hostRef = useRef<HTMLElement | null>(null);
   const [fileTabs, setFileTabs] = useState(() =>
@@ -545,7 +547,7 @@ export function WorkspaceInspectorHost({
       className={`workspace-inspector workspace-inspector-${state.dock} ${
         state.expanded ? "is-expanded" : ""
       } ${compact ? "is-compact" : ""} ${hasDetail ? "has-detail" : ""}`}
-      aria-label="Workspace Inspector"
+      aria-label={t("inspector.hostAria")}
       data-view={state.view}
     >
       <header
@@ -567,23 +569,23 @@ export function WorkspaceInspectorHost({
         tabIndex={controlMode === "floating" || windowMovable ? 0 : undefined}
         aria-label={
           controlMode === "floating"
-            ? "Move Inspector window"
+            ? t("inspector.moveFloating")
             : windowMovable
-              ? "Move docked Inspector"
+              ? t("inspector.moveDocked")
               : undefined
         }
         title={
           controlMode === "floating"
-            ? "Drag to move Inspector"
+            ? t("inspector.dragFloating")
             : windowMovable
-              ? "Drag to move docked Inspector"
+              ? t("inspector.dragDocked")
               : undefined
         }
       >
         {windowControls ? (
           <WindowBackButton
             controls={windowControls}
-            label="Inspector window"
+            label={t("inspector.windowLabel")}
           />
         ) : null}
         {agentContext ? (
@@ -607,16 +609,17 @@ export function WorkspaceInspectorHost({
             <span className="workspace-inspector-repo">
               {workspace?.worktree?.repo_name ||
                 workspace?.label ||
-                "Workspace"}
+                t("inspector.fallbackName")}
             </span>
             <span className="workspace-inspector-checkout">
               {checkoutLabel(workspace)}
               {workspace?.worktree?.is_linked_worktree ? (
                 <span
                   className="workspace-inspector-wt"
-                  title="Linked worktree"
+                  title={t("inspector.linkedWorktree")}
                 >
-                  <GitFork size={11} aria-hidden="true" /> Worktree
+                  <GitFork size={11} aria-hidden="true" />{" "}
+                  {t("inspector.worktreeBadge")}
                 </span>
               ) : null}
             </span>
@@ -646,14 +649,14 @@ export function WorkspaceInspectorHost({
               ref={historyTabRef}
               type="button"
               role="tab"
-              aria-label="Chat"
+              aria-label={t("inspector.tabChat")}
               aria-selected={state.view === "history"}
               tabIndex={state.view === "history" ? 0 : -1}
               className={state.view === "history" ? "is-active" : ""}
               title={
                 historyAvailable
-                  ? "Agent conversation"
-                  : "Select an agent pane to chat with it"
+                  ? t("inspector.tabChatTitle")
+                  : t("inspector.tabChatBlocked")
               }
               disabled={!historyAvailable && state.view !== "history"}
               onClick={() => {
@@ -662,7 +665,9 @@ export function WorkspaceInspectorHost({
               onKeyDown={handleTabKeyDown}
             >
               <MessagesSquare size={14} aria-hidden="true" />
-              <span className="workspace-inspector-tab-label">Chat</span>
+              <span className="workspace-inspector-tab-label">
+                {t("inspector.tabChat")}
+              </span>
             </button>
           ) : null}
           {terminalAvailable ? (
@@ -670,8 +675,8 @@ export function WorkspaceInspectorHost({
               ref={terminalTabRef}
               type="button"
               role="tab"
-              aria-label="Terminal"
-              title="Terminal"
+              aria-label={t("inspector.tabTerminal")}
+              title={t("inspector.tabTerminal")}
               aria-selected={state.view === "terminal"}
               tabIndex={state.view === "terminal" ? 0 : -1}
               className={state.view === "terminal" ? "is-active" : ""}
@@ -679,7 +684,9 @@ export function WorkspaceInspectorHost({
               onKeyDown={handleTabKeyDown}
             >
               <SquareTerminal size={14} aria-hidden="true" />
-              <span className="workspace-inspector-tab-label">Terminal</span>
+              <span className="workspace-inspector-tab-label">
+                {t("inspector.tabTerminal")}
+              </span>
             </button>
           ) : null}
           {filesAvailable ? (
@@ -687,8 +694,8 @@ export function WorkspaceInspectorHost({
               ref={filesTabRef}
               type="button"
               role="tab"
-              aria-label="Files"
-              title="Files"
+              aria-label={t("inspector.tabFiles")}
+              title={t("inspector.tabFiles")}
               aria-selected={state.view === "files"}
               tabIndex={state.view === "files" ? 0 : -1}
               className={state.view === "files" ? "is-active" : ""}
@@ -696,7 +703,9 @@ export function WorkspaceInspectorHost({
               onKeyDown={handleTabKeyDown}
             >
               <FolderTree size={14} aria-hidden="true" />
-              <span className="workspace-inspector-tab-label">Files</span>
+              <span className="workspace-inspector-tab-label">
+                {t("inspector.tabFiles")}
+              </span>
             </button>
           ) : null}
           {changesAvailable ? (
@@ -704,8 +713,8 @@ export function WorkspaceInspectorHost({
               ref={changesTabRef}
               type="button"
               role="tab"
-              aria-label="Changes"
-              title="Changes"
+              aria-label={t("inspector.tabChanges")}
+              title={t("inspector.tabChanges")}
               aria-selected={state.view === "changes"}
               tabIndex={state.view === "changes" ? 0 : -1}
               className={state.view === "changes" ? "is-active" : ""}
@@ -713,7 +722,9 @@ export function WorkspaceInspectorHost({
               onKeyDown={handleTabKeyDown}
             >
               <FileDiff size={14} aria-hidden="true" />
-              <span className="workspace-inspector-tab-label">Changes</span>
+              <span className="workspace-inspector-tab-label">
+                {t("inspector.tabChanges")}
+              </span>
               {changeCount > 0 ? (
                 <span className="workspace-inspector-count">{changeCount}</span>
               ) : null}
@@ -740,8 +751,8 @@ export function WorkspaceInspectorHost({
             <button
               type="button"
               className="workspace-inspector-tabs-more"
-              aria-label="More views"
-              title="More views"
+              aria-label={t("inspector.moreViews")}
+              title={t("inspector.moreViews")}
             >
               <MoreHorizontal size={15} aria-hidden="true" />
             </button>
@@ -750,7 +761,7 @@ export function WorkspaceInspectorHost({
             className="workspace-inspector-tabs-menu"
             align="end"
             role="menu"
-            aria-label="Views"
+            aria-label={t("inspector.viewsMenu")}
           >
             {INSPECTOR_TAB_ORDER.filter(
               (view) =>
@@ -767,7 +778,7 @@ export function WorkspaceInspectorHost({
                   onViewChange(view);
                 }}
               >
-                {INSPECTOR_TAB_LABELS[view]}
+                {inspectorTabLabel(view) ?? view}
               </button>
             ))}
           </PopoverContent>
@@ -792,14 +803,14 @@ export function WorkspaceInspectorHost({
                             (view !== "history" || historyAvailable),
                         ).map((view) => ({
                           id: view,
-                          label: INSPECTOR_TAB_LABELS[view] ?? view,
+                          label: inspectorTabLabel(view) ?? view,
                           checked: state.view === view,
                           onSelect: () => onViewChange(view),
                         })),
                   }
                 : windowControls
             }
-            label="Inspector window"
+            label={t("inspector.windowLabel")}
           />
         ) : (
           <div className="workspace-inspector-actions">
@@ -808,13 +819,13 @@ export function WorkspaceInspectorHost({
                 type="button"
                 title={
                   windowMaximized
-                    ? "Restore Inspector window"
-                    : "Maximize Inspector window"
+                    ? t("inspector.restoreWindow")
+                    : t("inspector.maximizeWindow")
                 }
                 aria-label={
                   windowMaximized
-                    ? "Restore Inspector window"
-                    : "Maximize Inspector window"
+                    ? t("inspector.restoreWindow")
+                    : t("inspector.maximizeWindow")
                 }
                 onClick={onWindowMaximize}
               >
@@ -829,8 +840,8 @@ export function WorkspaceInspectorHost({
               <button
                 type="button"
                 className="workspace-inspector-popout-action"
-                title="Float Inspector"
-                aria-label="Float Inspector"
+                title={t("inspector.floatInspector")}
+                aria-label={t("inspector.floatInspector")}
                 onClick={onDockOut}
               >
                 <PanelRightOpen size={15} />
@@ -842,8 +853,8 @@ export function WorkspaceInspectorHost({
               <button
                 type="button"
                 className="workspace-inspector-terminal-popout-action"
-                title="Open terminal window"
-                aria-label="Open terminal window"
+                title={t("inspector.openTerminalWindow")}
+                aria-label={t("inspector.openTerminalWindow")}
                 onClick={onTerminalPopOut}
               >
                 <PictureInPicture2 size={15} />
@@ -854,8 +865,8 @@ export function WorkspaceInspectorHost({
                 {onDockIn ? (
                   <button
                     type="button"
-                    title="Dock Inspector"
-                    aria-label="Dock Inspector"
+                    title={t("inspector.dockInspector")}
+                    aria-label={t("inspector.dockInspector")}
                     onClick={onDockIn}
                   >
                     <PanelRightClose size={15} />
@@ -863,8 +874,8 @@ export function WorkspaceInspectorHost({
                 ) : null}
                 <button
                   type="button"
-                  title="Close Inspector"
-                  aria-label="Close floating Inspector"
+                  title={t("inspector.closeInspector")}
+                  aria-label={t("inspector.closeFloating")}
                   onClick={onClose}
                 >
                   <X size={16} />
@@ -876,12 +887,14 @@ export function WorkspaceInspectorHost({
                   type="button"
                   className="workspace-inspector-dock-action"
                   title={
-                    state.dock === "right" ? "Dock at bottom" : "Dock at right"
+                    state.dock === "right"
+                      ? t("inspector.dockBottom")
+                      : t("inspector.dockRight")
                   }
                   aria-label={
                     state.dock === "right"
-                      ? "Dock Inspector at bottom"
-                      : "Dock Inspector at right"
+                      ? t("inspector.dockBottomAria")
+                      : t("inspector.dockRightAria")
                   }
                   onClick={() =>
                     onDockChange(state.dock === "right" ? "bottom" : "right")
@@ -898,14 +911,14 @@ export function WorkspaceInspectorHost({
                   className="workspace-inspector-expand-action"
                   title={shortcutTitle(
                     state.expanded
-                      ? "Restore Inspector dock"
-                      : "Expand Inspector",
+                      ? t("inspector.restoreDock")
+                      : t("inspector.expandInspector"),
                     "inspector.expand",
                   )}
                   aria-label={
                     state.expanded
-                      ? "Restore Inspector dock"
-                      : "Expand Inspector"
+                      ? t("inspector.restoreDock")
+                      : t("inspector.expandInspector")
                   }
                   aria-pressed={state.expanded}
                   onClick={() => onExpandedChange(!state.expanded)}
@@ -918,8 +931,8 @@ export function WorkspaceInspectorHost({
                 </button>
                 <button
                   type="button"
-                  title="Close Inspector"
-                  aria-label="Close Workspace Inspector"
+                  title={t("inspector.closeInspector")}
+                  aria-label={t("inspector.closeWorkspaceInspector")}
                   onClick={onClose}
                 >
                   <X size={16} />
@@ -1004,7 +1017,7 @@ export function WorkspaceInspectorHost({
               id={detailIds.files}
               className="workspace-inspector-detail workspace-inspector-file-detail"
               role="tabpanel"
-              aria-label={fileTabs.activePath ?? "File preview"}
+              aria-label={fileTabs.activePath ?? t("preview.ariaPreview")}
               tabIndex={-1}
             >
               <FilePreviewTabs
@@ -1040,7 +1053,7 @@ export function WorkspaceInspectorHost({
                 backAction={
                   compact && drillInByView.files && fileSelection.entry
                     ? {
-                        label: "Files",
+                        label: t("inspector.tabFiles"),
                         onClick: () => {
                           setDrillInByView((current) => ({
                             ...current,
@@ -1069,7 +1082,7 @@ export function WorkspaceInspectorHost({
                       fallback={
                         <div className="diff-content-state">
                           <span className="file-loading-spinner" />
-                          Loading diff viewer
+                          {t("inspector.loadingDiffViewer")}
                         </div>
                       }
                     >
@@ -1176,7 +1189,7 @@ export function WorkspaceInspectorHost({
                     <div className="diff-content-view">
                       <div className="diff-content-state">
                         <span className="file-loading-spinner" />
-                        Loading Diff Viewer
+                        {t("inspector.loadingDiffViewer")}
                       </div>
                     </div>
                   }
@@ -1214,7 +1227,7 @@ export function WorkspaceInspectorHost({
                     backAction={
                       compact && hasDetail
                         ? {
-                            label: "Changed files",
+                            label: t("inspector.changedFiles"),
                             onClick: () => {
                               setDrillInByView((current) => ({
                                 ...current,
@@ -1242,7 +1255,7 @@ export function WorkspaceInspectorHost({
               <Suspense
                 fallback={
                   <div className="workspace-inspector-unavailable">
-                    Loading commits
+                    {t("inspector.loadingCommits")}
                   </div>
                 }
               >
@@ -1304,8 +1317,8 @@ export function WorkspaceInspectorHost({
               />
             ) : (
               <div className="workspace-inspector-unavailable">
-                <strong>No agent selected</strong>
-                <span>Select an agent pane to chat with it.</span>
+                <strong>{t("inspector.noAgent")}</strong>
+                <span>{t("inspector.noAgentDetail")}</span>
               </div>
             )}
           </div>

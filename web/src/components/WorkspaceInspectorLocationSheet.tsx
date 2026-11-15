@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useT } from "../i18n";
 import { useSystemBack } from "../systemBack";
 import { useEffectCallback } from "../useEffectCallback";
 import { CloseButton } from "./CloseButton";
@@ -18,6 +19,7 @@ export function WorkspaceInspectorLocationSheet({
   const dialog = useRef<HTMLDivElement>(null);
   const close = useEffectCallback(onClose);
   useSystemBack(true, close, "popup");
+  const t = useT();
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     const cancel = focusDialogElement(dialog.current);
@@ -45,7 +47,7 @@ export function WorkspaceInspectorLocationSheet({
         ref={dialog}
         role="dialog"
         aria-modal="true"
-        aria-label="Repository status and source"
+        aria-label={t("inspector.repoStatusSource")}
         tabIndex={-1}
         className="modal mobile-sheet workspace-inspector-location-sheet"
         onKeyDown={(event) => {
@@ -70,10 +72,13 @@ export function WorkspaceInspectorLocationSheet({
           }
         }}
       >
-        <MobileSheetHandle label="Dismiss repository status" onClose={close} />
+        <MobileSheetHandle
+          label={t("inspector.dismissRepoStatus")}
+          onClose={close}
+        />
         <div className="workspace-inspector-location-sheet-head">
-          <h2>Repository status</h2>
-          <CloseButton label="Close repository status" onClick={close} />
+          <h2>{t("inspector.repoStatus")}</h2>
+          <CloseButton label={t("inspector.closeRepoStatus")} onClick={close} />
         </div>
         <div className="workspace-inspector-location-sheet-content">
           {children}

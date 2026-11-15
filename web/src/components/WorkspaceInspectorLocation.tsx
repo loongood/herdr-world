@@ -1,6 +1,7 @@
 import { AGENT_WORKTREE_SOURCE_LABELS } from "../../../shared/agentWorktree";
 import type { ReactNode } from "react";
 import { useLayoutPreferences } from "../layoutPreferences";
+import { useT } from "../i18n";
 import { WorkspaceInspectorLocationSheet } from "./WorkspaceInspectorLocationSheet";
 import { ChevronDown } from "lucide-react";
 import type { ConnectionClient } from "../api";
@@ -31,11 +32,17 @@ export function WorkspaceInspectorLocation({
   onOpenChange(open: boolean): void;
 }) {
   const { mobile } = useLayoutPreferences();
+  const t = useT();
   const worktreeDescription = worktree?.selected
-    ? `Viewing ${worktree.selected.canonicalRoot}, ${worktree.selected.branch ?? "detached HEAD"}. ${AGENT_WORKTREE_SOURCE_LABELS[worktree.selected.source]}${worktree.observation?.state === "stale" ? ", stale" : ""}`
+    ? `${t("inspector.viewingWorktree", {
+        root: worktree.selected.canonicalRoot,
+        branch: worktree.selected.branch ?? "detached HEAD",
+      })}. ${AGENT_WORKTREE_SOURCE_LABELS[worktree.selected.source]}${worktree.observation?.state === "stale" ? t("inspector.staleSuffix") : ""}`
     : worktree?.observation?.state === "ambiguous"
-      ? `${worktree.observation.candidates.length} worktrees; choose`
-      : "Choose a worktree";
+      ? t("inspector.worktreesChoose", {
+          count: worktree.observation.candidates.length,
+        })
+      : t("inspector.chooseWorktree");
   const label = worktree ? <AgentWorktreeLine view={worktree} /> : content;
   if (!enabled || !workspace)
     return (
@@ -50,12 +57,10 @@ export function WorkspaceInspectorLocation({
       aria-expanded={mobile ? open : undefined}
       aria-haspopup={mobile ? "dialog" : undefined}
       className="workspace-inspector-path workspace-inspector-location"
-      aria-label={
-        worktree
-          ? `${worktreeDescription}. Repository status and source`
-          : `${description}. Repository status and source`
-      }
-      title="Repository status and source"
+      aria-label={`${worktree ? worktreeDescription : description}. ${t(
+        "inspector.repoStatusSource",
+      )}`}
+      title={t("inspector.repoStatusSource")}
     >
       <span className="workspace-inspector-location-text">{label}</span>
       <ChevronDown size={12} aria-hidden="true" />

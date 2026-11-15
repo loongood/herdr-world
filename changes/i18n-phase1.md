@@ -101,7 +101,12 @@
   source/rendered mode, copy, refresh, close and new-workspace actions),
   media states (images, PDFs, audio, the static-HTML sandbox banner,
   truncation and match banners), zoom controls, Mermaid diagrams and the
-  error boundary, including the annotation-limit notices. The built-in
+  error boundary, including the annotation-limit notices. The Workspace
+  Inspector follows too: its window bar (identity, location line, linked
+  worktree badge), the view tabs and selector, the dock/float/maximize
+  window controls, stale and unavailable status lines, the repository
+  status popover and phone sheet, the agent's appearance popover, and its
+  loading/empty states. The built-in
   slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
