@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { AgentIcon } from "../components/AgentIcon";
+import { t, useT } from "../i18n";
 import type { WorldObjectNode } from "./worldObject";
 
 export function worldReadOnlyMessage(
@@ -8,10 +9,10 @@ export function worldReadOnlyMessage(
   canSwitchHost: boolean,
 ) {
   if (!currentGeneration) {
-    return "This view belongs to an earlier connection. Select the current item to continue.";
+    return t("intent.earlierConnection");
   }
-  if (canSwitchHost) return "Switch hosts to activate this view.";
-  return "This host is not ready. Switch hosts or reconnect it to continue.";
+  if (canSwitchHost) return t("intent.switchHosts");
+  return t("intent.hostNotReady");
 }
 
 export default function WorldIntentProfile({
@@ -31,12 +32,13 @@ export default function WorldIntentProfile({
   onActivateHost(): Promise<void>;
   onClose(): void;
 }) {
+  const t = useT();
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const leaf = node.kind === "agent" || node.kind === "terminal" ? node : null;
   const disabled = !currentGeneration || working;
   const stateLabel = !currentGeneration
-    ? "Stale"
+    ? t("intent.stale")
     : leaf?.kind === "agent"
       ? (leaf.stateLabels[leaf.status] ?? leaf.status)
       : hostStateLabel(node.hostState);
@@ -62,7 +64,7 @@ export default function WorldIntentProfile({
   return (
     <aside
       className="world-selection-panel world-intent-profile"
-      aria-label="World selection"
+      aria-label={t("intent.aria")}
       data-kind={node.kind}
     >
       <header className="world-intent-profile-header">
@@ -79,7 +81,7 @@ export default function WorldIntentProfile({
         </span>
         <div className="world-intent-identity">
           <p className="world-eyebrow">
-            {node.kind} · {stateLabel}
+            {kindWord(node.kind)} · {stateLabel}
           </p>
           <h2>{node.label}</h2>
           <p className="world-intent-context">
@@ -92,16 +94,19 @@ export default function WorldIntentProfile({
             className="world-panel-close"
             type="button"
             onClick={onClose}
-            title="Close profile"
-            aria-label="Close profile"
+            title={t("intent.closeTitle")}
+            aria-label={t("intent.closeTitle")}
           >
             <X size={16} />
           </button>
         </div>
       </header>
       {leaf?.taskSummary ? (
-        <section className="world-task-summary" aria-label="Current task">
-          <span>Current task</span>
+        <section
+          className="world-task-summary"
+          aria-label={t("intent.currentTask")}
+        >
+          <span>{t("intent.currentTask")}</span>
           <p>{leaf.taskSummary}</p>
         </section>
       ) : null}
@@ -112,7 +117,7 @@ export default function WorldIntentProfile({
             disabled={working}
             onClick={() => void run(onActivateHost, false)}
           >
-            Switch Now
+            {t("intent.switchNow")}
           </button>
         </div>
       ) : null}
@@ -126,7 +131,7 @@ export default function WorldIntentProfile({
       ) : null}
       {intentOpening ? (
         <p className="world-intent-loading" role="status">
-          Opening intent…
+          {t("intent.opening")}
         </p>
       ) : null}
       {error || resourceError ? (
@@ -137,6 +142,15 @@ export default function WorldIntentProfile({
     </aside>
   );
 }
+
+const kindWord = (kind: WorldObjectNode["kind"]) =>
+  kind === "agent"
+    ? t("intent.kindAgent")
+    : kind === "terminal"
+      ? t("intent.kindTerminal")
+      : kind === "space"
+        ? t("intent.kindSpace")
+        : t("intent.kindHost");
 
 function hostStateLabel(state: WorldObjectNode["hostState"]) {
   switch (state) {

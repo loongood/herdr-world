@@ -131,6 +131,9 @@ export function t(
   );
 }
 
+/** The translate function's shape, for modules that take one as an argument. */
+export type Translate = typeof t;
+
 export function useLocale(): Locale {
   // The locale is module state, so server rendering reads the same snapshot.
   return useSyncExternalStore(subscribe, getCurrentLocale, getCurrentLocale);

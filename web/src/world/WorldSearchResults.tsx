@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AgentMark } from "../components/AgentMark";
 import { agentMarkKind } from "./agentMarks";
+import { useT } from "../i18n";
+import type { TranslationKey } from "../i18n/en";
 import type { WorldObject } from "./worldObject";
 import {
   worldSearchResults,
@@ -10,12 +12,12 @@ import {
 
 const PAGE = 32;
 
-const KIND_WORDS: Record<WorldSearchKind, string> = {
-  building: "Building",
-  room: "Room",
-  table: "Table",
-  agent: "Agent",
-  terminal: "Terminal",
+const KIND_KEYS: Record<WorldSearchKind, TranslationKey> = {
+  building: "search.kindBuilding",
+  room: "search.kindRoom",
+  table: "search.kindTable",
+  agent: "search.kindAgent",
+  terminal: "search.kindTerminal",
 };
 
 /** One result: what it is, its name and status, where it is, and why. */
@@ -28,6 +30,7 @@ function WorldSearchRow({
   active: boolean;
   onChoose(result: WorldSearchResult): void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
     if (active) ref.current?.scrollIntoView?.({ block: "nearest" });
@@ -44,7 +47,7 @@ function WorldSearchRow({
     >
       <span className="world-search-result-head">
         <span className="world-search-result-kind">
-          {KIND_WORDS[result.kind]}
+          {t(KIND_KEYS[result.kind])}
         </span>
         {result.status ? (
           <AgentMark
@@ -53,7 +56,9 @@ function WorldSearchRow({
         ) : null}
         <span className="world-search-result-name">{result.label}</span>
         {result.stale ? (
-          <span className="world-search-result-stale">stale</span>
+          <span className="world-search-result-stale">
+            {t("town.staleWord")}
+          </span>
         ) : null}
       </span>
       {result.place.length ? (
@@ -103,6 +108,7 @@ export function WorldSearchResults({
   /** Matches outside the visible map, for a map view. */
   offscreen?: number;
 }) {
+  const t = useT();
   const [pageState, setPageState] = useState({ query, page: 0 });
   if (!query.trim()) return null;
   const matches = given ?? worldSearchResults(world, query);
@@ -128,33 +134,35 @@ export function WorldSearchResults({
   return (
     <section
       className="world-search-results"
-      aria-label="Observed search results"
+      aria-label={t("search.resultsAria")}
     >
       <p role="status">
-        {matches.length === 1 ? "1 match" : `${matches.length} matches`}
-        {offscreen ? ` · ${offscreen} off-screen` : ""}
-        {matches.length > shown.length ? ` · ${shown.length} shown` : ""}
+        {matches.length === 1
+          ? t("search.matchOne")
+          : t("search.matchMany", { count: matches.length })}
+        {offscreen ? t("search.offscreen", { count: offscreen }) : ""}
+        {matches.length > shown.length
+          ? t("search.shown", { count: shown.length })
+          : ""}
       </p>
       {matches.length > PAGE && (
-        <nav aria-label="Search result pages">
+        <nav aria-label={t("search.pagesAria")}>
           <button
             type="button"
-            aria-label="Previous search results"
+            aria-label={t("search.previousAria")}
             disabled={page === 0}
             onClick={() => turn(page - 1)}
           >
-            Previous
+            {t("search.previous")}
           </button>
-          <span>
-            Page {page + 1} of {pages}
-          </span>
+          <span>{t("search.page", { page: page + 1, pages })}</span>
           <button
             type="button"
-            aria-label="Next search results"
+            aria-label={t("search.nextAria")}
             disabled={page + 1 >= pages}
             onClick={() => turn(page + 1)}
           >
-            Next
+            {t("search.next")}
           </button>
         </nav>
       )}

@@ -208,5 +208,18 @@
   the bus layer and its stops, the town centre helper, the edge
   navigation, the town search, the reception filter, the answer
   delivery sign and the folded activity notes.
+  The Board surfaces follow too: the facts panel (its counts, usage and fuel
+  figures, the review and idle words and the place economy lines), the town
+  centre menu and its dock (the actions, their waiting notes and the
+  screen-reader labels), the peek (its sent and unsent notices, its report
+  panes and its follow-up actions), and the Work lens (its tabs, the source
+  setup hints, the empty states, the lane names, the day headings and the
+  card facts).
+  The window surfaces follow too: the frame's resize handles (with their
+  edge names), the switcher (its title and counts), the surface's split
+  separators and the panel's back and drag affordances.
+  The world chrome follows too: the status line, the search results, the
+  intent profile, the navigator, the view picker and toolbar, the mobile
+  navigation, the foundation shell and the view error boundary.
   Remaining surfaces keep English
   until their phase lands.

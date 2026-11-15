@@ -12,6 +12,8 @@ import {
   type WorkspaceColorControl,
 } from "../components/workspaceColor";
 import { hostColorKey, workspaceColorKey } from "./terminalColor";
+import { useT } from "../i18n";
+import { connectionLifecycleLabel } from "../connectionProfiles";
 import { usePlaceColorChoices } from "./useTerminalColors";
 
 export function WorldNavigator({
@@ -48,13 +50,14 @@ export function WorldNavigator({
       placeChoices(workspaceColorKey(connectionId, workspaceId)).onColor(id),
   });
   const { mobile, preferences } = useLayoutPreferences();
+  const t = useT();
   const agentsFirst =
     (mobile
       ? preferences.mobileSidebarOrder
       : preferences.desktopSidebarOrder) === "agents-first";
   return (
     <nav
-      aria-label="Hosts and workspaces"
+      aria-label={t("world.navigatorAria")}
       className="world-navigator"
       tabIndex={0}
     >
@@ -97,17 +100,19 @@ export function WorldNavigator({
                 <Server size={14} />
                 <span className="ws-label">{host.source.label}</span>
                 <span className="muted">
-                  {host.source.stale ? "stale" : host.source.connection.state}
+                  {host.source.stale
+                    ? t("town.staleWord")
+                    : connectionLifecycleLabel(host.source.connection.state)}
                 </span>
               </button>
               <ColorSwatchButton
                 className="world-navigator-host-color"
-                label={`Colour of ${host.source.label}`}
+                label={t("world.colourOf", { label: host.source.label })}
                 {...placeChoices(hostColorKey(host.source.connectionId))}
               />
             </div>
             {!host.source.connection.snapshot ? (
-              <p>Observation unavailable · counts unknown</p>
+              <p>{t("world.observationUnavailable")}</p>
             ) : null}
             {!collapsed.has(host.source.id) &&
             host.source.connection.snapshot ? (
@@ -164,21 +169,24 @@ export function WorldNavigator({
               </OperationalContext.Provider>
             ) : null}
             {host.omittedSpaceCount ? (
-              <p>{host.omittedSpaceCount} observed spaces omitted</p>
+              <p>
+                {t("world.spacesOmitted", { count: host.omittedSpaceCount })}
+              </p>
             ) : null}
             {host.spaces.some((space) => space.omittedChildCount > 0) ? (
               <p>
-                {host.spaces.reduce(
-                  (count, space) => count + space.omittedChildCount,
-                  0,
-                )}{" "}
-                observed panes omitted
+                {t("world.panesOmitted", {
+                  count: host.spaces.reduce(
+                    (count, space) => count + space.omittedChildCount,
+                    0,
+                  ),
+                })}
               </p>
             ) : null}
           </section>
         );
       })}
-      {!world.hosts.length ? <p>No hosts in this filter.</p> : null}
+      {!world.hosts.length ? <p>{t("world.noHostsInFilter")}</p> : null}
     </nav>
   );
 }

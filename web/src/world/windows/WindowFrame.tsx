@@ -18,7 +18,20 @@ import {
   snapAtPointer,
   type ResizeEdge,
 } from "./windowInteraction";
+import { useT } from "../../i18n";
+import type { TranslationKey } from "../../i18n/en";
 import "./windows.css";
+
+const EDGE_KEYS = {
+  n: "window.edgeNorth",
+  s: "window.edgeSouth",
+  e: "window.edgeEast",
+  w: "window.edgeWest",
+  ne: "window.edgeNorthEast",
+  nw: "window.edgeNorthWest",
+  se: "window.edgeSouthEast",
+  sw: "window.edgeSouthWest",
+} as const satisfies Record<ResizeEdge, TranslationKey>;
 
 export function WindowFrame({
   id,
@@ -61,6 +74,7 @@ export function WindowFrame({
     bounds: { left: number; top: number; right: number; bottom: number } | null,
   ): void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLElement>(null);
   const latest = useRef({
     geometry,
@@ -346,8 +360,11 @@ export function WindowFrame({
               type="button"
               data-window-resize={edge}
               className={`world-window-resize edge-${edge}`}
-              aria-label={`Resize ${label} ${edge}`}
-              title="Drag or use arrow keys to resize"
+              aria-label={t("window.resizeEdgeAria", {
+                name: label,
+                edge: t(EDGE_KEYS[edge]),
+              })}
+              title={t("window.resizeTitle")}
             />
           ))}
       </section>

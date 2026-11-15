@@ -16,6 +16,7 @@ import {
 import { worldLocalStorage } from "../../browserStorage";
 import { useLayer } from "../../layerStack";
 import { store } from "../../store";
+import { t, useT, type Translate } from "../../i18n";
 import { requestAgentLaunch, useAgentProfiles } from "../agentProfiles";
 import { readOfficePreferences } from "../officePreferences";
 import type { TownCenterAction } from "../town/TownCenterMenu";
@@ -58,28 +59,31 @@ export function boardLaunchSpace(
  * Needs you, Summary, Profiles and New workspace (Board's word for a room).
  * Summary is Town's one summary: Board takes you to Town with it open.
  */
-export function boardHubActions({
-  world,
-  selectedId,
-  holder,
-  name,
-  openChat,
-  onOpenSummary,
-  onNewWorkspace,
-  toast,
-}: {
-  world: Pick<WorldObject, "nodeById" | "leaves" | "hosts">;
-  selectedId: string | null;
-  /** The agent given the Town master role, if any. */
-  holder: { connection_id: string; terminal_id: string } | null;
-  /** Menu → Town master, trimmed. */
-  name: string;
-  openChat(nodeId: string): void;
-  /** Go to Town with its summary open. */
-  onOpenSummary(): void;
-  onNewWorkspace(): void;
-  toast(kind: "ok" | "error", text: string): void;
-}): TownCenterAction[] {
+export function boardHubActions(
+  {
+    world,
+    selectedId,
+    holder,
+    name,
+    openChat,
+    onOpenSummary,
+    onNewWorkspace,
+    toast,
+  }: {
+    world: Pick<WorldObject, "nodeById" | "leaves" | "hosts">;
+    selectedId: string | null;
+    /** The agent given the Town master role, if any. */
+    holder: { connection_id: string; terminal_id: string } | null;
+    /** Menu → Town master, trimmed. */
+    name: string;
+    openChat(nodeId: string): void;
+    /** Go to Town with its summary open. */
+    onOpenSummary(): void;
+    onNewWorkspace(): void;
+    toast(kind: "ok" | "error", text: string): void;
+  },
+  tr: Translate = t,
+): TownCenterAction[] {
   const space = boardLaunchSpace(world, selectedId);
   const roster = world.leaves.flatMap((leaf) =>
     leaf.kind === "agent"
@@ -119,21 +123,25 @@ export function boardHubActions({
     ),
     townMasterAction({ world, roster, holder, name, openChat, toast }),
     needsYouAction(),
-    summaryAction(onOpenSummary, "in Town"),
+    summaryAction(onOpenSummary, tr("board.hub.inTown")),
     profilesAction(),
     {
       id: "workspace",
-      label: "New workspace",
+      label: tr("board.hub.newWorkspace"),
       icon: DoorOpen,
       disabled: !hostReady,
-      detail: hostReady ? undefined : "No host is ready",
+      detail: hostReady ? undefined : tr("board.hub.noHostReady"),
       run: onNewWorkspace,
     },
   ];
 }
 
 const label = (action: TownCenterAction) =>
-  [action.label, action.count ? `${action.count} waiting` : null, action.detail]
+  [
+    action.label,
+    action.count ? t("board.hub.waitingCount", { count: action.count }) : null,
+    action.detail,
+  ]
     .filter(Boolean)
     .join(", ");
 
@@ -152,23 +160,27 @@ export function BoardHub({
   onOpenSummary(): void;
   onNewWorkspace(): void;
 }) {
+  const t = useT();
   const holder = useAgentProfiles().document?.town_master ?? null;
   // The Town Master's greeting opens at the hub on wide screens.
   const greetingAnchor = useGreetingAnchor();
-  const actions = boardHubActions({
-    world,
-    selectedId,
-    holder,
-    name: readOfficePreferences(worldLocalStorage).townMaster.trim(),
-    openChat,
-    onOpenSummary,
-    onNewWorkspace,
-    toast: (kind, text) =>
-      store.notify({
-        kind: kind === "ok" ? "success" : "error",
-        message: text,
-      }),
-  });
+  const actions = boardHubActions(
+    {
+      world,
+      selectedId,
+      holder,
+      name: readOfficePreferences(worldLocalStorage).townMaster.trim(),
+      openChat,
+      onOpenSummary,
+      onNewWorkspace,
+      toast: (kind, text) =>
+        store.notify({
+          kind: kind === "ok" ? "success" : "error",
+          message: text,
+        }),
+    },
+    t,
+  );
   return <BoardHubDock actions={actions} anchorRef={greetingAnchor} />;
 }
 
@@ -183,6 +195,7 @@ export function BoardHubDock({
   actions: readonly TownCenterAction[];
   anchorRef?: (element: HTMLElement | null) => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const menu = useRef<HTMLDivElement>(null);
   const more = useRef<HTMLButtonElement>(null);
@@ -246,7 +259,7 @@ export function BoardHubDock({
       ref={anchorRef}
       className="board-hub"
       role="group"
-      aria-label="Town center"
+      aria-label={t("board.hub.townCenter")}
     >
       {button(Launch, <Plus size={18} aria-hidden="true" />)}
       {button(Master, <Master.icon size={16} aria-hidden="true" />)}
@@ -255,8 +268,8 @@ export function BoardHubDock({
         type="button"
         className="board-hub-button"
         data-action="more"
-        aria-label="Town center actions"
-        title="Town center actions"
+        aria-label={t("board.hub.townCenterActions")}
+        title={t("board.hub.townCenterActions")}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -268,7 +281,7 @@ export function BoardHubDock({
           ref={menu}
           className="board-hub-menu"
           role="menu"
-          aria-label="Town center"
+          aria-label={t("board.hub.townCenter")}
           onKeyDown={keyDown}
         >
           {actions.map((action) => (

@@ -70,6 +70,7 @@ import {
 import { closeTopLayer } from "../layerStack";
 import "./worldFonts.css";
 import { WorldMobileNav, worldViewLabel } from "./WorldMobileNav";
+import { useT } from "../i18n";
 import { WorldViewPicker } from "./WorldViewPicker";
 import { withWorldViews } from "./worldCommandBox";
 import { NeedsYouCounter } from "./NeedsYouTab";
@@ -97,6 +98,7 @@ export const SourcesDialog = lazyWithReload("world-sources", () =>
 
 export default function WorldFoundationApp() {
   useWorldAsks();
+  const t = useT();
   const [view, setViewState] = useState<WorldView>(initialView);
   const { mobile } = useLayoutPreferences();
   const creationIntentRevision = useRef(0);
@@ -319,7 +321,7 @@ export default function WorldFoundationApp() {
     zen: zenActive,
     detail: Boolean(canReturnToView),
   });
-  const returnLabel = `Back to ${view[0].toUpperCase()}${view.slice(1)}`;
+  const returnLabel = t("views.back", { view: worldViewLabel(view) });
   // The phone's Back gesture leaves a terminal for the scene, like the button.
   useSystemBack(
     Boolean(canReturnToView),
@@ -457,9 +459,7 @@ export default function WorldFoundationApp() {
                         if (
                           store.get().activeConnectionId !== node.connectionId
                         )
-                          throw new Error(
-                            "The selected host changed while it was opening",
-                          );
+                          throw new Error(t("world.hostChangedWhileOpening"));
                       },
                     );
                   else {
@@ -468,9 +468,7 @@ export default function WorldFoundationApp() {
                     );
                     await focusWorldNode(node);
                     if (store.get().activeConnectionId !== node.connectionId)
-                      throw new Error(
-                        "The selected host changed while it was opening",
-                      );
+                      throw new Error(t("world.hostChangedWhileOpening"));
                     onSelectionAdmitted();
                   }
                   return;
@@ -491,7 +489,7 @@ export default function WorldFoundationApp() {
             <div className="world-topbar-control-plane">
               <label
                 className="world-primary-view-select"
-                title={`World view: ${view}`}
+                title={t("world.viewTitle", { view: worldViewLabel(view) })}
               >
                 <View
                   className="world-primary-view-icon"
@@ -499,7 +497,7 @@ export default function WorldFoundationApp() {
                   aria-hidden="true"
                 />
                 <select
-                  aria-label="World view"
+                  aria-label={t("views.pickerAria")}
                   value={view}
                   onChange={(event) =>
                     setView(parseWorldView(event.target.value))
@@ -507,7 +505,7 @@ export default function WorldFoundationApp() {
                 >
                   {WORLD_VIEWS.map((candidate) => (
                     <option key={candidate} value={candidate}>
-                      {candidate[0].toUpperCase() + candidate.slice(1)}
+                      {worldViewLabel(candidate)}
                     </option>
                   ))}
                 </select>
@@ -539,8 +537,10 @@ export default function WorldFoundationApp() {
                 <button
                   type="button"
                   className="world-back-to-view"
-                  title={`Back to ${worldViewLabel(visualView)}`}
-                  aria-label={`Back to ${worldViewLabel(visualView)}`}
+                  title={t("views.back", { view: worldViewLabel(visualView) })}
+                  aria-label={t("views.back", {
+                    view: worldViewLabel(visualView),
+                  })}
                   data-layer-back
                   onClick={leaveSpaces}
                 >
@@ -562,8 +562,10 @@ export default function WorldFoundationApp() {
                     world={presentedStatusWorld ?? topbarWorld}
                     selectedHostLabel={
                       hostsFilter.ids === null
-                        ? "All hosts"
-                        : `${hostsFilter.ids.length} selected hosts`
+                        ? t("hosts.allHosts")
+                        : t("world.selectedHosts", {
+                            count: hostsFilter.ids.length,
+                          })
                     }
                   />
                   <div

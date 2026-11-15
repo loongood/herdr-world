@@ -15,6 +15,8 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { t, useT } from "../../i18n";
+import type { TranslationKey } from "../../i18n/en";
 import { townLocation } from "../town/TownRail";
 import {
   type TownCityExpenses,
@@ -65,17 +67,17 @@ function useBoardUsage(window: TownUsageWindow) {
   return townUsageCurrent(state, useBoardNow());
 }
 
-const WAITING_WORDS = {
-  loading: "Reading usage…",
-  unavailable: "Usage unavailable",
-  stale: "Usage is out of date",
-  "no-data": "No usage data from hosts",
-} as const;
+const WAITING_KEYS: Record<string, TranslationKey> = {
+  loading: "board.facts.readingUsage",
+  unavailable: "board.facts.usageUnavailable",
+  stale: "board.facts.usageOutOfDate",
+  "no-data": "board.facts.noUsageData",
+};
 
 function cityLine(expenses: TownCityExpenses) {
   return expenses.status === "ready"
     ? townExpenseText(expenses.total)
-    : WAITING_WORDS[expenses.status];
+    : t(WAITING_KEYS[expenses.status]!);
 }
 
 /**
@@ -91,6 +93,7 @@ export const BoardSummary = memo(function BoardSummary({
   /** Show an agent on the board: select it and bring its workspace in. */
   onSelectAgent(nodeId: string): void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const panelId = useId();
   // Read usage while Board is shown, as Town's board does.
@@ -103,7 +106,12 @@ export const BoardSummary = memo(function BoardSummary({
   const gauges = townFuelGauges(limits, now);
   const notes = townFuelNotes(limits, gauges);
   const { counts } = summary;
-  const countsText = `${counts.working} busy, ${counts.needsYou} waiting, ${counts.finished} done, ${counts.quiet} quiet`;
+  const countsText = t("board.facts.countsText", {
+    working: counts.working,
+    needsYou: counts.needsYou,
+    finished: counts.finished,
+    quiet: counts.quiet,
+  });
   useEffect(() => {
     if (!open) return;
     const close = (event: KeyboardEvent) => {
@@ -119,8 +127,10 @@ export const BoardSummary = memo(function BoardSummary({
         className="board-facts-chip"
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label={`Board summary: ${countsText}`}
-        title={open ? "Hide the Board summary" : "Show the Board summary"}
+        aria-label={t("board.facts.summaryAria", { counts: countsText })}
+        title={
+          open ? t("board.facts.hideSummary") : t("board.facts.showSummary")
+        }
         onClick={() => setOpen((value) => !value)}
       >
         <BarChart3 size={14} aria-hidden="true" />
@@ -134,35 +144,47 @@ export const BoardSummary = memo(function BoardSummary({
           id={panelId}
           className="board-facts-panel"
           role="group"
-          aria-label="Board summary"
+          aria-label={t("board.facts.summaryLabel")}
         >
-          <section aria-label="Agents">
+          <section aria-label={t("board.facts.agentsLabel")}>
             <dl className="board-facts-counts">
               <div data-status="working">
-                <dt>Busy</dt>
+                <dt>{t("board.facts.countBusy")}</dt>
                 <dd>{counts.working}</dd>
               </div>
               <div data-status="blocked">
-                <dt>Waiting</dt>
+                <dt>{t("board.facts.countWaiting")}</dt>
                 <dd>{counts.needsYou}</dd>
               </div>
               <div data-status="done">
-                <dt>Done</dt>
+                <dt>{t("board.facts.countDone")}</dt>
                 <dd>{counts.finished}</dd>
               </div>
               <div data-status="idle">
-                <dt>Quiet</dt>
+                <dt>{t("board.facts.countQuiet")}</dt>
                 <dd>{counts.quiet}</dd>
               </div>
             </dl>
             <p className="board-facts-note">
-              {counts.agents} {counts.agents === 1 ? "agent" : "agents"} on{" "}
-              {counts.buildings} {counts.buildings === 1 ? "host" : "hosts"}
-              {counts.unknown ? ` · ${counts.unknown} unknown` : ""}
+              {t("board.facts.summaryCounts", {
+                agents: counts.agents,
+                agentsWord:
+                  counts.agents === 1
+                    ? t("board.facts.agentWord")
+                    : t("board.facts.agentsWord"),
+                hosts: counts.buildings,
+                hostsWord:
+                  counts.buildings === 1
+                    ? t("board.facts.hostWord")
+                    : t("board.facts.hostsWord"),
+              })}
+              {counts.unknown
+                ? t("board.facts.unknownCount", { count: counts.unknown })
+                : ""}
             </p>
           </section>
           <section aria-labelledby={`${panelId}-expenses`}>
-            <h3 id={`${panelId}-expenses`}>Expenses · UTC</h3>
+            <h3 id={`${panelId}-expenses`}>{t("board.facts.expenses")}</h3>
             {[today, week].map((expenses, index) => (
               <p key={WINDOWS[index]} className="board-facts-line">
                 <span>{townWindowLabelText(WINDOWS[index]!)}</span>
@@ -178,7 +200,7 @@ export const BoardSummary = memo(function BoardSummary({
             ) : null}
           </section>
           <section aria-labelledby={`${panelId}-fuel`}>
-            <h3 id={`${panelId}-fuel`}>Limits</h3>
+            <h3 id={`${panelId}-fuel`}>{t("board.facts.limits")}</h3>
             {gauges.length || notes.length ? (
               <ul className="board-facts-list">
                 {gauges.map((gauge) => (
@@ -192,23 +214,26 @@ export const BoardSummary = memo(function BoardSummary({
                 ))}
                 {notes.map((note) => (
                   <li key={note.harness} data-stale>
-                    {note.name} limits not available: {note.reason}
+                    {t("board.facts.limitsNotAvailable", {
+                      name: note.name,
+                      reason: note.reason,
+                    })}
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="board-facts-note">
                 {usage.status === "failed"
-                  ? "Limits are unavailable right now."
+                  ? t("board.facts.limitsUnavailable")
                   : usage.status === "ready"
-                    ? "No limits seen yet."
-                    : "Reading limits…"}
+                    ? t("board.facts.noLimitsYet")
+                    : t("board.facts.readingLimits")}
               </p>
             )}
           </section>
           <section aria-labelledby={`${panelId}-finished`}>
             <h3 id={`${panelId}-finished`}>
-              Done, not reviewed <span>{counts.finished}</span>
+              {t("board.facts.doneNotReviewed")} <span>{counts.finished}</span>
             </h3>
             {summary.finished.length ? (
               <ul className="board-facts-list">
@@ -216,7 +241,9 @@ export const BoardSummary = memo(function BoardSummary({
                   <li key={item.agent.key}>
                     <button
                       type="button"
-                      aria-label={`Show ${item.agent.displayLabel} on the board`}
+                      aria-label={t("board.facts.showAgentOnBoard", {
+                        name: item.agent.displayLabel,
+                      })}
                       onClick={() => {
                         setOpen(false);
                         onSelectAgent(item.agent.nodeId);
@@ -227,23 +254,29 @@ export const BoardSummary = memo(function BoardSummary({
                         {townLocation(item)}
                         {item.since === null
                           ? ""
-                          : ` · last active ${townSummaryAge(item.since, now)}`}
+                          : t("board.facts.lastActive", {
+                              age: townSummaryAge(item.since, now),
+                            })}
                       </small>
                     </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="board-facts-note">Nothing new has finished.</p>
+              <p className="board-facts-note">
+                {t("board.facts.nothingNewFinished")}
+              </p>
             )}
           </section>
           <section aria-labelledby={`${panelId}-hosts`}>
-            <h3 id={`${panelId}-hosts`}>Hosts</h3>
+            <h3 id={`${panelId}-hosts`}>{t("board.facts.hostsLabel")}</h3>
             <ul className="board-facts-list">
               {summary.hosts.map((host) => (
                 <li key={host.key}>
                   <b>{host.label}</b>
-                  {host.stale ? <small> · offline, stale</small> : null}
+                  {host.stale ? (
+                    <small>{t("board.facts.offlineStale")}</small>
+                  ) : null}
                   <BoardHostLines host={host} />
                 </li>
               ))}
@@ -257,6 +290,7 @@ export const BoardSummary = memo(function BoardSummary({
 
 /** A host's counts, expenses and limits, one short line each. */
 function BoardHostLines({ host }: { host: TownSummaryHost }) {
+  const t = useT();
   const today = useBoardUsage("today");
   const week = useBoardUsage("7d");
   const now = useBoardNow();
@@ -271,8 +305,10 @@ function BoardHostLines({ host }: { host: TownSummaryHost }) {
         {boardCountsText(host.counts)}
       </small>
       <small className="board-facts-host-line">
-        Today {boardTotalText(townHostExpenses(today, host.connectionId))} · 7
-        days {boardTotalText(townHostExpenses(week, host.connectionId))}
+        {t("town.windowToday")}{" "}
+        {boardTotalText(townHostExpenses(today, host.connectionId), t)} ·{" "}
+        {t("town.window7d")}{" "}
+        {boardTotalText(townHostExpenses(week, host.connectionId), t)}
       </small>
       {gauges.map((gauge) => (
         <small
@@ -280,7 +316,7 @@ function BoardHostLines({ host }: { host: TownSummaryHost }) {
           className="board-facts-host-line"
           data-stale={gauge.stale || undefined}
         >
-          {boardFuelText(gauge, now)}
+          {boardFuelText(gauge, now, t)}
         </small>
       ))}
     </>
@@ -293,9 +329,10 @@ export const BoardZoneCounts = memo(function BoardZoneCounts({
 }: {
   host: TownSummaryHost | undefined;
 }) {
+  const t = useT();
   if (!host) return null;
   return (
-    <span className="board-zone-counts">{boardCountsText(host.counts)}</span>
+    <span className="board-zone-counts">{boardCountsText(host.counts, t)}</span>
   );
 });
 
@@ -308,6 +345,7 @@ export const BoardZoneFacts = memo(function BoardZoneFacts({
 }: {
   host: TownSummaryHost | undefined;
 }) {
+  const t = useT();
   const today = useBoardUsage("today");
   const week = useBoardUsage("7d");
   const now = useBoardNow();
@@ -317,12 +355,14 @@ export const BoardZoneFacts = memo(function BoardZoneFacts({
   return (
     <span className="board-zone-facts">
       <span>
-        today {boardTotalText(townHostExpenses(today, host.connectionId))} · 7
-        days {boardTotalText(townHostExpenses(week, host.connectionId))}
+        {t("town.windowToday")}{" "}
+        {boardTotalText(townHostExpenses(today, host.connectionId), t)} ·{" "}
+        {t("town.window7d")}{" "}
+        {boardTotalText(townHostExpenses(week, host.connectionId), t)}
       </span>
       {gauges.map((gauge) => (
         <span key={gauge.harness} data-stale={gauge.stale || undefined}>
-          {boardFuelText(gauge, now)}
+          {boardFuelText(gauge, now, t)}
         </span>
       ))}
     </span>
@@ -341,6 +381,7 @@ export const BoardWorkspaceEconomy = memo(function BoardWorkspaceEconomy({
   nativeId: string;
   worldId: string;
 }) {
+  const t = useT();
   const place = {
     kind: "room" as const,
     target: {
@@ -351,11 +392,14 @@ export const BoardWorkspaceEconomy = memo(function BoardWorkspaceEconomy({
       kind: "workspace" as const,
     },
   };
-  const today = boardPlaceText(townPlaceEconomy(useBoardUsage("today"), place));
-  const week = boardPlaceText(townPlaceEconomy(useBoardUsage("7d"), place));
+  const today = boardPlaceText(
+    townPlaceEconomy(useBoardUsage("today"), place),
+    t,
+  );
+  const week = boardPlaceText(townPlaceEconomy(useBoardUsage("7d"), place), t);
   return (
     <div className="board-economy">
-      today {today} · 7 days {week}
+      {t("town.windowToday")} {today} · {t("town.window7d")} {week}
     </div>
   );
 });
@@ -382,6 +426,7 @@ export const BoardAgentNowLine = memo(function BoardAgentNowLine({
   className: "board-pane-state" | "board-now-inline";
   fallback?: string;
 }) {
+  const t = useT();
   const key = leaf.id;
   const step = useSyncExternalStore(
     useCallback(
@@ -391,13 +436,16 @@ export const BoardAgentNowLine = memo(function BoardAgentNowLine({
     () => steps.get(key),
   );
   const now = useBoardNow();
-  const line = boardAgentNow({
-    status,
-    presented,
-    step,
-    lastActivityAt: leaf.lastActivityAt,
-    now,
-  });
+  const line = boardAgentNow(
+    {
+      status,
+      presented,
+      step,
+      lastActivityAt: leaf.lastActivityAt,
+      now,
+    },
+    t,
+  );
   if (!line && fallback === undefined) return null;
   return (
     <span

@@ -1,7 +1,15 @@
 import { ConnectionSwitcher } from "../components/ConnectionSwitcher";
+import { t, useT } from "../i18n";
 import { HerdrSetupCard } from "../components/HerdrSetupCard";
 import type { WorldRuntimeState } from "./runtimeStore";
 import type { WorldObject } from "./worldObject";
+
+const serviceWord = (status: "connecting" | "connected" | "disconnected") =>
+  status === "connecting"
+    ? t("connections.lifecycleConnecting")
+    : status === "connected"
+      ? t("connections.lifecycleConnected")
+      : t("connections.lifecycleDisconnected");
 
 export function WorldTopbarStatus({
   runtime,
@@ -12,6 +20,7 @@ export function WorldTopbarStatus({
   world: WorldObject;
   selectedHostLabel: string;
 }) {
+  const t = useT();
   const ready = world.hosts.filter(
     (host) =>
       host.hostState === "active" || host.hostState === "ready-inactive",
@@ -20,18 +29,28 @@ export function WorldTopbarStatus({
   const unknown = world.hosts.filter(
     (host) => !host.connection.snapshot,
   ).length;
-  const summary = `${selectedHostLabel} · ${ready} ready · ${world.coverage.spaces} observed spaces · ${world.coverage.agents} observed agents${stale ? ` · ${stale} stale` : ""}${unknown ? ` · ${unknown} hosts unobserved; counts unknown` : ""}${runtime.error ? " · World error" : ""}`;
+  const summary = [
+    t("world.statusSummary", {
+      host: selectedHostLabel,
+      ready,
+      spaces: world.coverage.spaces,
+      agents: world.coverage.agents,
+    }),
+    stale ? t("world.statusStale", { count: stale }) : "",
+    unknown ? t("world.statusUnknown", { count: unknown }) : "",
+    runtime.error ? t("world.statusError") : "",
+  ].join("");
   return (
     <div
       className="world-topbar-status"
-      aria-label={`World status: ${summary}`}
+      aria-label={t("world.statusAria", { summary })}
       aria-live="polite"
       title={summary}
     >
       <span className="world-live-dot" data-status={runtime.status} />
       {runtime.error ? (
         <span className="world-runtime-error" title={runtime.error}>
-          World error
+          {t("world.errorWord")}
         </span>
       ) : null}
     </div>
@@ -40,15 +59,13 @@ export function WorldTopbarStatus({
 
 /** The welcome card's words, apart from its store-bound connection switcher. */
 export function WorldWelcomeText() {
+  const t = useT();
   return (
     <>
       <img src="/herdr-world-logo.svg" alt="" width="68" height="68" />
-      <p className="world-eyebrow">Welcome to Herdr World</p>
-      <h2 id="world-connection-title">Add a connection profile</h2>
-      <p>
-        Connect a local or SSH Herdr runtime to see its agents in Town, Board,
-        Desk and Spaces.
-      </p>
+      <p className="world-eyebrow">{t("world.welcome")}</p>
+      <h2 id="world-connection-title">{t("world.addProfile")}</h2>
+      <p>{t("world.welcomeBody")}</p>
     </>
   );
 }
@@ -58,6 +75,7 @@ export function WorldConnectionRequired({
 }: {
   status: "connecting" | "connected" | "disconnected";
 }) {
+  const t = useT();
   return (
     <section
       className="world-connection-required"
@@ -65,20 +83,25 @@ export function WorldConnectionRequired({
     >
       <WorldWelcomeText />
       <ConnectionSwitcher />
-      {status !== "connected" ? <small>World service: {status}</small> : null}
+      {status !== "connected" ? (
+        <small>
+          {t("world.serviceStatus", { status: serviceWord(status) })}
+        </small>
+      ) : null}
     </section>
   );
 }
 
 /** Town with no hosts: profiles live under Hosts → Manage connections. */
 export function TownNoHosts() {
+  const t = useT();
   return (
     <div className="world-empty" role="status">
       <img src="/herdr-world-logo.svg" alt="" width="68" height="68" />
-      <h2>No connected spaces yet</h2>
+      <h2>{t("world.noSpacesYet")}</h2>
       <p>
-        Add or reconnect a local or SSH Herdr profile with{" "}
-        <strong>Hosts → Manage connections</strong>.
+        {t("world.noSpacesBody")}{" "}
+        <strong>{t("world.manageConnections")}</strong>.
       </p>
     </div>
   );

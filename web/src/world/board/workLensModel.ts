@@ -5,6 +5,9 @@ import {
   type WorkItem,
   type WorldSourcesSnapshot,
 } from "../../../../shared/worldSources";
+import { t } from "../../i18n";
+import type { TranslationKey } from "../../i18n/en";
+import { uiLocale } from "../../uiLocale";
 import type { WorldObject } from "../worldObject";
 import { linkMatchesPane, paneKey } from "../workLinks";
 
@@ -35,6 +38,20 @@ export type WorkLensColumn = {
   days?: WorkLensDay[];
 };
 
+const LANE_KEYS = {
+  review: "work.laneReview",
+  fixing: "work.laneFixing",
+  green: "work.laneGreen",
+  ready: "work.laneReady",
+  merged: "work.laneMerged",
+  todo: "work.laneTodo",
+  doing: "work.laneDoing",
+  done: "work.laneDone",
+} as const satisfies Record<
+  (typeof WORK_LANE_LABELS)[keyof typeof WORK_LANE_LABELS],
+  TranslationKey
+>;
+
 /** Lanes that only grow; a busy week fills them, so they group by day. */
 const HISTORY_LANES = new Set<WorkItem["lane"]>(["merged", "done"]);
 
@@ -49,6 +66,7 @@ function localDay(time: number) {
 export function workLensDays(
   cards: WorkLensCard[],
   now: number,
+  locale = uiLocale(),
 ): WorkLensDay[] {
   const today = localDay(now);
   const yesterday = localDay(
@@ -64,10 +82,10 @@ export function workLensDays(
         key,
         label:
           key === today
-            ? "Today"
+            ? t("work.today")
             : key === yesterday
-              ? "Yesterday"
-              : new Date(time).toLocaleDateString(undefined, {
+              ? t("work.yesterday")
+              : new Date(time).toLocaleDateString(locale, {
                   weekday: "short",
                   day: "numeric",
                   month: "short",
@@ -86,6 +104,7 @@ export function workLensColumns(
   world: WorldObject,
   group: WorkLensGroup,
   now = Date.now(),
+  locale = uiLocale(),
 ): WorkLensColumn[] {
   const leaves = new Map(
     world.leaves.map((leaf) => [
@@ -123,9 +142,9 @@ export function workLensColumns(
       .map((item) => ({ item, agents: agentsByItem.get(item.key) ?? [] }));
     return {
       lane,
-      label: WORK_LANE_LABELS[lane],
+      label: t(LANE_KEYS[lane]),
       cards,
-      ...(history ? { days: workLensDays(cards, now) } : {}),
+      ...(history ? { days: workLensDays(cards, now, locale) } : {}),
     };
   });
 }
@@ -134,12 +153,13 @@ export function workLensColumns(
 export function workCardFacts(item: WorkItem): string[] {
   if (item.kind !== "pull_request") return [item.status].filter(Boolean);
   const facts: string[] = [];
-  if (item.draft) facts.push("draft");
-  if (item.mergeable === "conflicting") facts.push("conflicts");
-  if (item.review === "changes_requested") facts.push("changes requested");
-  else if (item.review === "approved") facts.push("approved");
-  if (item.checks === "fail") facts.push("checks failing");
-  else if (item.checks === "pending") facts.push("checks running");
-  else if (item.checks === "pass") facts.push("checks pass");
+  if (item.draft) facts.push(t("work.factDraft"));
+  if (item.mergeable === "conflicting") facts.push(t("work.factConflicts"));
+  if (item.review === "changes_requested")
+    facts.push(t("work.factChangesRequested"));
+  else if (item.review === "approved") facts.push(t("work.factApproved"));
+  if (item.checks === "fail") facts.push(t("work.factChecksFailing"));
+  else if (item.checks === "pending") facts.push(t("work.factChecksRunning"));
+  else if (item.checks === "pass") facts.push(t("work.factChecksPass"));
   return facts;
 }

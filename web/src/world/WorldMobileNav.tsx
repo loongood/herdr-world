@@ -36,7 +36,7 @@ export function WorldMobileNav({
   onSelect: (view: WorldView) => void;
 }) {
   return (
-    <nav className="world-mobile-nav" aria-label="World views">
+    <nav className="world-mobile-nav" aria-label={t("views.mobileNavAria")}>
       {WORLD_VIEW_DESTINATIONS.map(({ view: destination, Icon }) => (
         <button
           key={destination}

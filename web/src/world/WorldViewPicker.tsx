@@ -9,6 +9,7 @@ import { Command, Maximize2 } from "lucide-react";
 import { openCommandBox } from "../commandBoxKey";
 import { shortcutTitle, useShortcutPreferences } from "../shortcutPreferences";
 import { useLayer } from "../layerStack";
+import { useT } from "../i18n";
 import type { WorldView } from "./worldViewRouting";
 import { WORLD_VIEW_DESTINATIONS, worldViewLabel } from "./WorldMobileNav";
 import "./WorldViewPicker.css";
@@ -38,6 +39,7 @@ export function WorldViewPicker({
    */
   search?: ReactNode;
 }) {
+  const t = useT();
   const searchSlot = search ? (
     <div className={`world-zen-search${mobile ? " is-phone" : ""}`}>
       {search}
@@ -47,7 +49,11 @@ export function WorldViewPicker({
     return (
       <>
         {searchSlot}
-        <div className="world-view-picker" role="group" aria-label="World view">
+        <div
+          className="world-view-picker"
+          role="group"
+          aria-label={t("views.pickerAria")}
+        >
           {extra}
           {WORLD_VIEW_DESTINATIONS.map(({ view: destination, Icon }) => (
             <button
@@ -86,6 +92,7 @@ function PhoneViewPicker({
   onSelect: (view: WorldView) => void;
   onExitZen: () => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -143,7 +150,7 @@ function PhoneViewPicker({
           ref={menu}
           className="world-view-picker-menu"
           role="menu"
-          aria-label="World view"
+          aria-label={t("views.pickerAria")}
           onKeyDown={onMenuKeyDown}
         >
           {WORLD_VIEW_DESTINATIONS.map(({ view: destination, Icon }) => (
@@ -170,7 +177,7 @@ function PhoneViewPicker({
             onClick={() => choose(() => window.setTimeout(openCommandBox))}
           >
             <Command size={18} aria-hidden />
-            Find or act
+            {t("views.findOrAct")}
           </button>
           <button
             type="button"
@@ -178,7 +185,7 @@ function PhoneViewPicker({
             onClick={() => choose(onExitZen)}
           >
             <Maximize2 size={18} aria-hidden />
-            Show the bars
+            {t("views.showBars")}
           </button>
         </div>
       ) : null}
@@ -186,7 +193,7 @@ function PhoneViewPicker({
         ref={trigger}
         type="button"
         className="world-view-picker-fab"
-        aria-label={`Switch view, now ${worldViewLabel(view)}`}
+        aria-label={t("views.switchNow", { view: worldViewLabel(view) })}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -200,7 +207,8 @@ function PhoneViewPicker({
 /** The command box, with its key, beside the views (#782). */
 function CommandBoxButton() {
   useShortcutPreferences();
-  const title = shortcutTitle("Find or act", "command.menu");
+  const t = useT();
+  const title = shortcutTitle(t("views.findOrAct"), "command.menu");
   return (
     <button
       type="button"

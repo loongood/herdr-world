@@ -1,6 +1,8 @@
 import { ChevronRight, ExternalLink, Settings2, X } from "lucide-react";
 import "./workLensCards.css";
 import { useMemo, useRef, useState } from "react";
+import { useLocale, useT } from "../../i18n";
+import { INTL_TAGS } from "../../i18n/locales";
 import type { WorldSourceStatus } from "../../../../shared/worldSources";
 import { useLayer } from "../../layerStack";
 import { workBadgeText } from "../../../../shared/worldSources";
@@ -49,6 +51,8 @@ export function WorkLens({
   onSelectAgent(id: string): void;
   onClose(): void;
 }) {
+  const t = useT();
+  const locale = useLocale();
   const snapshot = useWorldSources();
   const sectionRef = useRef<HTMLElement | null>(null);
   useLayer(true, onClose, {
@@ -59,8 +63,9 @@ export function WorkLens({
   // History days the user opened or closed; the newest day starts open.
   const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
   const columns = useMemo(
-    () => workLensColumns(snapshot, world, group),
-    [snapshot, world, group],
+    () =>
+      workLensColumns(snapshot, world, group, Date.now(), INTL_TAGS[locale]),
+    [snapshot, world, group, locale],
   );
   const attention = usePullRequestAttention(
     columns.flatMap((column) =>
@@ -81,14 +86,18 @@ export function WorkLens({
     <section
       ref={sectionRef}
       className="work-lens"
-      aria-label="Work: pull requests and tickets"
+      aria-label={t("board.workAria")}
     >
       <header className="work-lens-head">
-        <div className="work-lens-tabs" role="tablist" aria-label="Work">
+        <div
+          className="work-lens-tabs"
+          role="tablist"
+          aria-label={t("board.work")}
+        >
           {(
             [
-              ["pull_requests", "Pull requests"],
-              ["tickets", "Tickets"],
+              ["pull_requests", t("work.tabPullRequests")],
+              ["tickets", t("work.tabTickets")],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -105,7 +114,7 @@ export function WorkLens({
         <button
           type="button"
           className="work-lens-icon"
-          aria-label="Sources settings"
+          aria-label={t("work.sourcesSettings")}
           onClick={openSourcesSettings}
         >
           <Settings2 size={16} aria-hidden="true" />
@@ -113,7 +122,7 @@ export function WorkLens({
         <button
           type="button"
           className="work-lens-icon"
-          aria-label="Close Work"
+          aria-label={t("work.close")}
           onClick={onClose}
         >
           <X size={16} aria-hidden="true" />
@@ -135,7 +144,7 @@ export function WorkLens({
               className="work-lens-setup"
               onClick={openSourcesSettings}
             >
-              Set up {source.label}
+              {t("work.setUpSource", { source: source.label })}
             </button>
           ))}
         </p>
@@ -143,12 +152,12 @@ export function WorkLens({
       {empty ? (
         <p className="work-lens-note">
           {snapshot.sources.length === 0
-            ? "Loading sources…"
+            ? t("sources.loading")
             : connected.length
               ? group === "pull_requests"
-                ? "No open pull requests for you."
-                : "No tickets or assigned issues."
-              : "No source is connected yet. Open Sources settings to connect GitHub or Jira."}
+                ? t("work.noPullRequests")
+                : t("work.noTickets")
+              : t("work.noSourceConnected")}
         </p>
       ) : null}
       <div className="work-lens-columns">
@@ -234,6 +243,7 @@ function WorkCard({
   compact?: boolean;
   onSelectAgent(id: string): void;
 }) {
+  const t = useT();
   return (
     <li className="work-card" data-source={item.source}>
       <a
@@ -260,7 +270,7 @@ function WorkCard({
               key={agent.id}
               type="button"
               onClick={() => onSelectAgent(agent.id)}
-              aria-label={`Show agent ${agent.label} on Board`}
+              aria-label={t("work.showAgentOnBoard", { name: agent.label })}
             >
               {agent.label}
             </button>

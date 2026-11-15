@@ -21,6 +21,7 @@ import type {
   WindowManagerState,
 } from "./windowManager";
 import { useSystemBack } from "../../systemBack";
+import { useT } from "../../i18n";
 
 /**
  * A World window that is not an Inspector, such as Town's summary. It lives
@@ -222,15 +223,22 @@ export function WorldPanelWindow({
   controls: ManagedWindowControls;
   onBody(element: HTMLDivElement | null): void;
 }) {
+  const t = useT();
   return (
     <div className="world-panel-window">
       <header
         className="world-panel-bar is-window-drag-handle"
-        title="Drag to move"
+        title={t("common.dragToMove")}
       >
-        <WindowBackButton controls={controls} label={`${label} window`} />
+        <WindowBackButton
+          controls={controls}
+          label={t("window.named", { name: label })}
+        />
         <strong className="world-panel-title">{label}</strong>
-        <WindowControls controls={controls} label={`${label} window`} />
+        <WindowControls
+          controls={controls}
+          label={t("window.named", { name: label })}
+        />
       </header>
       <div ref={onBody} className="world-panel-body" />
     </div>

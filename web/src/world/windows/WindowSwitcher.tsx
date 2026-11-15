@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { measuredFixedPositionScale } from "../../fixedPositionScale";
 import { PanelsTopLeft, Minus } from "lucide-react";
 import { useLayer } from "../../layerStack";
+import { useT } from "../../i18n";
 import "./windows.css";
 
 export type WindowSwitcherEntry = {
@@ -18,6 +19,7 @@ export function WindowSwitcher({
 }: {
   entries: readonly WindowSwitcherEntry[];
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -63,8 +65,8 @@ export function WindowSwitcher({
         ref={trigger}
         type="button"
         className="world-window-switcher-trigger"
-        title="Open windows"
-        aria-label={`Open windows (${entries.length})`}
+        title={t("window.switcherTitle")}
+        aria-label={t("window.switcherAria", { count: entries.length })}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -78,7 +80,7 @@ export function WindowSwitcher({
             ref={menu}
             className="world-window-switcher-menu"
             role="menu"
-            aria-label="Open windows"
+            aria-label={t("window.switcherMenuAria")}
             style={position}
             onKeyDown={(event) => {
               if (event.key === "Tab") setOpen(false);
@@ -119,7 +121,7 @@ export function WindowSwitcher({
               >
                 <span>{entry.label}</span>
                 {entry.minimized ? (
-                  <Minus size={15} aria-label="Minimized" />
+                  <Minus size={15} aria-label={t("window.minimizedAria")} />
                 ) : null}
               </button>
             ))}

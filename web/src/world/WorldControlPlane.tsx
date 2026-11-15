@@ -3,6 +3,7 @@ import { worldLocalStorage } from "../browserStorage";
 import { useChimeHost, WORLD_SOUNDS_EVENT } from "../chimes/chimeHost";
 import { CreateWorkspaceDialog } from "../components/CreateWorkspaceDialog";
 import { useT } from "../i18n";
+import { worldViewLabel } from "./WorldMobileNav";
 import { ConfirmDialog } from "../components/ModalDialogs";
 import { lazyWithReload } from "../lazyWithReload";
 import { connectionSnapshot, store } from "../store";
@@ -439,8 +440,22 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
       />
       <ConfirmDialog
         open={inspectorClose !== null}
-        title={`Close Inspector ${inspectorClose?.target.type ?? "tab"}`}
-        message={`Close this ${inspectorClose?.target.type ?? "tab"} on ${inspectorClose?.conversation.hostLabel ?? "the captured host"}?`}
+        title={t("world.closeInspector", {
+          target: t(
+            inspectorClose?.target.type === "pane"
+              ? "world.targetPane"
+              : "world.targetTab",
+          ),
+        })}
+        message={t("world.closeTargetOn", {
+          target: t(
+            inspectorClose?.target.type === "pane"
+              ? "world.targetPane"
+              : "world.targetTab",
+          ),
+          host:
+            inspectorClose?.conversation.hostLabel ?? t("world.capturedHost"),
+        })}
         confirmLabel={t("common.close")}
         danger
         onClose={() => setInspectorClose(null)}
@@ -455,7 +470,7 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
             ).catch((error) =>
               store.notify({
                 kind: "error",
-                message: "Tab close failed",
+                message: t("world.tabCloseFailed"),
                 detail: String(error),
               }),
             );
@@ -488,11 +503,16 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
               }
             />
           ) : null}
-          <section className="world-view-stage" aria-label={`${view} view`}>
+          <section
+            className="world-view-stage"
+            aria-label={t("world.viewAria", { view })}
+          >
             {active ? (
               <Suspense
                 fallback={
-                  <div className="world-view-loading">Loading view…</div>
+                  <div className="world-view-loading">
+                    {t("world.loadingView")}
+                  </div>
                 }
               >
                 <WorldViewErrorBoundary key={view}>
@@ -515,7 +535,9 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
                   ) : view === "town" ? (
                     <Suspense
                       fallback={
-                        <div className="world-view-loading">Loading Town…</div>
+                        <div className="world-view-loading">
+                          {t("world.loadingTown")}
+                        </div>
                       }
                     >
                       <TownView
@@ -535,7 +557,9 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
                   ) : (
                     <Suspense
                       fallback={
-                        <div className="world-view-loading">Loading Board…</div>
+                        <div className="world-view-loading">
+                          {t("world.loadingBoard")}
+                        </div>
                       }
                     >
                       <BoardView
@@ -557,7 +581,7 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
             <aside
               className="world-context-rail"
               ref={contextRailRef}
-              aria-label="World context"
+              aria-label={t("world.contextAria")}
             >
               <WorldIntentProfile
                 node={selected}
@@ -617,7 +641,7 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
                   <WindowFrame
                     key={entry.id}
                     id={entry.id}
-                    label={`${panel.label} window`}
+                    label={t("window.named", { name: panel.label })}
                     geometry={geometry}
                     restoreGeometry={
                       entry.maximized ||
@@ -671,7 +695,9 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
                           windowCommand({ type: "float", id: entry.id }),
                         // A panel is a detail of its view: Back closes it.
                         back: {
-                          label: `Back to ${view[0]!.toUpperCase()}${view.slice(1)}`,
+                          label: t("views.back", {
+                            view: worldViewLabel(view),
+                          }),
                         },
                       }}
                     />
@@ -685,7 +711,7 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
                 <WindowFrame
                   key={entry.id}
                   id={entry.id}
-                  label={conversation.label + " Inspector"}
+                  label={t("world.inspectorAria", { name: conversation.label })}
                   geometry={geometry}
                   restoreGeometry={
                     entry.maximized ||
@@ -794,7 +820,9 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
                   ) && (
                     <div className="world-window-scope" role="status">
                       <span>
-                        Outside Hosts filter · {conversation.hostLabel}
+                        {t("world.outsideHostsFilter", {
+                          host: conversation.hostLabel,
+                        })}
                       </span>
                       <button
                         type="button"
@@ -811,7 +839,7 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
                           )
                         }
                       >
-                        Reveal in Hosts
+                        {t("world.revealInHosts")}
                       </button>
                     </div>
                   )}
@@ -904,7 +932,10 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
               pin: inspectorPin(conversation),
               bin: inspectorBin(conversation),
               // The colour is chosen from the swatch beside the name.
-              back: view === "town" ? { label: "Back to Town" } : undefined,
+              back:
+                view === "town"
+                  ? { label: t("views.back", { view: worldViewLabel("town") }) }
+                  : undefined,
               // A phone switches between agents and terminals from ⋯, as
               // its terminal does: agents open on Chat, terminals on Terminal.
               // The list is the hosts the filter shows, live ones only, those

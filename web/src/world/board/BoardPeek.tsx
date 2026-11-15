@@ -106,11 +106,14 @@ export function BoardPeek({
   const answer = async (key: string) => {
     try {
       await sendTownReply(leaf, key, false);
-      notify("ok", `Sent to ${name}`);
+      notify("ok", t("board.peek.sentTo", { name }));
     } catch (cause) {
       notify(
         "error",
-        `Not sent to ${name}: ${cause instanceof Error ? cause.message : String(cause)}`,
+        t("board.peek.notSentTo", {
+          name,
+          cause: cause instanceof Error ? cause.message : String(cause),
+        }),
       );
     }
   };
@@ -119,7 +122,7 @@ export function BoardPeek({
       ref={card}
       className={`board-peek board-s-${done ? "done" : status}`}
       role="dialog"
-      aria-label={`${name} peek`}
+      aria-label={t("board.peek.aria", { name })}
       data-leaf={leaf.id}
       style={
         placed && !isPhone()
@@ -149,7 +152,7 @@ export function BoardPeek({
         <button
           type="button"
           className="board-peek-icon"
-          aria-label="Close peek"
+          aria-label={t("board.peek.close")}
           onClick={onClose}
         >
           ×
@@ -158,7 +161,7 @@ export function BoardPeek({
       <div
         ref={body}
         className="board-peek-screen"
-        aria-label="Latest message"
+        aria-label={t("world.latestMessage")}
         onScroll={(event) => {
           const element = event.currentTarget;
           follow.current =
@@ -173,7 +176,11 @@ export function BoardPeek({
         />
       </div>
       {choices.length && canReply ? (
-        <div className="board-peek-actions" role="group" aria-label="Answers">
+        <div
+          className="board-peek-actions"
+          role="group"
+          aria-label={t("board.peek.answers")}
+        >
           {choices.map((choice, index) => (
             <button
               key={choice.key}
@@ -187,7 +194,11 @@ export function BoardPeek({
           ))}
         </div>
       ) : null}
-      <div className="board-peek-actions" role="group" aria-label="Chat">
+      <div
+        className="board-peek-actions"
+        role="group"
+        aria-label={t("board.peek.chat")}
+      >
         {done ? (
           <button
             type="button"
@@ -196,8 +207,8 @@ export function BoardPeek({
               report.review.ready
                 ? undefined
                 : report.review.failed
-                  ? "The latest report could not be read"
-                  : "Reading the latest report…"
+                  ? t("board.peek.reportUnreadable")
+                  : t("board.peek.readingReport")
             }
             onClick={() =>
               void report
@@ -211,17 +222,19 @@ export function BoardPeek({
                 })
             }
           >
-            <span>Mark reviewed</span>
+            <span>{t("board.markReviewed")}</span>
           </button>
         ) : null}
         {done && report.review.failed ? (
           <button type="button" onClick={report.review.onRetry}>
-            <span>Retry</span>
+            <span>{t("common.retry")}</span>
           </button>
         ) : null}
         {canReply ? (
           <button type="button" onClick={onOpen}>
-            <span>{done ? "Follow up" : "Open"}</span>
+            <span>
+              {done ? t("board.peek.followUp") : t("board.peek.open")}
+            </span>
           </button>
         ) : null}
       </div>

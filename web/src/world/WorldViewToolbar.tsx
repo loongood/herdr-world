@@ -7,6 +7,7 @@ import {
   useViewSearchTitle,
 } from "./useFoldingSearch";
 import { useViewSearchShortcut } from "./viewSearchShortcut";
+import { useT } from "../i18n";
 
 export {
   worldNodeSearchText,
@@ -38,11 +39,12 @@ export function WorldViewToolbar({
   onClear?(): void;
   children?: ReactNode;
 }) {
+  const t = useT();
   const compact = usePhoneViewport();
   const [compactSearchOpen, setCompactSearchOpen] = useState(false);
   // On desktop the search rests as an icon until it is wanted.
   const folding = useFoldingSearch(query, !compact);
-  const title = useViewSearchTitle(`Search ${viewLabel}`);
+  const title = useViewSearchTitle(t("views.search", { view: viewLabel }));
   // The same as clicking the search icon: a newly opened phone search takes
   // the cursor through autoFocus.
   useViewSearchShortcut(() => {
@@ -74,13 +76,15 @@ export function WorldViewToolbar({
     >
       <Search size={15} aria-hidden="true" />
       <label>
-        <span className="world-sr-only">Search {viewLabel}</span>
+        <span className="world-sr-only">
+          {t("views.search", { view: viewLabel })}
+        </span>
         <input
           ref={folding.inputRef}
           autoFocus={compact}
           type="search"
           value={query}
-          placeholder={`Search ${viewLabel}`}
+          placeholder={t("views.search", { view: viewLabel })}
           onChange={(event) => onQueryChange(event.currentTarget.value)}
           onKeyDown={(event) => {
             if (
@@ -109,8 +113,8 @@ export function WorldViewToolbar({
       {compact ? (
         <button
           type="button"
-          aria-label={`Close ${viewLabel} search`}
-          title="Close search"
+          aria-label={t("views.closeSearch", { view: viewLabel })}
+          title={t("views.closeSearchTitle")}
           onClick={close}
         >
           <X size={16} aria-hidden="true" />
@@ -120,12 +124,15 @@ export function WorldViewToolbar({
   );
 
   return (
-    <div className="world-view-toolbar" aria-label={`${viewLabel} controls`}>
+    <div
+      className="world-view-toolbar"
+      aria-label={t("views.controlsAria", { view: viewLabel })}
+    >
       {compact ? (
         <button
           type="button"
           className="world-view-search-toggle"
-          aria-label={`Search ${viewLabel}`}
+          aria-label={t("views.search", { view: viewLabel })}
           aria-expanded={compactSearchOpen}
           onClick={() => setCompactSearchOpen((open) => !open)}
         >
@@ -136,7 +143,7 @@ export function WorldViewToolbar({
           ref={folding.toggleRef}
           type="button"
           className="world-view-search-toggle"
-          aria-label={`Search ${viewLabel}`}
+          aria-label={t("views.search", { view: viewLabel })}
           title={title}
           onClick={folding.expand}
         >

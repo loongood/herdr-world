@@ -16,6 +16,7 @@ import {
   type WindowManagerState,
 } from "./windowManager";
 import type { FloatingTerminalGeometry as Rect } from "../floatingTerminalGeometry";
+import { useT } from "../../i18n";
 import "./windows.css";
 
 export function WindowSurface({
@@ -44,6 +45,7 @@ export function WindowSurface({
   className?: string;
   bounds?: Size;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement | null>(null);
   const [scroll, setScroll] = useState({ left: 0, top: 0 });
   const canvas =
@@ -137,11 +139,11 @@ export function WindowSurface({
               key={`${divider.axis}:${index}`}
               type="button"
               role="separator"
-              aria-label={
+              aria-label={t(
                 divider.axis === "x"
-                  ? "Resize window columns"
-                  : "Resize window rows"
-              }
+                  ? "window.resizeColumnsAria"
+                  : "window.resizeRowsAria",
+              )}
               aria-orientation={
                 divider.axis === "x" ? "vertical" : "horizontal"
               }
