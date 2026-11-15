@@ -2642,6 +2642,7 @@ export const zhHans: Dictionary = {
     ariaLabel: "关注状态",
     interestAria: "关注状态:{label}",
     quietSuffix: ",智能体专注时保持安静",
+    saveFailed: "无法保存智能体的关注状态",
   },
   window: {
     defaultName: "窗口",
@@ -3564,5 +3565,34 @@ export const zhHans: Dictionary = {
       "最多保留 32 个自定义预设。请先删除一个预设再保存另一个。",
     errInvalidJson: "无效的快捷键预设 JSON。",
     errWrongVersion: "请使用版本 1 的 Herdr 快捷键预设。",
+  },
+  common: {
+    save: "保存",
+    cancel: "取消",
+    confirm: "确认",
+    ok: "确定",
+    close: "关闭",
+    dismiss: "关闭",
+    reload: "重新加载",
+    later: "稍后",
+    undo: "撤销",
+    noModelsFound: "未找到模型",
+    dragToMove: "拖动以移动",
+  },
+  toasts: {
+    updateAvailable: "Herdr World {version} 可用",
+    currentVersion: "当前 {version}",
+    readyToRestart: "可以更新并重启",
+    updating: "正在更新...",
+    upgradeRestart: "升级并重启",
+    dismissUpdateAria: "关闭更新通知",
+    dismissNoticeAria: "关闭通知",
+    staleBuildTitle: "服务现在提供的是另一个 Herdr World 构建",
+    staleBuildDetail:
+      "此标签页运行的是 {loaded};服务提供的是 {served}。Herdr 会话继续运行。",
+    staleChunkTitle: "重新加载以完成 Herdr World 的加载",
+    staleChunkDetail:
+      "应用的部分内容无法加载,通常发生在服务升级之后。Herdr 会话继续运行。",
+    dismissReloadAria: "关闭重新加载通知",
   },
 };

@@ -173,5 +173,10 @@
   preset storage follow too: the key-combination errors, the reserved
   shortcut warning, the preset validation errors, the storage and
   connection notices, and the preset import errors.
+  The shared dialogs, selects and toasts follow too: the modal dialogs'
+  shared buttons (save, cancel, confirm and OK), the close control's default
+  label, the themed select's empty state, the update toast (the available and
+  current versions, the upgrade action and the dismissal), the stale-build
+  and chunk-reload notices, and the agent-interest save failure.
   Remaining surfaces keep English
   until their phase lands.

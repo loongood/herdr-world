@@ -1,5 +1,6 @@
-import type { Pane } from "../types";
+import { useT } from "../i18n";
 import { store } from "../store";
+import type { Pane } from "../types";
 import { setAgentInterest, useAgentInterest } from "../world/useAgentInterest";
 import { InterestButton, type InterestChoice } from "./InterestButton";
 
@@ -8,6 +9,7 @@ export function useAgentInterestChoice(
   connectionId: string,
   pane?: Pane,
 ): InterestChoice | null {
+  const t = useT();
   const interest = useAgentInterest();
   if (!pane?.agent || !pane.terminal_id) return null;
   const terminalId = pane.terminal_id;
@@ -21,7 +23,7 @@ export function useAgentInterestChoice(
       if (error)
         store.notify({
           kind: "error",
-          message: "Agent interest could not be saved",
+          message: t("interest.saveFailed"),
           detail: error,
         });
     },
@@ -30,7 +32,7 @@ export function useAgentInterestChoice(
       if (error)
         store.notify({
           kind: "error",
-          message: "Agent interest could not be saved",
+          message: t("interest.saveFailed"),
           detail: error,
         });
     },

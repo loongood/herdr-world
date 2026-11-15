@@ -8,7 +8,7 @@
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
 - 最新提交:`b416fb96`(进度跟踪文件,已推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **3328** 键,0 占位符不匹配
+- 词典规模:en / zh-Hans / zh-Hant 各 **3352** 键,0 占位符不匹配
 - 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
@@ -120,19 +120,34 @@
 | 30a | `86e8ada9` | Board 控件(dock 按钮、设置菜单、帮助与状态色对话框、透镜图例) |
 | 30b | `20cd4de3` | outbox 49/wsRows 38/gitHistory 35 键 + AnswerDeliveries、WorkspaceRows、WorkspaceAgentRows、GitCommitHistory |
 | 30c | `dd06dfce` | shortcuts 121 键 + shortcutCatalog 键化重写、shortcutCheatSheet、ShortcutCheatSheet、ShortcutLookupDialog |
-| 30d | (本次) | shortcuts 20 键(绑定校验错误、保留组合警告、预设校验错误、存储/离线通知、导入错误)+ shortcutBindings、shortcutPreferences 两文件模块级 t 化 |
+| 30d | `2aec6ccd` | shortcuts 20 键(绑定校验错误、保留组合警告、预设校验错误、存储/离线通知、导入错误)+ shortcutBindings、shortcutPreferences 两文件模块级 t 化 |
+| 31a | (本次) | 新增 common(11 键)+ toasts(12 键)域与 interest.saveFailed;CloseButton 默认 label、ModalDialogs(保存/取消/确认/确定)、ThemedSelect 空态、UpdateToast、StaleBuildToast、AppToasts、AgentInterestButton |
 
 ---
 
 ## 待完成(按顺序执行;完成一批更新本文件一次)
 
-### 批次 31:小文件收尾(可拆 2-3 个提交)
+### 批次 31b:小镇/看板动作
 
-ModalDialogs、ThemedSelect、UpdateToast、GlobalTooltip、AppToasts、
-StaleBuildToast、GroupDetail、TownChooser、townMoveActions、TownRail、
-TownTidyRooms、AgentInterestButton、LazyFilePreviewContent、ui/command、
-useBoardHerdrActions、SpacesTerminalAppearance、TownAccessibleTargets、
-WorldPanel。执行前先 grep 各文件残余英文字面量确定清单与键数。
+TownRail、TownTidyRooms、TownChooser、TownAccessibleTargets、townMoveActions、
+useBoardHerdrActions、world/roomRenameClose.tsx(提交/确认标签)、
+world/board/useBoardPaneMoves.tsx(confirmLabel="Move pane and close room")、
+world/WorldControlPlane.tsx(confirmLabel="Close")。
+
+### 批次 31c:分组(groups)模块
+
+world/groups/GroupDetail.tsx、groupActions.tsx、GroupMembers.tsx、
+GroupInterestButton.tsx、GroupsWindow.tsx —— 该模块此前**完全没有 i18n 引用**,
+约 42 条英文字面量,是 31 批次中体量最大的子模块。
+
+### 批次 31d:散点收尾
+
+world/SpacesTerminalAppearance.tsx(aria-label + `Tab \${tab.number}`)、
+world/windows/WorldPanel.tsx(title="Drag to move")。
+注意 `Tab \${tab.number}` 另有 3 处(paneJump.ts、store/sessions.ts、
+world/officeAgent.ts),可做共享 helper 或统一键。
+已确认无需改动:LazyFilePreviewContent.tsx(已 useT 化)、
+components/ui/command.tsx(仅 displayName)、components/GlobalTooltip.tsx。
 
 ### 批次 32:散点常量文件
 

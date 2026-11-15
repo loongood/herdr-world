@@ -2756,6 +2756,7 @@ export const en = {
     ariaLabel: "Interest",
     interestAria: "Interest: {label}",
     quietSuffix: ", quiet while an agent is focused",
+    saveFailed: "Agent interest could not be saved",
   },
   window: {
     defaultName: "window",
@@ -3709,6 +3710,35 @@ export const en = {
       "Keep up to 32 custom presets. Delete a preset before saving another.",
     errInvalidJson: "Invalid keybindings preset JSON.",
     errWrongVersion: "Use a version 1 Herdr keybindings preset.",
+  },
+  common: {
+    save: "Save",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    ok: "OK",
+    close: "Close",
+    dismiss: "Dismiss",
+    reload: "Reload",
+    later: "Later",
+    undo: "Undo",
+    noModelsFound: "No models found",
+    dragToMove: "Drag to move",
+  },
+  toasts: {
+    updateAvailable: "Herdr World {version} is available",
+    currentVersion: "Current {version}",
+    readyToRestart: "ready to update and restart",
+    updating: "Updating...",
+    upgradeRestart: "Upgrade & restart",
+    dismissUpdateAria: "Dismiss update notification",
+    dismissNoticeAria: "Dismiss notification",
+    staleBuildTitle: "The service now serves a different Herdr World build",
+    staleBuildDetail:
+      "This tab runs {loaded}; the service serves {served}. Herdr sessions keep running.",
+    staleChunkTitle: "Reload to finish loading Herdr World",
+    staleChunkDetail:
+      "Part of the app could not load, usually after a service upgrade. Herdr sessions keep running.",
+    dismissReloadAria: "Dismiss reload notification",
   },
 } as const;
 

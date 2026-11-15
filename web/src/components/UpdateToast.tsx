@@ -1,3 +1,4 @@
+import { useT } from "../i18n";
 import type { UpdateInfo } from "../store/types";
 import { CloseButton } from "./CloseButton";
 import { ToastMark } from "./NoticeContent";
@@ -16,6 +17,7 @@ export function UpdateToast({
   onDismiss: () => void;
   onInstall: () => void;
 }) {
+  const t = useT();
   if (!info?.update_available || dismissedVersion === info.latest_version)
     return null;
   return (
@@ -28,11 +30,13 @@ export function UpdateToast({
     >
       <ToastMark kind="info" loading={installing} />
       <div className="toast-content">
-        <strong>Herdr World {info.latest_version} is available</strong>
+        <strong>
+          {t("toasts.updateAvailable", { version: info.latest_version ?? "" })}
+        </strong>
         <p>
-          Current {info.current_version}
+          {t("toasts.currentVersion", { version: info.current_version })}
           {info.can_auto_update
-            ? " · ready to update and restart"
+            ? ` · ${t("toasts.readyToRestart")}`
             : info.reason
               ? ` · ${info.reason}`
               : ""}
@@ -45,7 +49,7 @@ export function UpdateToast({
               onClick={onInstall}
               disabled={installing}
             >
-              {installing ? "Updating..." : "Upgrade & restart"}
+              {installing ? t("toasts.updating") : t("toasts.upgradeRestart")}
             </button>
           ) : null}
           <button
@@ -54,13 +58,13 @@ export function UpdateToast({
             onClick={onDismiss}
             disabled={installing}
           >
-            Dismiss
+            {t("common.dismiss")}
           </button>
         </div>
       </div>
       <CloseButton
         variant="toast"
-        label="Dismiss update notification"
+        label={t("toasts.dismissUpdateAria")}
         onClick={onDismiss}
         disabled={installing}
       />

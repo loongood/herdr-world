@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import type { ButtonHTMLAttributes } from "react";
+import { useT } from "../i18n";
 import "./CloseButton.css";
 
 type CloseButtonProps = Omit<
@@ -11,12 +12,14 @@ type CloseButtonProps = Omit<
 };
 
 export function CloseButton({
-  label = "Close",
+  label,
   variant = "dialog",
   className,
   title,
   ...buttonProps
 }: CloseButtonProps) {
+  const t = useT();
+  const resolvedLabel = label ?? t("common.close");
   const classes = ["close-button", `close-button-${variant}`, className]
     .filter(Boolean)
     .join(" ");
@@ -26,8 +29,8 @@ export function CloseButton({
       {...buttonProps}
       type="button"
       className={classes}
-      aria-label={label}
-      title={title ?? label}
+      aria-label={resolvedLabel}
+      title={title ?? resolvedLabel}
     >
       <X
         size={variant === "toast" ? 15 : 17}

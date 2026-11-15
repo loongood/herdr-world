@@ -2644,6 +2644,7 @@ export const zhHant: Dictionary = {
     ariaLabel: "關注狀態",
     interestAria: "關注狀態:{label}",
     quietSuffix: ",代理專注時保持安靜",
+    saveFailed: "無法儲存代理的關注狀態",
   },
   window: {
     defaultName: "視窗",
@@ -3567,5 +3568,34 @@ export const zhHant: Dictionary = {
     errTooManyPresets: "最多保留 32 個自訂預設。請先刪除一個預設再儲存另一個。",
     errInvalidJson: "無效的快速鍵預設 JSON。",
     errWrongVersion: "請使用第 1 版的 Herdr 快速鍵預設。",
+  },
+  common: {
+    save: "儲存",
+    cancel: "取消",
+    confirm: "確認",
+    ok: "確定",
+    close: "關閉",
+    dismiss: "關閉",
+    reload: "重新載入",
+    later: "稍後",
+    undo: "復原",
+    noModelsFound: "找不到模型",
+    dragToMove: "拖曳以移動",
+  },
+  toasts: {
+    updateAvailable: "Herdr World {version} 可用",
+    currentVersion: "目前 {version}",
+    readyToRestart: "可以更新並重新啟動",
+    updating: "正在更新...",
+    upgradeRestart: "升級並重新啟動",
+    dismissUpdateAria: "關閉更新通知",
+    dismissNoticeAria: "關閉通知",
+    staleBuildTitle: "服務現在提供的是另一個 Herdr World 建置",
+    staleBuildDetail:
+      "此分頁執行的是 {loaded};服務提供的是 {served}。Herdr 工作階段繼續執行。",
+    staleChunkTitle: "重新載入以完成 Herdr World 的載入",
+    staleChunkDetail:
+      "應用程式的部分內容無法載入,通常發生在服務升級之後。Herdr 工作階段繼續執行。",
+    dismissReloadAria: "關閉重新載入通知",
   },
 };

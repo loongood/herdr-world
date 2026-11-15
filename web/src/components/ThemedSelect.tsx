@@ -1,5 +1,6 @@
 import { Check, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useT } from "../i18n";
 import { useLayoutPreferences } from "../layoutPreferences";
 import { cn } from "../utils";
 import {
@@ -35,7 +36,7 @@ export function ThemedSelect({
   placeholder,
   disabled = false,
   searchPlaceholder,
-  emptyText = "No models found",
+  emptyText,
   side,
   contentClassName,
   onSelectedClose,
@@ -56,6 +57,7 @@ export function ThemedSelect({
   contentClassName?: string;
   onSelectedClose?: () => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(value);
   const selected = useRef(false);
@@ -136,7 +138,9 @@ export function ThemedSelect({
           ) : null}
           <CommandList ref={listRef} label={ariaLabel}>
             {searchPlaceholder ? (
-              <CommandEmpty>{emptyText}</CommandEmpty>
+              <CommandEmpty>
+                {emptyText ?? t("common.noModelsFound")}
+              </CommandEmpty>
             ) : null}
             {options.map((option) => (
               <CommandItem

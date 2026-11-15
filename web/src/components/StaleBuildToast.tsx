@@ -6,6 +6,7 @@ import {
   reloadOffer,
   useBuildFreshness,
 } from "../buildFreshness";
+import { useT } from "../i18n";
 import { CloseButton } from "./CloseButton";
 import { reloadApplicationPage } from "./ConfigMenu";
 import { ToastMark } from "./NoticeContent";
@@ -38,6 +39,7 @@ export function StaleBuildToast({
   offer: ReloadOffer;
   onDismiss: () => void;
 }) {
+  const t = useT();
   return (
     <Toast
       className="toast toast-info"
@@ -49,21 +51,18 @@ export function StaleBuildToast({
       <div className="toast-content">
         {offer.kind === "build" ? (
           <>
-            <strong>
-              The service now serves a different Herdr World build
-            </strong>
+            <strong>{t("toasts.staleBuildTitle")}</strong>
             <p>
-              This tab runs {offer.loaded}; the service serves {offer.served}.
-              Herdr sessions keep running.
+              {t("toasts.staleBuildDetail", {
+                loaded: offer.loaded,
+                served: offer.served,
+              })}
             </p>
           </>
         ) : (
           <>
-            <strong>Reload to finish loading Herdr World</strong>
-            <p>
-              Part of the app could not load, usually after a service upgrade.
-              Herdr sessions keep running.
-            </p>
+            <strong>{t("toasts.staleChunkTitle")}</strong>
+            <p>{t("toasts.staleChunkDetail")}</p>
           </>
         )}
         <div className="toast-actions">
@@ -72,16 +71,16 @@ export function StaleBuildToast({
             className="toast-action primary"
             onClick={() => reloadApplicationPage()}
           >
-            Reload
+            {t("common.reload")}
           </button>
           <button type="button" className="toast-action" onClick={onDismiss}>
-            Later
+            {t("common.later")}
           </button>
         </div>
       </div>
       <CloseButton
         variant="toast"
-        label="Dismiss reload notification"
+        label={t("toasts.dismissReloadAria")}
         onClick={onDismiss}
       />
     </Toast>

@@ -1,5 +1,6 @@
-import { useEffectCallback } from "../useEffectCallback";
 import { useEffect, useRef } from "react";
+import { useT } from "../i18n";
+import { useEffectCallback } from "../useEffectCallback";
 import { CloseButton } from "./CloseButton";
 import { focusDialogElement } from "./dialogFocus";
 import { dialogKeyAction } from "./dialogKeyboard";
@@ -11,7 +12,7 @@ export function TextInputDialog({
   label,
   initialValue = "",
   placeholder,
-  submitLabel = "Save",
+  submitLabel,
   submitting = false,
   onSubmit,
   onClose,
@@ -26,6 +27,7 @@ export function TextInputDialog({
   onSubmit: (value: string) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useSuggestedName(open, initialValue, inputRef);
   const onCloseEvent = useEffectCallback(onClose);
@@ -81,10 +83,10 @@ export function TextInputDialog({
 
         <div className="modal-actions">
           <button type="button" className="ghost" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button type="submit" disabled={!canSubmit}>
-            {submitLabel}
+            {submitLabel ?? t("common.save")}
           </button>
         </div>
       </form>
@@ -96,7 +98,7 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = "Confirm",
+  confirmLabel,
   danger = false,
   onConfirm,
   onClose,
@@ -109,6 +111,7 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const dialogRef = useRef<HTMLDivElement>(null);
   const onConfirmEvent = useEffectCallback(onConfirm);
   const onCloseEvent = useEffectCallback(onClose);
@@ -168,7 +171,7 @@ export function ConfirmDialog({
 
         <div className="modal-actions">
           <button type="button" className="ghost" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -178,7 +181,7 @@ export function ConfirmDialog({
               onClose();
             }}
           >
-            {confirmLabel}
+            {confirmLabel ?? t("common.confirm")}
           </button>
         </div>
       </div>
@@ -197,6 +200,7 @@ export function MessageDialog({
   message: string;
   onClose: () => void;
 }) {
+  const t = useT();
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseEvent = useEffectCallback(onClose);
 
@@ -249,7 +253,7 @@ export function MessageDialog({
 
         <div className="modal-actions">
           <button type="button" onClick={onClose}>
-            OK
+            {t("common.ok")}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useT } from "../i18n";
 import { store } from "../store";
 import type { Notice, UpdateInfo } from "../store/types";
 import { CloseButton } from "./CloseButton";
@@ -23,6 +24,7 @@ export function AppToasts({
   notice: Notice | null;
   onNoticeAction: (notice: Notice) => void;
 }) {
+  const t = useT();
   const staleBuild = useStaleBuild(status);
   if (!updateInfo?.update_available && !notice && !staleBuild) return null;
   return createPortal(
@@ -71,7 +73,7 @@ export function AppToasts({
           </div>
           <CloseButton
             variant="toast"
-            label="Dismiss notification"
+            label={t("toasts.dismissNoticeAria")}
             onClick={() => store.clearNotice()}
           />
         </Toast>
