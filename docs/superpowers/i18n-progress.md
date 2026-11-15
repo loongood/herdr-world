@@ -7,9 +7,9 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`30acd621`(批次 36 修复);批次 36 主体 `2adc5213`,Windows 路径修复 `95a861f2`
-- 词典规模:en / zh-Hans / zh-Hant 各 **4789** 键,0 占位符不匹配
-- 工作区:批次 36 变更已格式化、类型检查通过、lint 39 warnings(与基线一致)
+- 最新提交:`9e359852`(批次 37 主体);批次 36 主体 `2adc5213`,Windows 路径修复 `95a861f2`
+- 词典规模:en / zh-Hans / zh-Hant 各 **5099** 键,0 占位符不匹配
+- 工作区:批次 37 变更已格式化、类型检查通过、lint 39 warnings(与基线一致)
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
 ## 项目与设计文档
@@ -155,7 +155,8 @@
 | 32 | `4dba95e5` | assistant.ts 15 条 Ranger 桥接错误(新增 assistant.errors 域)+ terminalThemes.ts 自定义主题默认名(复用 terminal.defaultCustomThemeName);内置主题名保持英文 |
 | 33 | `ff6d1b97` | BoardView.tsx(新增顶层 boardView 域,约 145 键):toast/通知、卡片与便条操作条、便条编辑器未保存提示、串接托盘、窗格选择器、新建标签页对话框、移动对话框、颜色词表 |
 | 34 | `69744a0f` | store 通知文案(新增 storeNotices 域,约 111 键):连接与恢复通知、操作结果警告、更新与 Herdr 升级进度、git 与 worktree 生命周期通知、通知正文与动作、窗格移动与命令失败;store 级验证错误消息仍保持英文 |
-| 35 | 待提交 | web/src/components 剩余 + worldIntegrations:新增顶层 components 域(18 子域)与 worldIntegrations 域;AgentChat、AgentCheckoutPanel(拆出前缀与细节)、CodexSessionLink、ConnectionHerdrInfo、ConversationMinimap、HistoryTerminalComposer、InspectorSourceFiles、InstanceNameSettings、SpeechSettings、TerminalFileLinkMenu、WorktreeCommandSettings、WorktreeOpenDialog、WorldIntegrationRow、PaneMoveMenu、PullRequestCard、CommandCombobox、FileExplorerDialog、FilePreviewContent、FilesystemBrowser、TerminalView、ColorSwatch、markdown、PopupOverlay、WorkspaceInspectorHost、agentSession、agentDisplayName、fileExplorerResources、inspectorCheckout;修复两处语言相关哨兵("Unassigned" 与 "Visual selection") |
+| 35 | `279a907f` | web/src/components 剩余 + worldIntegrations:新增顶层 components 域(18 子域)与 worldIntegrations 域;AgentChat、AgentCheckoutPanel(拆出前缀与细节)、CodexSessionLink、ConnectionHerdrInfo、ConversationMinimap、HistoryTerminalComposer、InspectorSourceFiles、InstanceNameSettings、SpeechSettings、TerminalFileLinkMenu、WorktreeCommandSettings、WorktreeOpenDialog、WorldIntegrationRow、PaneMoveMenu、PullRequestCard、CommandCombobox、FileExplorerDialog、FilePreviewContent、FilesystemBrowser、TerminalView、ColorSwatch、markdown、PopupOverlay、WorkspaceInspectorHost、agentSession、agentDisplayName、fileExplorerResources、inspectorCheckout;修复两处语言相关哨兵("Unassigned" 与 "Visual selection") |
+| 37 | `9e359852` | web/src/ 顶层:新增 marks/agents/assistant/app/connections/terminal/speech/worktree/attachments/status/notifications/annotations/pr 补键与 speech、notifications 新域(约 114 键);api、agentIntegrations、agentLauncher、agentOrder、agentWorktreeClient、agentWorktreeTrial、assistantModels、attachmentUploads、connectionProfiles、copyText、endpointAvailability、markdownToSpeech、resourcePresentationClient、speechPlayback、sshProfileValidation、store、taskNotifications、taskPush、terminalComposer(Commands)、terminalHistorySelection、terminalImageUpload、terminalInput、terminalPaste、terminalRecovery、terminalTouchSelection、useAgentWorktree、useAllServerAgentSessions、useReviewAnnotationDraft、useWorktreePullRequests、visibleTabLayout、worktreeLifecycle、workspaceTreeBadges、AssistantChatControls、AssistantPanel、TerminalView |
 
 ---
 
@@ -231,13 +232,74 @@ world 目录剩余英文(约 80 条)已全部迁移:`worldInspectorSelection.ts`
   `assistant.createTaskAria`/`assistant.editTaskAria`("Create task"/"Edit task"),
   标题仍是 "New task"/"Edit task"。
 
-### 批次 37:`web/src/` 顶层(当前)
+### 批次 37:`web/src/` 顶层 —— **已完成**
 
-`agentOrder.ts`、`agentWorktreeClient.ts`、`api.ts`、`assistantMentions.ts`、
-`assistantModels.ts`、`attachmentUploads.ts`、`browserChrome.ts`、
-`connectionProfiles.ts`、`gitDiffStatus.ts`、`markdownToSpeech.ts`、
-`shortcutBindings.ts`、`useAgentWorktree.ts`、`useAllServerAgentSessions.ts`、
-`visibleTabLayout.ts`、`worldSnapshotDecode.ts` 等。
+提交:`9e359852`。词典 4789 → **5099** 键(新增约 114 键:`speech` 与
+`notifications` 两个新域,以及 `marks`/`agents`/`assistant`/`app`/
+`connections`/`terminal`/`worktree`/`attachments`/`status`/`annotations`/`pr`
+的补键 + `common.unavailable`)。
+
+覆盖 35 个顶层模块 + 4 个组件/测试:`api.ts`、`agentIntegrations.ts`、
+`agentLauncher.ts`、`agentOrder.ts`、`agentWorktreeClient.ts`、
+`agentWorktreeTrial.ts`、`assistantModels.ts`、`attachmentUploads.ts`、
+`connectionProfiles.ts`、`copyText.ts`、`endpointAvailability.ts`、
+`markdownToSpeech.ts`、`resourcePresentationClient.ts`、`speechPlayback.ts`、
+`sshProfileValidation.ts`、`store.ts`、`taskNotifications.ts`、`taskPush.ts`、
+`terminalComposer.ts`、`terminalComposerCommands.ts`、
+`terminalHistorySelection.ts`、`terminalImageUpload.ts`、`terminalInput.ts`、
+`terminalPaste.ts`、`terminalRecovery.ts`、`terminalTouchSelection.ts`、
+`useAgentWorktree.ts`、`useAllServerAgentSessions.ts`、
+`useReviewAnnotationDraft.ts`、`useWorktreePullRequests.ts`、
+`visibleTabLayout.ts`、`worktreeLifecycle.ts`、`workspaceTreeBadges.ts`、
+`components/AssistantChatControls.tsx`、`components/AssistantPanel.tsx`、
+`components/AssistantModelForm.test.ts`、`components/TerminalView.tsx`。
+
+**要点**:
+- `assistantModels.ts` 的 `thinkingLabels` 常量表 → 键表 + `thinkingLabel()`
+  函数(组件与测试都不能再直接读常量)。
+- `terminalRecovery.ts` 的 `terminalNoFrameMessage` 常量 → 同名函数
+  (`TerminalView.tsx` 随之改用函数)。
+- 键帽字面量("Ctrl+V"、"⌘V")改为独立键 `terminal.pasteShortcutWindows`/
+  `terminal.pasteShortcutApple`(三语同形),英文仍逐字存在于 en.ts,
+  check-en3 才不会报缺字面量。
+- `speech.completed`/`speech.notCompleted` 的英文值**自带尾空格**("Completed. "),
+  代码直接使用不额外拼接空格。
+- 内部错误码/协议标识保持英文:`api.ts` 的 bridge 错误码、
+  `connectionHttp.ts`、`connectionStorage.ts`、`worldSnapshotDecode.ts`、
+  `gitDiffSummaryStore.ts`、`downloadFile.ts`、`creationRequests.ts`、
+  `instanceName.ts`、`mermaidRender.ts`、`terminalClipboard.ts` 内部码、
+  `terminalImageUpload.ts` 内部码、`terminalThemes.ts` 内置主题名、
+  `mobileTerminalShortcuts.ts` 键帽标签、`shortcutBindings.ts` 的
+  "Linux / Android"、"LatencyDebug" 的 "terminal echo"。
+- 新键 `worktree.hostUnavailableForRead`:原拟用名 `worktree.hostUnavailable`
+  与既有键重复(TS1117),改名避开。
+
+### 批次 38:零散用户可见文案(当前)
+
+全量重扫 `web/src/`(排除 `i18n/`、`*/testing/`、测试文件)后剩余的
+**用户可见**文案,按文件:
+
+- `world/town/townLimits.ts`:"not available"、"limit reached"、"5 h limit reached"、
+  "seen 1 h ago" 等限额与时效提示
+- `world/town/TownRoomPlaque.tsx`、`world/town/TownFuelGauge.tsx`、
+  `world/town/townSummary.ts`、`world/town/townScaleRuntime.ts`、
+  `world/town/TownWorldLayer.tsx`、`world/town/townRenderer.ts`
+- `world/BoardView.tsx`:"Move the terminal to <workspace>?"、"Don't ask again"、
+  "the note no longer exists"、"not found"、"Board frame failed"
+- `world/officeObservability.ts`:可观测面板的行标签(需逐条判断是标签还是诊断码)
+- `components/MobileTerminalShortcutsDialog.tsx`:"Navigation keys"、"Function keys"
+- `components/AssistantPanel.tsx`、`components/AgentChat.tsx`、
+  `components/AgentSessionPreviewDialog.tsx`、`components/WorkspaceRows.tsx`、
+  `components/WorkspaceTree.tsx`、`components/DiffViewerPanel.tsx`、
+  `components/DiffContentView.tsx`、`components/FilesystemBrowser.tsx`、
+  `components/CodePreview.tsx`、`components/FileExplorerDialog.tsx`
+- `world/NeedsYouTab.tsx`、`world/PullRequestCard.tsx`、`world/DeskView.tsx`、
+  `world/runtimeStore.ts`、`world/officeSelection.ts`
+- `web/src/testing/TerminalLinkInspector.tsx`(开发调试页,看情况)
+
+**不译**:命令面板搜索关键词(`CommandCombobox.tsx` 的 ~90 条英文关键词、
+`worktreeCommandActions.tsx` 的 worktree 关键词)、CSS 字符串、内置主题名、
+键帽标签、内部错误码与 fixture 文本。
 
 ### 阶段 3(远期):服务端消息
 
