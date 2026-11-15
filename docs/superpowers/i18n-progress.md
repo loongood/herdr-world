@@ -7,9 +7,9 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`dd06dfce`(阶段 2 模块 30c,已推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **3308** 键,0 占位符不匹配
-- 工作区:干净(30d 仅完成文案扫描,无文件改动)
+- 最新提交:`b416fb96`(进度跟踪文件,已推送)
+- 词典规模:en / zh-Hans / zh-Hant 各 **3328** 键,0 占位符不匹配
+- 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
 ## 项目与设计文档
@@ -120,50 +120,11 @@
 | 30a | `86e8ada9` | Board 控件(dock 按钮、设置菜单、帮助与状态色对话框、透镜图例) |
 | 30b | `20cd4de3` | outbox 49/wsRows 38/gitHistory 35 键 + AnswerDeliveries、WorkspaceRows、WorkspaceAgentRows、GitCommitHistory |
 | 30c | `dd06dfce` | shortcuts 121 键 + shortcutCatalog 键化重写、shortcutCheatSheet、ShortcutCheatSheet、ShortcutLookupDialog |
+| 30d | (本次) | shortcuts 20 键(绑定校验错误、保留组合警告、预设校验错误、存储/离线通知、导入错误)+ shortcutBindings、shortcutPreferences 两文件模块级 t 化 |
 
 ---
 
 ## 待完成(按顺序执行;完成一批更新本文件一次)
-
-### 批次 30d:快捷键模块错误/状态消息(扫描已完成,文案如下)
-
-两个文件均为模块级函数 → 用 `import { t } from "./i18n"` 模块级 t。
-新域键追加进现有 `shortcuts` 域(约 20 键,en 逐字照抄;键名可调)。
-
-**web/src/shortcutBindings.ts**(validateShortcutKeys + shortcutWarning):
-
-| 行 | 原文 | 建议键 |
-|----|------|--------|
-| 387 | `Use up to three shortcuts per action.` | shortcuts.errTooMany |
-| 392 | `Use a key combination such as Ctrl+Alt+K. Escape is reserved for dismissal.` | shortcuts.errNotKeyCombo(Ctrl+Alt+K 键帽保留) |
-| 398 | `Use a modified Click for terminal links and keyboard keys for other actions.` | shortcuts.errClickKeys |
-| 412 | `Add Ctrl, Alt, or Cmd/Win to printable keys so typing remains available.` | shortcuts.errNeedModifier |
-| 417 | `Choose a modifier for clicking links.` | shortcuts.errClickModifier |
-| 423 | `Global shortcuts need a modifier or a function key.` | shortcuts.errGlobalModifier |
-| 436 | `Your browser or operating system may reserve this combination. Use Record to check whether this page receives it.` | shortcuts.warnReserved |
-
-**web/src/shortcutPreferences.ts**:
-
-| 行 | 原文 | 建议键 |
-|----|------|--------|
-| 68 | `Invalid shortcut preset.` | shortcuts.errInvalidPreset |
-| 75 | `Preset names must contain 1 to 64 characters.` | shortcuts.errPresetNameLength |
-| 81 | `Unknown preset platform.` | shortcuts.errUnknownPlatform |
-| 87 | `Missing shortcut bindings.` | shortcuts.errMissingBindings |
-| 93 | `This preset contains unknown actions.` | shortcuts.errUnknownActions |
-| 110 | `` `Conflicting shortcuts for ${id}.` `` | shortcuts.errConflict `{id}` |
-| 306 | `Browser storage is unavailable, so these bindings cannot be restored before this page reconnects.` | shortcuts.storageUnavailable |
-| 342 | `` `Saved in this browser only: ${error instanceof Error ? error.message : String(error)}` `` | shortcuts.savedLocal `{reason}`(reason 本身保留英文诊断) |
-| 348 | `Not connected: these bindings are stored in this browser and will sync when Roamgate reconnects.` | shortcuts.notConnected |
-| 458 | `Unknown preset.` | shortcuts.errUnknownPreset |
-| 467 | `Keep up to 32 custom presets. Delete a preset before saving another.` | shortcuts.errTooManyPresets |
-| 513 | `Preset files must be smaller than 100 KB.` | **复用** shortcuts.errPresetTooLarge(30c 已有) |
-| 518 | `Invalid keybindings preset JSON.` | shortcuts.errInvalidJson |
-| 521 | `Use a version 1 Herdr keybindings preset.` | shortcuts.errWrongVersion |
-
-注意:i18n 模块轻量,shortcutBindings/shortcutPreferences 引入无循环依赖风险;
-en 下 t() 返回与原英文逐字相同,shortcutBindings.test.ts(46 pass)断言不受影响;
-check-en3 目标改为这两个文件。
 
 ### 批次 31:小文件收尾(可拆 2-3 个提交)
 

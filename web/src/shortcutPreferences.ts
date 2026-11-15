@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { worldLocalStorage, subscribeLocalStorage } from "./browserStorage";
+import { subscribeLocalStorage, worldLocalStorage } from "./browserStorage";
+import { t } from "./i18n";
 import {
   defaultShortcutBindings,
   detectShortcutPlatform,
@@ -7,12 +8,12 @@ import {
   matchesShortcut,
   SHORTCUT_IDS,
   SHORTCUT_PLATFORMS,
-  shortcutConflicts,
-  validateShortcutKeys,
   type ShortcutBindings,
   type ShortcutEvent,
   type ShortcutId,
   type ShortcutPlatform,
+  shortcutConflicts,
+  validateShortcutKeys,
 } from "./shortcutBindings";
 
 export const SHORTCUT_STORAGE_KEY = "keyboardShortcuts.v1";
@@ -65,32 +66,32 @@ const LATE_SHORTCUT_IDS: ShortcutId[] = [
 ];
 export function validateShortcutPreset(value: unknown): ShortcutPreset {
   if (!value || typeof value !== "object")
-    throw new Error("Invalid shortcut preset.");
+    throw new Error(t("shortcuts.errInvalidPreset"));
   const input = value as Partial<ShortcutPreset>;
   if (
     typeof input.name !== "string" ||
     !input.name.trim() ||
     input.name.trim().length > 64
   )
-    throw new Error("Preset names must contain 1 to 64 characters.");
+    throw new Error(t("shortcuts.errPresetNameLength"));
   if (
     input.base !== "mac" &&
     input.base !== "windows" &&
     input.base !== "linux"
   )
-    throw new Error("Unknown preset platform.");
+    throw new Error(t("shortcuts.errUnknownPlatform"));
   if (
     !input.bindings ||
     typeof input.bindings !== "object" ||
     Array.isArray(input.bindings)
   )
-    throw new Error("Missing shortcut bindings.");
+    throw new Error(t("shortcuts.errMissingBindings"));
   if (
     Object.keys(input.bindings).some(
       (id) => !SHORTCUT_IDS.includes(id as ShortcutId),
     )
   )
-    throw new Error("This preset contains unknown actions.");
+    throw new Error(t("shortcuts.errUnknownActions"));
   const bindings = defaultShortcutBindings(input.base);
   for (const id of SHORTCUT_IDS) {
     if (Object.prototype.hasOwnProperty.call(input.bindings, id))
@@ -107,7 +108,7 @@ export function validateShortcutPreset(value: unknown): ShortcutPreset {
   }
   for (const id of SHORTCUT_IDS) {
     if (shortcutConflicts(id, bindings[id], bindings).length)
-      throw new Error(`Conflicting shortcuts for ${id}.`);
+      throw new Error(t("shortcuts.errConflict", { id }));
   }
   return {
     id:
@@ -303,7 +304,7 @@ function cache(preferences: ShortcutPreferences): string {
     );
     return "";
   } catch {
-    return "Browser storage is unavailable, so these bindings cannot be restored before this page reconnects.";
+    return t("shortcuts.storageUnavailable");
   }
 }
 
@@ -339,13 +340,15 @@ function save(preferences: ShortcutPreferences) {
       if (current !== revision) return;
       publish(
         preferences,
-        `Saved in this browser only: ${error instanceof Error ? error.message : String(error)}`,
+        t("shortcuts.savedLocal", {
+          reason: error instanceof Error ? error.message : String(error),
+        }),
       );
     });
 }
 
 function offlineNotice() {
-  return "Not connected: these bindings are stored in this browser and will sync when Roamgate reconnects.";
+  return t("shortcuts.notConnected");
 }
 
 /**
@@ -455,7 +458,7 @@ export function selectShortcutPreset(id: string) {
       ...preferences.presets.map((preset) => preset.id),
     ].includes(id)
   )
-    throw new Error("Unknown preset.");
+    throw new Error(t("shortcuts.errUnknownPreset"));
   save({ ...preferences, active: id });
 }
 export function saveShortcutPreset(
@@ -464,9 +467,7 @@ export function saveShortcutPreset(
 ) {
   const { preferences } = getShortcutSnapshot();
   if (preferences.presets.length >= 32)
-    throw new Error(
-      "Keep up to 32 custom presets. Delete a preset before saving another.",
-    );
+    throw new Error(t("shortcuts.errTooManyPresets"));
   const preset = validateShortcutPreset({
     ...source,
     name,
@@ -509,16 +510,15 @@ export function exportShortcutPreset(preset: ShortcutPreset): string {
   );
 }
 export function importShortcutPreset(raw: string): ShortcutPreset {
-  if (raw.length > 100_000)
-    throw new Error("Preset files must be smaller than 100 KB.");
+  if (raw.length > 100_000) throw new Error(t("shortcuts.errPresetTooLarge"));
   let input: { format?: unknown; version?: unknown; preset?: unknown } | null;
   try {
     input = JSON.parse(raw);
   } catch {
-    throw new Error("Invalid keybindings preset JSON.");
+    throw new Error(t("shortcuts.errInvalidJson"));
   }
   if (input?.format !== "herdr-keybindings" || input.version !== 1)
-    throw new Error("Use a version 1 Herdr keybindings preset.");
+    throw new Error(t("shortcuts.errWrongVersion"));
   return validateShortcutPreset(input.preset);
 }
 

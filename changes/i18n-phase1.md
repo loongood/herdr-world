@@ -169,6 +169,9 @@
   tab and command entries interpolated), the cheat sheet and the shortcut
   lookup dialog (presets, recording, the editor and the navigation
   reference) — key caps, platform names and the mobile shortcut editor's
-  key-cap data stay as keyboard notation.
+  key-cap data stay as keyboard notation. The shortcut binding rules and
+  preset storage follow too: the key-combination errors, the reserved
+  shortcut warning, the preset validation errors, the storage and
+  connection notices, and the preset import errors.
   Remaining surfaces keep English
   until their phase lands.

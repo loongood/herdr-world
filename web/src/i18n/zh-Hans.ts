@@ -3540,5 +3540,29 @@ export const zhHans: Dictionary = {
       "触控控件有自己的编辑器:行为与自动化 > 移动终端快捷键 可配置两行快捷键与四个侧键。",
     lookupFoot: "预设保存在此浏览器中。导出后可在其他地方使用。",
     done: "完成",
+    errTooMany: "每个操作最多使用三个快捷键。",
+    errNotKeyCombo: "请使用组合键,例如 Ctrl+Alt+K。Escape 保留用于取消。",
+    errClickKeys: "终端链接请使用带修饰键的 Click,其他操作请使用键盘按键。",
+    errNeedModifier: "请为可打印按键加上 Ctrl、Alt 或 Cmd/Win,以免影响输入。",
+    errClickModifier: "点击链接请选择一个修饰键。",
+    errGlobalModifier: "全局快捷键需要一个修饰键或功能键。",
+    warnReserved:
+      "你的浏览器或操作系统可能保留了该组合。使用“录制”检查此页面是否接收到它。",
+    errInvalidPreset: "无效的快捷键预设。",
+    errPresetNameLength: "预设名称必须包含 1 到 64 个字符。",
+    errUnknownPlatform: "未知的预设平台。",
+    errMissingBindings: "缺少快捷键绑定。",
+    errUnknownActions: "此预设包含未知操作。",
+    errConflict: "{id} 的快捷键冲突。",
+    storageUnavailable:
+      "浏览器存储不可用,因此这些绑定无法在页面重新连接前恢复。",
+    savedLocal: "仅保存在此浏览器中:{reason}",
+    notConnected:
+      "未连接:这些绑定保存在此浏览器中,将在 Roamgate 重新连接后同步。",
+    errUnknownPreset: "未知的预设。",
+    errTooManyPresets:
+      "最多保留 32 个自定义预设。请先删除一个预设再保存另一个。",
+    errInvalidJson: "无效的快捷键预设 JSON。",
+    errWrongVersion: "请使用版本 1 的 Herdr 快捷键预设。",
   },
 };

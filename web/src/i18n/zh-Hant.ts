@@ -3544,5 +3544,28 @@ export const zhHant: Dictionary = {
       "觸控控制項有自己的編輯器:行為與自動化 > 行動終端機快速鍵 可設定兩列快速鍵與四個側鍵。",
     lookupFoot: "預設儲存在此瀏覽器中。匯出後可在其他地方使用。",
     done: "完成",
+    errTooMany: "每個操作最多使用三個快速鍵。",
+    errNotKeyCombo: "請使用組合鍵,例如 Ctrl+Alt+K。Escape 保留用於取消。",
+    errClickKeys: "終端連結請使用帶修飾鍵的 Click,其他操作請使用鍵盤按鍵。",
+    errNeedModifier: "請為可列印按鍵加上 Ctrl、Alt 或 Cmd/Win,以免影響輸入。",
+    errClickModifier: "點擊連結請選擇一個修飾鍵。",
+    errGlobalModifier: "全域快速鍵需要一個修飾鍵或功能鍵。",
+    warnReserved:
+      "你的瀏覽器或作業系統可能保留了該組合。使用「錄製」檢查此頁面是否接收到它。",
+    errInvalidPreset: "無效的快速鍵預設。",
+    errPresetNameLength: "預設名稱必須包含 1 到 64 個字元。",
+    errUnknownPlatform: "未知的預設平台。",
+    errMissingBindings: "缺少快速鍵綁定。",
+    errUnknownActions: "此預設包含未知操作。",
+    errConflict: "{id} 的快速鍵衝突。",
+    storageUnavailable:
+      "瀏覽器儲存空間無法使用,因此這些綁定無法在頁面重新連線前還原。",
+    savedLocal: "僅儲存在此瀏覽器中:{reason}",
+    notConnected:
+      "未連線:這些綁定儲存在此瀏覽器中,將在 Roamgate 重新連線後同步。",
+    errUnknownPreset: "未知的預設。",
+    errTooManyPresets: "最多保留 32 個自訂預設。請先刪除一個預設再儲存另一個。",
+    errInvalidJson: "無效的快速鍵預設 JSON。",
+    errWrongVersion: "請使用第 1 版的 Herdr 快速鍵預設。",
   },
 };

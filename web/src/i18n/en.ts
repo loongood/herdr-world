@@ -3682,6 +3682,33 @@ export const en = {
     lookupFoot:
       "Presets are saved in this browser. Export to use them elsewhere.",
     done: "Done",
+    errTooMany: "Use up to three shortcuts per action.",
+    errNotKeyCombo:
+      "Use a key combination such as Ctrl+Alt+K. Escape is reserved for dismissal.",
+    errClickKeys:
+      "Use a modified Click for terminal links and keyboard keys for other actions.",
+    errNeedModifier:
+      "Add Ctrl, Alt, or Cmd/Win to printable keys so typing remains available.",
+    errClickModifier: "Choose a modifier for clicking links.",
+    errGlobalModifier: "Global shortcuts need a modifier or a function key.",
+    warnReserved:
+      "Your browser or operating system may reserve this combination. Use Record to check whether this page receives it.",
+    errInvalidPreset: "Invalid shortcut preset.",
+    errPresetNameLength: "Preset names must contain 1 to 64 characters.",
+    errUnknownPlatform: "Unknown preset platform.",
+    errMissingBindings: "Missing shortcut bindings.",
+    errUnknownActions: "This preset contains unknown actions.",
+    errConflict: "Conflicting shortcuts for {id}.",
+    storageUnavailable:
+      "Browser storage is unavailable, so these bindings cannot be restored before this page reconnects.",
+    savedLocal: "Saved in this browser only: {reason}",
+    notConnected:
+      "Not connected: these bindings are stored in this browser and will sync when Roamgate reconnects.",
+    errUnknownPreset: "Unknown preset.",
+    errTooManyPresets:
+      "Keep up to 32 custom presets. Delete a preset before saving another.",
+    errInvalidJson: "Invalid keybindings preset JSON.",
+    errWrongVersion: "Use a version 1 Herdr keybindings preset.",
   },
 } as const;
 
