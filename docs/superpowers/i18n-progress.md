@@ -7,7 +7,7 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`b7073d6a`(批次 31c,待推送)
+- 最新提交:`32fc0e05`(批次 31d,待推送)
 - 词典规模:en / zh-Hans / zh-Hant 各 **3641** 键,0 占位符不匹配
 - 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
@@ -143,7 +143,7 @@
 | 31a | `7741061c` | 新增 common(11 键)+ toasts(12 键)域与 interest.saveFailed;CloseButton 默认 label、ModalDialogs(保存/取消/确认/确定)、ThemedSelect 空态、UpdateToast、StaleBuildToast、AppToasts、AgentInterestButton |
 | 31b | `33179cdb` | 新增 town.ask/rooms/team/move/room 组、board 33 键与 moves 顶层域(22 键);TownRail、TownTidyRooms、TownChooser、TownAccessibleTargets、townMoveActions(改名 useTownMoveActions)、townMoves、townMoveMenu、townTeamActions、roomRenameClose、boardPaneMove、useBoardPaneMoves、useBoardHerdrActions、worldAsks、WorldControlPlane(Close) |
 | 31c | `b7073d6a` | 新增 groups 域(140 键:kind/kindPlural/kindName/status/role/resolution/op/interest/errors 等);新增 groupLabels.ts(类型化标签 helper);groupActions、GroupDetail、GroupMembers、GroupsWindow、GroupsSummary、GroupInterestButton、GroupEditFeedback |
-| 31d | 待提交 | web/src/components 残留文案:新增 aria / attachments 域,扩展 diff / preview / inspector / terminal / common;AttachmentChips、ConfigurationLoadingDialog、DiffContentView、DiffViewerPanel、FilePreviewTabs、InspectorLoadingShell、InspectorPaneMap、InspectorSplitResizer、PopupOverlay、ShortcutLookupDialog(菜单焦点选择器改用 data-menu-trigger)、ConfigMenu、WorkspaceInspectorHost、FileExplorerDialog、App、AssistantPanel |
+| 31d | `32fc0e05` | web/src/components 残留文案:新增 aria / attachments 域,扩展 diff / preview / inspector / terminal / common;AttachmentChips、ConfigurationLoadingDialog、DiffContentView、DiffViewerPanel、FilePreviewTabs、InspectorLoadingShell、InspectorPaneMap、InspectorSplitResizer、PopupOverlay、ShortcutLookupDialog(菜单焦点选择器改用 data-menu-trigger)、ConfigMenu、WorkspaceInspectorHost、FileExplorerDialog、App、AssistantPanel |
 
 ---
 
