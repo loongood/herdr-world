@@ -79,6 +79,7 @@ import { bridge, type TerminalPush } from "../api";
 import { useCreationSources } from "../creationRequests";
 import { directoryPreviewName } from "../filesystemPaths";
 import { mobileTerminalShortcutExecution } from "../mobileTerminalShortcutAction";
+import { useT } from "../i18n";
 import {
   defaultMobileTerminalShortcutRows,
   defaultMobileTerminalSideShortcuts,
@@ -325,6 +326,7 @@ export function TerminalView({
   onAgentHistoryOpenChange?: (open: boolean) => void;
   onOpenWorkspaceFile?: (request: TerminalWorkspaceFileRequest) => void;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const s = useStoreSelector(
     (state) => ({
@@ -796,7 +798,7 @@ export function TerminalView({
             !terminalComposerDraftKeyIsActive(key) ||
             !connectionClient.isCurrent()
           )
-            throw new Error("The original draft is no longer active");
+            throw new Error(t("terminal.draftInactive"));
           insertIntoTerminalComposerDraft(key, text);
           return;
         }
@@ -815,16 +817,18 @@ export function TerminalView({
           terminalComposerSubmissionPending(key) ||
           !(await pasteUploadedPathRef.current?.(text, destinationPaneId))
         ) {
-          throw new Error(
-            "The original terminal or input mode is no longer available",
-          );
+          throw new Error(t("terminal.terminalInactive"));
         }
       } catch (error) {
         retainTerminalComposerUploadPaths(key, text);
         store.notify({
           kind: "error",
-          message: "Path insertion failed",
-          detail: `${error instanceof Error ? error.message : "Input failed"}. Path retained in the original pane's Message draft (not sent again). ${text}`,
+          message: t("terminal.pathInsertFailed"),
+          detail: `${
+            error instanceof Error
+              ? error.message
+              : t("terminal.pathInsertInputFailed")
+          }. ${t("terminal.pathInsertRetained", { text })}`,
         });
       }
     };
@@ -1078,8 +1082,8 @@ export function TerminalView({
       if (!workspaceId) {
         store.notify({
           kind: "error",
-          message: "Cannot browse file",
-          detail: "No active workspace is available.",
+          message: t("terminal.cannotBrowseFile"),
+          detail: t("terminal.noActiveWorkspace"),
         });
         return;
       }
@@ -1299,11 +1303,16 @@ export function TerminalView({
         if (terminalEffectDisposed || !connectionClient.isCurrent()) return;
         store.notify({
           kind: "error",
-          message: "Browser blocked terminal copy",
+          message: t("terminal.browserBlockedCopy"),
           detail: text
-            ? `${error.message}. Use Copy to approve this clipboard write.`
+            ? `${error.message}. ${t("terminal.copyApproveHint")}`
             : error.message,
-          ...(text ? { actionLabel: "Copy", actionClipboardText: text } : {}),
+          ...(text
+            ? {
+                actionLabel: t("terminal.copy"),
+                actionClipboardText: text,
+              }
+            : {}),
           autoDismissMs: 60_000,
         });
       },
@@ -1455,7 +1464,7 @@ export function TerminalView({
       repaintTask = null;
       repaint = null;
     };
-    const presentFrame = (t: TerminalPush) => {
+    const presentFrame = (push: TerminalPush) => {
       // A mount owns exactly one connection generation. Drop frames from an
       // inactive connection or a prior terminal attach before touching xterm.
       if (
@@ -1463,38 +1472,38 @@ export function TerminalView({
           terminalIdentity,
           connectionClient,
           desiredTerminalRef.current,
-          t,
+          push,
         )
       ) {
         return;
       }
-      const text = b64toText(t.bytes);
+      const text = b64toText(push.bytes);
       if (text === null) return;
-      if (!t.link_frame || t.link_frame !== latestLinkFrame)
+      if (!push.link_frame || push.link_frame !== latestLinkFrame)
         invalidateLinks(
           endpointPresentation.displayedFrame?.text !== text,
           true,
         );
       linkReadyRef.current = true;
       latestEndpointText =
-        typeof t.mouse_reporting === "boolean" ? text : undefined;
-      latestLinkFrame = t.link_frame;
+        typeof push.mouse_reporting === "boolean" ? text : undefined;
+      latestLinkFrame = push.link_frame;
       // An explicitly chosen path is a stable action target, even as a TUI repaints.
       attachWatchdogRef.current?.markFrame();
       recoveryBudgetRef.current.reset();
       setTerminalLoading(false);
       setTerminalAttachError("");
-      if (typeof t.mouse_reporting === "boolean") {
+      if (typeof push.mouse_reporting === "boolean") {
         term.options.macOptionClickForcesSelection = true;
         endpointPresentation.update(
           text,
-          t.mouse_reporting,
+          push.mouse_reporting,
           {
-            cols: t.width,
-            rows: t.height,
+            cols: push.width,
+            rows: push.height,
           },
-          t.history,
-          t.link_frame,
+          push.history,
+          push.link_frame,
         );
       } else {
         endpointPresentation.updateIncremental(text, () => {
@@ -1507,8 +1516,7 @@ export function TerminalView({
           );
           store.notify({
             kind: "info",
-            message:
-              "Selection display resumed: pending output reached the 1 MiB limit. Captured comments are preserved.",
+            message: t("terminal.selectionResumed"),
           });
         });
       }
@@ -1599,8 +1607,8 @@ export function TerminalView({
         setTerminalAttachError(
           typeof closed.reason === "string" &&
             closed.reason.includes("taken over")
-            ? "Terminal stream was taken over by another Herdr World client"
-            : "Terminal stream closed by the server",
+            ? t("terminal.streamTakenOver")
+            : t("terminal.streamClosed"),
         );
         return;
       }
@@ -1713,7 +1721,7 @@ export function TerminalView({
     };
     pasteUploadedPathRef.current = (text, destination) => {
       if (terminalCompositionActive)
-        return Promise.reject(new Error("Terminal text composition is active"));
+        return Promise.reject(new Error(t("terminal.compositionActive")));
       return pasteText(text, destination, inputSessionRef.current, true);
     };
     const sendMissingImeText = (
@@ -1788,8 +1796,8 @@ export function TerminalView({
           retainTerminalComposerUploadPaths(key, retained);
           store.notify({
             kind: "error",
-            message: "File upload incomplete",
-            detail: `Successful paths retained in the original pane's Message draft: ${retained}`,
+            message: t("terminal.uploadIncomplete"),
+            detail: t("terminal.uploadRetained", { paths: retained }),
           });
         }
         throw error;
@@ -1837,7 +1845,7 @@ export function TerminalView({
             const items = await withTimeout(
               clipboard.read(),
               CLIPBOARD_READ_TIMEOUT_MS,
-              "Clipboard read timed out",
+              t("terminal.clipboardReadTimeout"),
             );
             for (const item of items) {
               const imageType = item.types.find((type) =>
@@ -1847,7 +1855,7 @@ export function TerminalView({
                 const blob = await withTimeout(
                   item.getType(imageType),
                   CLIPBOARD_READ_TIMEOUT_MS,
-                  "Clipboard image read timed out",
+                  t("terminal.clipboardImageTimeout"),
                 );
                 await pasteImage(blob, insertImage, uploadKey);
                 return;
@@ -1858,12 +1866,12 @@ export function TerminalView({
                 const blob = await withTimeout(
                   item.getType("text/plain"),
                   CLIPBOARD_READ_TIMEOUT_MS,
-                  "Clipboard text read timed out",
+                  t("terminal.clipboardTextTimeout"),
                 );
                 const text = await withTimeout(
                   blob.text(),
                   CLIPBOARD_READ_TIMEOUT_MS,
-                  "Clipboard text read timed out",
+                  t("terminal.clipboardTextTimeout"),
                 );
                 await pasteText(text, destinationPaneId, inputSession);
                 return;
@@ -1874,7 +1882,7 @@ export function TerminalView({
           const text = await withTimeout(
             clipboard.readText(),
             CLIPBOARD_READ_TIMEOUT_MS,
-            "Clipboard text read timed out",
+            t("terminal.clipboardTextTimeout"),
           );
           await pasteText(text, destinationPaneId, inputSession);
         });
@@ -2369,7 +2377,12 @@ export function TerminalView({
         });
       } catch (err) {
         setUploadError(
-          `${img ? "Image upload" : "Text paste"} failed: ${(err as Error).message}`,
+          t("terminal.pasteOperationFailed", {
+            what: img
+              ? t("terminal.pasteWhatImage")
+              : t("terminal.pasteWhatText"),
+            detail: (err as Error).message,
+          }),
         );
       }
     };
@@ -2405,7 +2418,7 @@ export function TerminalView({
       }
       const files = filesFromTerminalDrop(e.dataTransfer);
       if (files === "directory") {
-        setUploadError("Drop files only; directories are not supported.");
+        setUploadError(t("terminal.dropDirectories"));
         return;
       }
       if (!files?.length) return;
@@ -2416,7 +2429,9 @@ export function TerminalView({
           insert,
         ),
       ).catch((err) => {
-        setUploadError(`File upload failed: ${(err as Error).message}`);
+        setUploadError(
+          t("terminal.fileUploadFailed", { detail: (err as Error).message }),
+        );
       });
     };
     container.addEventListener("dragover", onTerminalDragOver, {
@@ -3503,7 +3518,7 @@ export function TerminalView({
   const notifyComposerError = (message: string) => {
     store.notify({
       kind: "error",
-      message: "Terminal composer failed",
+      message: t("terminal.composerFailed"),
       detail: message,
     });
   };
@@ -3516,7 +3531,7 @@ export function TerminalView({
       endpointPresentationRef.current?.mouseReporting === undefined &&
       !mobileTerminalShortcutExecution(shortcut.action, false)
     )
-      return "This key combination requires an endpoint terminal.";
+      return t("terminal.shortcutNeedsEndpoint");
     return null;
   };
   const runMobileShortcut = (shortcut: MobileTerminalShortcut) => {
@@ -3562,7 +3577,7 @@ export function TerminalView({
               <div className="terminal-empty-stack" role="alert">
                 <span>{s.error}</span>
                 <button type="button" onClick={() => void store.refresh()}>
-                  Retry
+                  {t("needsYou.retry")}
                 </button>
               </div>
             ) : s.navigationLoading ? (
@@ -3575,19 +3590,17 @@ export function TerminalView({
                   aria-live="polite"
                 >
                   <span className="terminal-loading-dot" />
-                  <span>Loading terminal</span>
+                  <span>{t("terminal.loadingTerminal")}</span>
                 </div>
               ) : null
             ) : (
-              <span className="muted">
-                Select a workspace or agent to open its terminal.
-              </span>
+              <span className="muted">{t("terminal.selectToOpen")}</span>
             )}
           </HerdrSetupCard>
         </div>
         <MessageDialog
           open={!!uploadError}
-          title="Upload Failed"
+          title={t("terminal.uploadFailedTitle")}
           message={uploadError}
           onClose={() => setUploadError("")}
         />
@@ -3712,7 +3725,7 @@ export function TerminalView({
                         ),
                 }}
                 role="group"
-                aria-label="Selected terminal output"
+                aria-label={t("terminal.selectedOutputAria")}
               >
                 <button
                   type="button"
@@ -3724,12 +3737,14 @@ export function TerminalView({
                     if (text)
                       void copyTextFromUserGesture(text).catch((error) =>
                         setUploadError(
-                          `Copy failed: ${(error as Error).message}`,
+                          t("terminal.copyFailed", {
+                            detail: (error as Error).message,
+                          }),
                         ),
                       );
                   }}
                 >
-                  Copy
+                  {t("terminal.copy")}
                 </button>
                 <button
                   type="button"
@@ -3742,7 +3757,7 @@ export function TerminalView({
                     );
                   }}
                 >
-                  Add comment
+                  {t("terminal.addComment")}
                 </button>
                 <button
                   type="button"
@@ -3751,7 +3766,7 @@ export function TerminalView({
                     setReviewSelection(null);
                   }}
                 >
-                  Done
+                  {t("terminal.done")}
                 </button>
                 {touchLink ? (
                   <button
@@ -3781,7 +3796,9 @@ export function TerminalView({
                       touchSelectionRef.current?.reset();
                     }}
                   >
-                    {touchLink.kind === "url" ? "Open link" : "File actions"}
+                    {touchLink.kind === "url"
+                      ? t("terminal.openLink")
+                      : t("terminal.fileActions")}
                   </button>
                 ) : null}
               </div>
@@ -3947,14 +3964,14 @@ export function TerminalView({
           {!isMobileLayout() && touchHandles.length === 0 && isActivePane ? (
             <div
               className="terminal-mobile-input-actions"
-              aria-label="Terminal input"
+              aria-label={t("terminal.terminalInputAria")}
               data-reserved={touchHandles.length > 0 || undefined}
             >
               <button
                 type="button"
                 className="terminal-mobile-message"
-                aria-label="Open terminal input"
-                title="Open terminal input"
+                aria-label={t("terminal.openTerminalInput")}
+                title={t("terminal.openTerminalInput")}
                 aria-haspopup="dialog"
                 aria-pressed={inputActive}
                 disabled={
@@ -3986,15 +4003,17 @@ export function TerminalView({
               >
                 <span className="terminal-mobile-message-label">
                   {paneAgentName(pane)
-                    ? `Message ${paneAgentName(pane)}…`
-                    : "Type into the terminal…"}
+                    ? t("terminal.messageAgent", {
+                        agent: paneAgentName(pane) ?? "",
+                      })
+                    : t("terminal.typeIntoTerminal")}
                 </span>
               </button>
               <button
                 type="button"
                 className="terminal-mobile-direct"
-                aria-label="Type directly into the terminal"
-                title="Type directly into the terminal"
+                aria-label={t("terminal.typeDirectly")}
+                title={t("terminal.typeDirectly")}
                 aria-pressed={inputActive}
                 disabled={
                   directDisabled ||
@@ -4023,7 +4042,7 @@ export function TerminalView({
           hasMobileSideShortcuts ? (
             <div
               className="terminal-mobile-side-shortcuts"
-              aria-label="Terminal side shortcuts"
+              aria-label={t("terminal.sideShortcutsAria")}
             >
               {mobileSideShortcuts.map((shortcut, slotIndex) => {
                 if (!shortcut) {
@@ -4047,7 +4066,9 @@ export function TerminalView({
                       option?.label ??
                       shortcut.label
                     }
-                    aria-label={`Run ${option?.label ?? shortcut.label}`}
+                    aria-label={t("terminal.runShortcutAria", {
+                      label: option?.label ?? shortcut.label,
+                    })}
                     onPointerDown={preventShortcutFocus}
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => runMobileShortcut(shortcut)}
@@ -4069,15 +4090,15 @@ export function TerminalView({
             className={`terminal-mobile-keys ${
               mobileKeysOpen ? "is-open" : ""
             }`}
-            aria-label="Terminal shortcuts"
+            aria-label={t("terminal.shortcutsAria")}
           >
             <button
               type="button"
               className="terminal-mobile-keys-toggle"
               aria-label={
                 mobileKeysOpen
-                  ? "Hide terminal shortcuts"
-                  : "Show terminal shortcuts"
+                  ? t("terminal.hideShortcuts")
+                  : t("terminal.showShortcuts")
               }
               aria-expanded={mobileKeysOpen}
               onPointerDown={preventShortcutFocus}
@@ -4124,7 +4145,9 @@ export function TerminalView({
                             option?.label ??
                             shortcut.label
                           }
-                          aria-label={`Send ${option?.label ?? shortcut.label}`}
+                          aria-label={t("terminal.sendShortcutAria", {
+                            label: option?.label ?? shortcut.label,
+                          })}
                           onPointerDown={preventShortcutFocus}
                           onMouseDown={(event) => event.preventDefault()}
                           onClick={() => runMobileShortcut(shortcut)}
@@ -4149,7 +4172,7 @@ export function TerminalView({
             : null}
         <div
           className="terminal-pane-toolbar"
-          aria-label="Pane actions"
+          aria-label={t("terminal.paneActionsAria")}
           ref={(element) => {
             element?.toggleAttribute(
               "inert",
@@ -4164,7 +4187,7 @@ export function TerminalView({
               role="status"
               title={store.terminalScrollReason(pane.terminal_id) ?? undefined}
             >
-              History unavailable: pane.scroll not advertised
+              {t("terminal.historyUnavailable")}
             </span>
           ) : null}
           {!paneZoomed ? (
@@ -4172,8 +4195,8 @@ export function TerminalView({
               <button
                 type="button"
                 className="terminal-pane-action"
-                title="Split pane right"
-                aria-label="Split pane right"
+                title={t("terminal.splitRight")}
+                aria-label={t("terminal.splitRight")}
                 onPointerDown={preventPaneActionFocus}
                 onClick={() => store.splitPane(pane.pane_id, "right")}
               >
@@ -4182,8 +4205,8 @@ export function TerminalView({
               <button
                 type="button"
                 className="terminal-pane-action"
-                title="Split pane down"
-                aria-label="Split pane down"
+                title={t("terminal.splitDown")}
+                aria-label={t("terminal.splitDown")}
                 onPointerDown={preventPaneActionFocus}
                 onClick={() => store.splitPane(pane.pane_id, "down")}
               >
@@ -4200,8 +4223,16 @@ export function TerminalView({
             <button
               type="button"
               className="terminal-pane-action"
-              title={paneZoomed ? "Restore pane" : "Maximize pane"}
-              aria-label={paneZoomed ? "Restore pane" : "Maximize pane"}
+              title={
+                paneZoomed
+                  ? t("terminal.restorePane")
+                  : t("terminal.maximizePane")
+              }
+              aria-label={
+                paneZoomed
+                  ? t("terminal.restorePane")
+                  : t("terminal.maximizePane")
+              }
               onPointerDown={preventPaneActionFocus}
               onClick={() => store.zoomPane(pane.pane_id)}
             >
@@ -4212,8 +4243,8 @@ export function TerminalView({
             <button
               type="button"
               className="terminal-pane-action is-danger"
-              title="Close pane"
-              aria-label="Close pane"
+              title={t("terminal.closePane")}
+              aria-label={t("terminal.closePane")}
               onPointerDown={preventPaneActionFocus}
               onClick={() => setClosePaneRequested(true)}
             >
@@ -4224,11 +4255,11 @@ export function TerminalView({
         {s.connectionPaused ? (
           <div className="terminal-loading" role="status" aria-live="polite">
             <span className="terminal-loading-dot" />
-            <span>Connection paused</span>
+            <span>{t("terminal.connectionPaused")}</span>
           </div>
         ) : s.status !== "connected" || !connectionClient.isCurrent() ? (
           <div className="terminal-loading" role="status" aria-live="polite">
-            <span>Disconnected · Showing last output</span>
+            <span>{t("terminal.disconnectedLastOutput")}</span>
           </div>
         ) : terminalAttachError ? (
           <div
@@ -4246,24 +4277,30 @@ export function TerminalView({
                 setAttachRetry((value) => value + 1);
               }}
             >
-              Retry terminal
+              {t("terminal.retryTerminal")}
             </button>
             <button type="button" onClick={() => window.location.reload()}>
-              Reload app
+              {t("terminal.reloadApp")}
             </button>
           </div>
         ) : terminalLoadingSpinner || pasteLoading ? (
           <div className="terminal-loading" role="status" aria-live="polite">
             <span className="terminal-loading-dot" />
-            <span>{pasteLoading ? "Pasting..." : "Loading terminal"}</span>
+            <span>
+              {pasteLoading
+                ? t("terminal.pasting")
+                : t("terminal.loadingTerminal")}
+            </span>
           </div>
         ) : null}
       </div>
       <ConfirmDialog
         open={closePaneRequested}
-        title="Close Pane"
-        message={`Close this terminal pane?${composerDraftWarning}`}
-        confirmLabel="Close"
+        title={t("terminal.closePaneTitle")}
+        message={t("terminal.closePaneConfirm", {
+          warning: composerDraftWarning,
+        })}
+        confirmLabel={t("history.close")}
         danger
         onClose={() => setClosePaneRequested(false)}
         onConfirm={() => {
@@ -4272,7 +4309,7 @@ export function TerminalView({
       />
       <MessageDialog
         open={!!uploadError}
-        title="Upload Failed"
+        title={t("terminal.uploadFailedTitle")}
         message={uploadError}
         onClose={() => setUploadError("")}
       />

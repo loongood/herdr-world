@@ -67,6 +67,7 @@ import { AttachmentChips } from "./AttachmentChips";
 import { isMobileLayout } from "../layoutPreferences";
 import { AgentLauncher } from "./AgentLauncher";
 import { useTouchReleaseSubmit } from "./useTouchReleaseSubmit";
+import { useT } from "../i18n";
 import "./TerminalComposer.css";
 import "./TerminalComposer.chat.css";
 import { TerminalComposerPalette } from "./TerminalComposerPalette";
@@ -154,6 +155,7 @@ export function TerminalComposer({
   disabledReason?: string;
   notice?: string;
 }) {
+  const t = useT();
   useShortcutPreferences();
   const [text, setText] = useState(() => readTerminalComposerDraft(draftKey));
   const [submissionPending, setSubmissionPending] = useState(() =>
@@ -453,34 +455,28 @@ export function TerminalComposer({
       files,
       async (file, onProgress, retry) => {
         if (!beginTerminalComposerUpload(uploadDraftKey))
-          throw new Error("This pane's composer closed");
+          throw new Error(t("terminal.composerClosed"));
         let path: string | null = null;
         try {
           path = await (retry
             ? upload(file, onProgress, true)
             : upload(file, onProgress));
-          if (composingRef.current)
-            throw new Error(
-              "Path insertion deferred during text composition; path retained in Message draft",
-            );
+          if (composingRef.current) throw new Error(t("terminal.pathDeferred"));
           await insert(terminalUploadedPathsText([path]));
           path = null;
         } catch (error) {
           // Keep a successful upload's path when its insertion fails. Delivery
           // itself owns its fallback, so do not retry an uncertain PTY write.
+          const fallback = t("terminal.fileUploadFailedFallback");
           if (path !== null) {
             retainTerminalComposerUploadPaths(
               uploadDraftKey,
               terminalUploadedPathsText([path]),
             );
-            onError(
-              error instanceof Error ? error.message : "File upload failed",
-            );
+            onError(error instanceof Error ? error.message : fallback);
             return;
           }
-          onError(
-            error instanceof Error ? error.message : "File upload failed",
-          );
+          onError(error instanceof Error ? error.message : fallback);
           throw error;
         } finally {
           finishTerminalComposerUpload(uploadDraftKey);
@@ -518,7 +514,9 @@ export function TerminalComposer({
         dismissCommands,
       );
     } catch (error) {
-      onError(error instanceof Error ? error.message : "Failed to send input");
+      onError(
+        error instanceof Error ? error.message : t("terminal.sendFailed"),
+      );
     }
   };
 
@@ -692,7 +690,11 @@ export function TerminalComposer({
         data-open={open || undefined}
         data-reserved={reserved || undefined}
         role="group"
-        aria-label={surface === "chat" ? "Chat input" : "Terminal input"}
+        aria-label={
+          surface === "chat"
+            ? t("terminal.chatInputAria")
+            : t("terminal.terminalInputAria")
+        }
         tabIndex={-1}
         onFocus={(event) => {
           // Dock focus is neutral: only the editor opens the keyboard.
@@ -705,8 +707,8 @@ export function TerminalComposer({
           <button
             type="button"
             className="terminal-composer-attach"
-            title="Add a file"
-            aria-label="Add a file"
+            title={t("terminal.addFile")}
+            aria-label={t("terminal.addFile")}
             disabled={submissionPending || composing}
             onMouseDown={keepTextareaFocus}
             onClick={() => {
@@ -733,7 +735,7 @@ export function TerminalComposer({
                 const latest = pickerUploadRef.current;
                 if (!input.isConnected || latest.owner !== owner) {
                   input.value = "";
-                  onError("Upload target changed while choosing files");
+                  onError(t("terminal.uploadTargetChanged"));
                   return;
                 }
                 pickFiles(input, {
@@ -744,13 +746,13 @@ export function TerminalComposer({
                       return binding
                         ? binding.upload(file, progress)
                         : Promise.reject(
-                            new Error("Upload target is not open"),
+                            new Error(t("terminal.uploadTargetNotOpen")),
                           );
                     }
                     const current = pickerUploadRef.current;
                     if (current.owner !== owner) {
                       return Promise.reject(
-                        new Error("Upload target changed during upload"),
+                        new Error(t("terminal.uploadTargetChangedDuring")),
                       );
                     }
                     return current.upload(file, progress);
@@ -769,7 +771,7 @@ export function TerminalComposer({
             type="button"
             className="terminal-composer-commands-toggle"
             hidden={surface === "chat"}
-            aria-label="Commands"
+            aria-label={t("terminal.commandsAria")}
             ref={surface === "chat" ? undefined : commandsButtonRef}
             aria-expanded={presentedPickerOpen}
             aria-controls={
@@ -778,8 +780,8 @@ export function TerminalComposer({
             disabled={commands.length === 0 || busy || composing}
             title={
               commands.length
-                ? "Browse agent commands"
-                : "No built-in commands for this agent; type any command in the draft"
+                ? t("terminal.browseCommands")
+                : t("terminal.noCommands")
             }
             onMouseDown={keepTextareaFocus}
             onClick={browseCommands}
@@ -789,13 +791,13 @@ export function TerminalComposer({
           <div
             className="terminal-composer-mode"
             role="group"
-            aria-label="Input mode"
+            aria-label={t("terminal.inputModeAria")}
             hidden={surface === "chat"}
           >
             <button
               type="button"
-              aria-label="Composer"
-              title="Composer"
+              aria-label={t("terminal.composerLabel")}
+              title={t("terminal.composerLabel")}
               hidden={surface === "chat"}
               aria-pressed={mode === "composer"}
               disabled={composing}
@@ -812,8 +814,8 @@ export function TerminalComposer({
               type="button"
               className="terminal-mobile-direct"
               hidden={surface === "chat"}
-              aria-label="Type directly into the terminal"
-              title="Type directly into the terminal"
+              aria-label={t("terminal.typeDirectly")}
+              title={t("terminal.typeDirectly")}
               aria-pressed={mode === "direct"}
               data-input-active={directInputActive || undefined}
               disabled={directDisabled || composing}
@@ -858,37 +860,39 @@ export function TerminalComposer({
               {notice ||
                 disabledReason ||
                 (uploading
-                  ? "Uploading file…"
+                  ? t("terminal.uploadingFile")
                   : submissionPending
-                    ? "Sending…"
+                    ? t("terminal.sending")
                     : "")}
             </span>
             <button
               type="button"
               className="terminal-composer-submit"
-              title="Insert into the terminal without executing"
-              aria-label="Insert draft into the terminal"
+              title={t("terminal.insertWithoutExecute")}
+              aria-label={t("terminal.insertDraftAria")}
               hidden={surface === "chat"}
               disabled={submitDisabled}
               onMouseDown={keepTextareaFocus}
               {...touchSubmit.buttonProps(() => void submit(false))}
             >
               <TextCursorInput size={14} />
-              Insert
+              {t("terminal.insert")}
             </button>
             <button
               type="button"
               className="terminal-composer-submit is-primary"
               title={
                 surface === "chat"
-                  ? "Send message (Ctrl+Enter or Cmd+Enter)"
+                  ? t("terminal.sendChatHint")
                   : shortcutTitle(
-                      "Insert into the terminal and send Enter",
+                      t("terminal.insertAndSendEnter"),
                       "composer.send",
                     )
               }
               aria-label={
-                surface === "chat" ? "Send" : "Send draft to the terminal"
+                surface === "chat"
+                  ? t("history.send")
+                  : t("terminal.sendDraftToTerminal")
               }
               disabled={submitDisabled}
               onMouseDown={keepTextareaFocus}
@@ -899,7 +903,7 @@ export function TerminalComposer({
               ) : (
                 <>
                   <CornerDownLeft size={14} />
-                  Send
+                  {t("history.send")}
                 </>
               )}
             </button>
@@ -908,8 +912,8 @@ export function TerminalComposer({
             type="button"
             className="terminal-composer-close"
             hidden={surface === "chat"}
-            title="Close terminal input"
-            aria-label="Close terminal input"
+            title={t("terminal.closeTerminalInput")}
+            aria-label={t("terminal.closeTerminalInput")}
             onMouseDown={keepTextareaFocus}
             onClick={onClose}
           >
@@ -926,7 +930,7 @@ export function TerminalComposer({
                 "--mobile-shortcut-columns": shortcutColumns,
               } as CSSProperties
             }
-            aria-label="Terminal shortcuts"
+            aria-label={t("terminal.shortcutsAria")}
           >
             {shortcutRows.map((row, rowIndex) => (
               <div
@@ -1020,11 +1024,9 @@ export function TerminalComposer({
                   reserved ||
                   !accessoriesOpen
                 )
-                  throw new Error(
-                    "Message input is not ready for an agent command.",
-                  );
+                  throw new Error(t("terminal.commandNotReady"));
                 if (readTerminalComposerDraft(draftKey) || attachments.length)
-                  throw new Error("Clear Message before choosing an agent.");
+                  throw new Error(t("terminal.clearBeforeAgent"));
                 activateMessage(false);
                 void submitTerminalComposerDraft(draftKey, command, (text) =>
                   onSubmit(text, true),
@@ -1032,7 +1034,7 @@ export function TerminalComposer({
                   onError(
                     error instanceof Error
                       ? error.message
-                      : "Failed to launch agent",
+                      : t("terminal.launchFailed"),
                   ),
                 );
               }}
@@ -1042,7 +1044,7 @@ export function TerminalComposer({
             className="terminal-composer-direct"
             hidden={surface === "chat" || mode !== "direct"}
           >
-            Typing goes directly to the terminal. Your Composer draft is saved.
+            {t("terminal.directNotice")}
           </div>
           <textarea
             ref={textareaRef}
@@ -1051,8 +1053,10 @@ export function TerminalComposer({
             rows={1}
             placeholder={
               recipient || agent?.trim()
-                ? `Message ${recipient ?? agent?.trim()}…`
-                : "Message…"
+                ? t("terminal.messageAgent", {
+                    agent: recipient ?? agent?.trim() ?? "",
+                  })
+                : t("terminal.messagePlaceholder")
             }
             onFocus={() => {
               setEditorFocused(true);
@@ -1066,7 +1070,11 @@ export function TerminalComposer({
             }}
             onClick={() => activateMessage(true)}
             autoComplete="off"
-            aria-label={surface === "chat" ? "Message" : "Terminal input draft"}
+            aria-label={
+              surface === "chat"
+                ? t("terminal.messageAria")
+                : t("terminal.terminalInputDraftAria")
+            }
             role="combobox"
             aria-expanded={presentedPickerOpen && !replacement}
             aria-controls={
@@ -1151,7 +1159,7 @@ export function TerminalComposer({
               e.preventDefault();
               const files = filesFromTerminalDrop(e.dataTransfer);
               if (files === "directory") {
-                onError("Drop files only; directories are not supported.");
+                onError(t("terminal.dropDirectories"));
               } else if (files?.length) {
                 void uploadAndInsert(files, onUploadFile);
               }

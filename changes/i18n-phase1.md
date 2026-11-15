@@ -41,6 +41,11 @@
   minimap, permissions popover, queue and steer controls, the mention
   composer, thinking steps, model and auth forms, action cards and their
   proposal confirmations, and the task board (list, overview, details, run
-  history, transcripts and task proposals).
+  history, transcripts and task proposals). The terminal surfaces follow as
+  well: the terminal pane (status, selection and touch actions, mobile input,
+  pane toolbar, splits and close confirmation), the composer (modes, uploads,
+  commands, notices and errors) and the tab pane layout (switcher, empty
+  state and pane counter), including the close-warning sentence about
+  unsent drafts.
   Remaining surfaces keep English
   until their phase lands.

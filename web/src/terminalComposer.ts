@@ -1,4 +1,5 @@
 import type { ConnectionClient } from "./api";
+import { t } from "./i18n";
 import { prepareTerminalPasteText } from "./terminalPaste";
 
 /**
@@ -387,8 +388,8 @@ export function clearTerminalComposerDrafts(
 export function terminalComposerCloseWarning(draftCount: number): string {
   if (draftCount <= 0) return "";
   return draftCount === 1
-    ? " The unsent composer draft will be discarded."
-    : ` ${draftCount} unsent composer drafts will be discarded.`;
+    ? t("terminal.composerCloseDraftOne")
+    : t("terminal.composerCloseDraftMany", { count: draftCount });
 }
 
 /**

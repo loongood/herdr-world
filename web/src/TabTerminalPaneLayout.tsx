@@ -9,6 +9,7 @@ import type {
   MobileTerminalSideShortcuts,
 } from "./mobileTerminalShortcuts";
 import { useOperationalStore } from "./store";
+import { useT } from "./i18n";
 import { terminalMountKey } from "./terminalConnection";
 import type { Pane, PaneLayout } from "./types";
 import type { TerminalWorkspaceFileRequest } from "./components/TerminalView";
@@ -234,6 +235,7 @@ export function TabTerminalPaneLayout({
   excludedPaneIds?: ReadonlySet<string>;
   retainedPaneIds?: ReadonlySet<string>;
 }) {
+  const t = useT();
   const store = useOperationalStore();
   const onFocusPane =
     suppliedFocusPane ?? ((paneId: string) => void store.focusPane(paneId));
@@ -378,9 +380,9 @@ export function TabTerminalPaneLayout({
       }
       aria-label={
         paneSwitcher
-          ? "Terminal pane switcher"
+          ? t("terminal.paneSwitcherAria")
           : splitLayout
-            ? "Terminal panes"
+            ? t("terminal.panesAria")
             : undefined
       }
       data-pane-id={
@@ -401,8 +403,8 @@ export function TabTerminalPaneLayout({
       {empty ? (
         <div role="status">
           {layout && excludedPaneIds.size > 0
-            ? "This terminal remains open in its World Inspector."
-            : (unavailableMessage ?? "Loading tab layout…")}
+            ? t("terminal.inInspector")
+            : (unavailableMessage ?? t("terminal.loadingLayout"))}
         </div>
       ) : null}
       {paneSwitcher && previousPane && nextPane ? (
@@ -410,7 +412,7 @@ export function TabTerminalPaneLayout({
           <button
             type="button"
             className="pane-switcher-button"
-            aria-label="Previous pane"
+            aria-label={t("terminal.previousPane")}
             data-pane-id={previousPane.pane_id}
             tabIndex={-1}
             onPointerDown={blurActiveInput}
@@ -420,14 +422,17 @@ export function TabTerminalPaneLayout({
           </button>
           <div className="pane-switcher-label">
             <strong>
-              Pane {activeIndex + 1} / {visiblePanes.length}
+              {t("terminal.paneCounter", {
+                index: activeIndex + 1,
+                total: visiblePanes.length,
+              })}
             </strong>
             <span>{paneTitle(activePaneId!, panes)}</span>
           </div>
           <button
             type="button"
             className="pane-switcher-button"
-            aria-label="Next pane"
+            aria-label={t("terminal.nextPane")}
             data-pane-id={nextPane.pane_id}
             tabIndex={-1}
             onPointerDown={blurActiveInput}
