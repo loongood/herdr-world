@@ -2628,6 +2628,9 @@ test("assistant uses saved workspace permissions, guards IME sends, and hides wi
     spyOn(React, "useId").mockReturnValue("mention-picker"),
     spyOn(React, "useMemo").mockImplementation((create) => create()),
     spyOn(React, "useCallback").mockImplementation((callback) => callback),
+    spyOn(React, "useSyncExternalStore").mockImplementation(
+      (_subscribe, getSnapshot) => getSnapshot(),
+    ),
   ];
   function visit(node: React.ReactNode) {
     React.Children.forEach(node, (child) => {

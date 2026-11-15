@@ -5,6 +5,7 @@ import {
   thinkingLabels,
   thinkingOptions,
 } from "../assistantModels";
+import { useT } from "../i18n";
 import { ThemedSelect } from "./ThemedSelect";
 import "./AssistantChatControls.css";
 
@@ -47,31 +48,40 @@ export function AssistantChatControls({
     !current.thinking_levels.includes(config.thinking_level);
   const effective = config.thinking_level ?? current?.default_thinking_level;
   const supported = snapshot.chat_selection === true;
+  const t = useT();
   const unavailable = !supported
-    ? "Update Herdr World to use quick model settings"
+    ? t("assistant.controlsUpdateNeeded")
     : !models.length
-      ? "Connect a provider in Ranger settings"
-      : "Choose a model";
+      ? t("assistant.controlsConnectProvider")
+      : t("assistant.chooseModel");
   return (
-    <div className="assistant-chat-controls" aria-label="Ranger model settings">
+    <div
+      className="assistant-chat-controls"
+      aria-label={t("assistant.controlsAria")}
+    >
       <ThemedSelect
         value={modelKey(config.provider, config.model)}
         options={options}
-        aria-label="Chat model"
+        aria-label={t("assistant.chatModelAria")}
         title={
           current
-            ? `${current.label} (${current.provider}). Changes apply to the next message.`
+            ? t("assistant.chatModelTitle", {
+                label: current.label,
+                provider: current.provider,
+              })
             : unavailable
         }
         placeholder={
           current?.label ??
-          (config.model ? `${config.model} (unavailable)` : unavailable)
+          (config.model
+            ? t("assistant.modelUnavailable", { model: config.model })
+            : unavailable)
         }
         disabled={disabled || !supported || !models.length}
         className="assistant-chat-model"
         contentClassName={`assistant-chat-select ${mobile ? "is-mobile" : ""}`}
         side="top"
-        searchPlaceholder="Search models"
+        searchPlaceholder={t("assistant.searchModels")}
         onSelectedClose={onSelectedClose}
         onChange={(value) => {
           const model = models.find(
@@ -90,20 +100,24 @@ export function AssistantChatControls({
       <ThemedSelect
         value={config.thinking_level ?? "default"}
         options={efforts}
-        aria-label="Thinking effort"
+        aria-label={t("assistant.thinkingEffortAria")}
         title={
           efforts.length
-            ? "Thinking effort for the next message"
+            ? t("assistant.effortTitleNext")
             : current
-              ? "This model has no adjustable thinking effort"
+              ? t("assistant.effortTitleNone")
               : unavailable
         }
         placeholder={
           staleEffort
-            ? `Unavailable (${thinkingLabels[config.thinking_level!]})`
+            ? t("assistant.effortUnavailable", {
+                label: thinkingLabels[config.thinking_level!],
+              })
             : effective
-              ? `Thinking: ${thinkingLabels[effective]}`
-              : "Thinking unavailable"
+              ? t("assistant.effortPrefix", {
+                  label: thinkingLabels[effective],
+                })
+              : t("assistant.effortUnavailableShort")
         }
         disabled={disabled || !supported || !efforts.length}
         className="assistant-chat-effort"
@@ -122,7 +136,7 @@ export function AssistantChatControls({
       />
       {snapshot.running ? (
         <span className="assistant-chat-next" role="status">
-          Next message
+          {t("assistant.nextMessage")}
         </span>
       ) : null}
     </div>

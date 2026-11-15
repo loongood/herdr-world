@@ -21,6 +21,7 @@ import {
   assistantMentionQuery,
   insertAssistantMention,
 } from "../assistantMentions";
+import { useT } from "../i18n";
 import "./AssistantMentionComposer.css";
 
 export function AssistantMentionComposer({
@@ -74,6 +75,7 @@ export function AssistantMentionComposer({
   const caret = useRef<number | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const id = useId();
+  const t = useT();
   const open = picker !== null;
   const mentionedWorkspaces = mentions.filter(
     (mention) => mention.kind === "workspace",
@@ -226,9 +228,7 @@ export function AssistantMentionComposer({
   const select = (target: AssistantMentionTarget) => {
     if (!picker || loading || !targets || composing.current) return;
     if (mentions.length >= ASSISTANT_MAX_MENTIONS) {
-      setErrors([
-        `Use up to ${ASSISTANT_MAX_MENTIONS} references per message.`,
-      ]);
+      setErrors([t("assistant.mentionLimit", { max: ASSISTANT_MAX_MENTIONS })]);
       return;
     }
     const next = insertAssistantMention(
@@ -239,7 +239,7 @@ export function AssistantMentionComposer({
       picker.end,
     );
     if (next.text.length > 20_000) {
-      setErrors(["This reference would exceed the message length limit."]);
+      setErrors([t("assistant.mentionTooLong")]);
       return;
     }
     const input = inputRef.current;
@@ -268,7 +268,7 @@ export function AssistantMentionComposer({
               <div
                 className="assistant-mention-categories"
                 role="group"
-                aria-label="Reference types"
+                aria-label={t("assistant.mentionTypesAria")}
               >
                 {(["all", "workspace", "agent"] as const).map((kind) => (
                   <button
@@ -279,17 +279,17 @@ export function AssistantMentionComposer({
                     onClick={() => setCategory(kind)}
                   >
                     {kind === "all"
-                      ? "All"
+                      ? t("assistant.mentionAll")
                       : kind === "workspace"
-                        ? "Workspaces"
-                        : "Agents"}
+                        ? t("assistant.mentionWorkspaces")
+                        : t("assistant.mentionAgents")}
                   </button>
                 ))}
               </div>
               <button
                 type="button"
                 className="assistant-mention-close"
-                aria-label="Close reference menu"
+                aria-label={t("assistant.mentionCloseAria")}
                 onMouseDown={keepFocus}
                 onClick={close}
               >
@@ -300,7 +300,7 @@ export function AssistantMentionComposer({
               ref={list}
               id={id}
               role="listbox"
-              aria-label="Workspace and agent references"
+              aria-label={t("assistant.mentionListAria")}
               aria-busy={loading}
               className="assistant-mention-options"
             >
@@ -332,20 +332,22 @@ export function AssistantMentionComposer({
                     </small>
                   </span>
                   <span className="assistant-mention-kind">
-                    {target.kind === "agent" ? target.agent : "Workspace"}
+                    {target.kind === "agent"
+                      ? target.agent
+                      : t("assistant.mentionKindWorkspace")}
                   </span>
                 </button>
               ))}
             </div>
             {loading ? (
               <p className="assistant-mention-notice" role="status">
-                <LoaderCircle size={12} className="assistant-spinner" /> Loading
-                references
+                <LoaderCircle size={12} className="assistant-spinner" />{" "}
+                {t("assistant.mentionLoading")}
               </p>
             ) : null}
             {!loading && !candidates.length && !errors.length ? (
               <p className="assistant-mention-notice" role="status">
-                No matching references in authorized workspaces.
+                {t("assistant.mentionNoMatch")}
               </p>
             ) : null}
             {errors.map((error) => (
@@ -360,24 +362,23 @@ export function AssistantMentionComposer({
                 onMouseDown={keepFocus}
                 onClick={() => setRetry((count) => count + 1)}
               >
-                <RefreshCw size={12} /> Retry
+                <RefreshCw size={12} /> {t("needsYou.retry")}
               </button>
             ) : null}
             {truncated ? (
               <p className="assistant-mention-notice" role="status">
-                Some agents are omitted. Mention a workspace, then reopen Agents
-                to narrow the list.
+                {t("assistant.mentionTruncatedNote")}
               </p>
             ) : null}
             <div className="assistant-mention-picker-foot">
-              References add context. Actions follow Ranger permissions.
+              {t("assistant.mentionFootNote")}
             </div>
           </div>
         ) : null}
         <textarea
           ref={inputRef}
-          aria-label="Message Ranger"
-          placeholder="Ask about your workspaces, or @mention one"
+          aria-label={t("assistant.messageRangerAria")}
+          placeholder={t("assistant.messageRangerPlaceholder")}
           enterKeyHint={mobile ? "send" : undefined}
           rows={3}
           maxLength={20_000}
@@ -464,8 +465,8 @@ export function AssistantMentionComposer({
         <button
           type="button"
           className="assistant-mention-trigger"
-          aria-label="Mention workspace or agent"
-          title="Mention a workspace or agent"
+          aria-label={t("assistant.mentionTriggerAria")}
+          title={t("assistant.mentionTriggerTitle")}
           aria-expanded={open}
           aria-controls={open ? id : undefined}
           onMouseDown={keepFocus}
@@ -489,7 +490,10 @@ export function AssistantMentionComposer({
         </button>
       </div>
       {mentions.length ? (
-        <div className="assistant-mention-tray" aria-label="Message references">
+        <div
+          className="assistant-mention-tray"
+          aria-label={t("assistant.mentionTrayAria")}
+        >
           {mentions.map((mention) => (
             <span
               className="assistant-mention-chip"
@@ -497,7 +501,14 @@ export function AssistantMentionComposer({
             >
               <button
                 type="button"
-                title={`${mention.kind === "agent" ? mention.agent : "Workspace"} / ${mention.connection_label} / ${mention.workspace_label}`}
+                title={t("assistant.mentionChipTitle", {
+                  kind:
+                    mention.kind === "agent"
+                      ? mention.agent
+                      : t("assistant.mentionKindWorkspace"),
+                  connection: mention.connection_label,
+                  workspace: mention.workspace_label,
+                })}
                 onClick={() => onOpenMention(mention)}
               >
                 {mention.kind === "agent" ? (
@@ -514,7 +525,9 @@ export function AssistantMentionComposer({
               </button>
               <button
                 type="button"
-                aria-label={`Remove reference to ${mention.label}`}
+                aria-label={t("assistant.removeReferenceAria", {
+                  label: mention.label,
+                })}
                 onMouseDown={keepFocus}
                 onClick={() =>
                   onChange(

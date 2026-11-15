@@ -1,5 +1,6 @@
 import { Pencil, X } from "lucide-react";
 import type { AssistantQueuedMessage } from "../../../shared/assistant";
+import { useT } from "../i18n";
 import "./AssistantQueue.css";
 
 /**
@@ -28,18 +29,22 @@ export function AssistantQueue({
   onRemove: (item: AssistantQueuedMessage) => void;
   onResume: () => void;
 }) {
+  const t = useT();
   if (!queue.length) return null;
   return (
-    <section className="assistant-queue" aria-label="Waiting messages">
+    <section
+      className="assistant-queue"
+      aria-label={t("assistant.queuePanelAria")}
+    >
       {running || !(held || reviewing) ? null : (
         <div className="assistant-queue-head">
           <span>
             {reviewing
-              ? "Waiting for you to review the proposal above. Sending now cancels it."
-              : "Paused. Send the next message when you are ready."}
+              ? t("assistant.queueReviewHeld")
+              : t("assistant.queuePaused")}
           </span>
           <button type="button" disabled={disabled} onClick={onResume}>
-            Send next
+            {t("assistant.sendNext")}
           </button>
         </div>
       )}
@@ -50,11 +55,13 @@ export function AssistantQueue({
               className="assistant-queue-mode"
               title={
                 item.mode === "steer"
-                  ? "Joins the current answer after its next step"
-                  : "Sends after the current answer finishes"
+                  ? t("assistant.queueSteerNote")
+                  : t("assistant.queueFollowUpNote")
               }
             >
-              {item.mode === "steer" ? "Steer" : "Queued"}
+              {item.mode === "steer"
+                ? t("assistant.steer")
+                : t("assistant.queuedLabel")}
             </span>
             <span className="assistant-queue-text" title={item.text}>
               {item.text}
@@ -63,8 +70,8 @@ export function AssistantQueue({
               <>
                 <button
                   type="button"
-                  aria-label="Edit queued message"
-                  title="Move back to the message box"
+                  aria-label={t("assistant.editQueuedAria")}
+                  title={t("assistant.editQueuedTitle")}
                   disabled={disabled}
                   onClick={() => onEdit(item)}
                 >
@@ -72,8 +79,8 @@ export function AssistantQueue({
                 </button>
                 <button
                   type="button"
-                  aria-label="Remove queued message"
-                  title="Remove from the queue"
+                  aria-label={t("assistant.removeQueuedAria")}
+                  title={t("assistant.removeQueuedTitle")}
                   disabled={disabled}
                   onClick={() => onRemove(item)}
                 >

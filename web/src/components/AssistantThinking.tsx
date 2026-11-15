@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { AssistantMessage } from "../../../shared/assistant";
+import { useT } from "../i18n";
 import "./AssistantThinking.css";
 
 /**
@@ -17,6 +18,7 @@ export function AssistantThinking({
   >;
   active: boolean;
 }) {
+  const t = useT();
   const details = useRef<HTMLDetailsElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const steps = message.thinking ?? [];
@@ -33,16 +35,24 @@ export function AssistantThinking({
   return (
     <details className="assistant-thinking" ref={details}>
       <summary>
-        {active ? "Thinking..." : "Thinking"}
-        {total > 1 ? ` (${total} steps)` : ""}
+        {active ? t("assistant.thinkingActive") : t("assistant.thinkingIdle")}
+        {total > 1 ? ` ${t("assistant.thinkingSteps", { count: total })}` : ""}
       </summary>
       <div className="assistant-thinking-body" ref={body}>
         {message.thinking_truncated ? (
-          <p className="assistant-thinking-note">Earlier reasoning truncated</p>
+          <p className="assistant-thinking-note">
+            {t("assistant.thinkingTruncated")}
+          </p>
         ) : null}
         {steps.map((step, index) => (
           <section key={skipped + index}>
-            {total > 1 ? <strong>Step {skipped + index + 1}</strong> : null}
+            {total > 1 ? (
+              <strong>
+                {t("assistant.thinkingStepLabel", {
+                  count: skipped + index + 1,
+                })}
+              </strong>
+            ) : null}
             <p>{step}</p>
           </section>
         ))}

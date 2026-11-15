@@ -11,6 +11,7 @@ import {
   type AssistantWorkspaceRef,
 } from "../../../shared/assistant";
 import { callAssistant, getAssistantTask } from "../assistant";
+import { t, useT, type TranslationKey } from "../i18n";
 import type { RangerTaskNotificationTarget } from "../taskNotifications";
 import { formatUiDateTime } from "../uiLocale";
 import { ActionCard, AssistantMessageActivity } from "./AssistantPanel";
@@ -25,14 +26,61 @@ function workspaceKey(ref: AssistantWorkspaceRef) {
 }
 
 export function taskScheduleLabel(schedule: AssistantTaskSchedule) {
-  if (schedule.type === "once") return `Once: ${formatUiDateTime(schedule.at)}`;
+  if (schedule.type === "once")
+    return t("assistant.taskScheduleSummaryOnce", {
+      at: formatUiDateTime(schedule.at),
+    });
   if (schedule.type === "daily")
-    return `Daily at ${schedule.time} (${schedule.timezone})`;
-  return `Every ${schedule.minutes} minute${schedule.minutes === 1 ? "" : "s"}`;
+    return t("assistant.taskScheduleSummaryDaily", {
+      time: schedule.time,
+      timezone: schedule.timezone,
+    });
+  return t(
+    schedule.minutes === 1
+      ? "assistant.taskScheduleSummaryEveryOne"
+      : "assistant.taskScheduleSummaryEveryMany",
+    { minutes: schedule.minutes },
+  );
 }
 
 const liveRun = (status: string | undefined) =>
   !!status && ["queued", "running", "waiting"].includes(status);
+
+const PROPOSAL_OPERATION_KEYS = {
+  create: "assistant.proposalOperationCreate",
+  update: "assistant.proposalOperationUpdate",
+  pause: "assistant.proposalOperationPause",
+  resume: "assistant.proposalOperationResume",
+  cancel: "assistant.proposalOperationCancel",
+  delete: "assistant.proposalOperationDelete",
+} as const satisfies Record<string, TranslationKey>;
+
+const PROPOSAL_CONFIRMED_KEYS = {
+  create: "assistant.proposalConfirmedCreate",
+  update: "assistant.proposalConfirmedUpdate",
+  pause: "assistant.proposalConfirmedPause",
+  resume: "assistant.proposalConfirmedResume",
+  cancel: "assistant.proposalConfirmedCancel",
+  delete: "assistant.proposalConfirmedDelete",
+} as const satisfies Record<string, TranslationKey>;
+
+const PROPOSAL_EXPLAIN_KEYS = {
+  create: "assistant.proposalExplainCreate",
+  update: "assistant.proposalExplainUpdate",
+  pause: "assistant.proposalExplainPause",
+  resume: "assistant.proposalExplainResume",
+  cancel: "assistant.proposalExplainCancel",
+  delete: "assistant.proposalExplainDelete",
+} as const satisfies Record<string, TranslationKey>;
+
+const PROPOSAL_CONFIRM_KEYS = {
+  create: "assistant.proposalConfirmCreate",
+  update: "assistant.proposalConfirmUpdate",
+  pause: "assistant.proposalConfirmPause",
+  resume: "assistant.proposalConfirmResume",
+  cancel: "assistant.proposalConfirmCancel",
+  delete: "assistant.proposalConfirmDelete",
+} as const satisfies Record<string, TranslationKey>;
 
 export function TaskProposalCard({
   proposal,
@@ -43,73 +91,56 @@ export function TaskProposalCard({
   busy: boolean;
   run: (action: string, params?: Record<string, unknown>) => Promise<boolean>;
 }) {
+  const t = useT();
   const operation = proposal.operation ?? "create";
-  const operationLabel = {
-    create: "Create task",
-    update: "Edit task",
-    pause: "Pause task",
-    resume: "Resume task",
-    cancel: "Cancel task",
-    delete: "Delete task",
-  }[operation];
-  const confirmedLabel = {
-    create: "Enabled",
-    update: "Updated",
-    pause: "Paused",
-    resume: "Resumed",
-    cancel: "Task cancelled",
-    delete: "Deleted",
-  }[operation];
-  const explanation = {
-    create:
-      "Confirm to enable this task. Workspace actions still need your confirmation.",
-    update:
-      "Confirm to update this task. Its scope, model and Agent references stay the same. Existing runs keep their instructions; future workspace actions require confirmation. A paused task stays paused.",
-    pause:
-      "Confirm to pause future scheduled runs. An already-started run will continue.",
-    resume: "Confirm to resume scheduled runs of this task.",
-    cancel:
-      "Confirm to permanently cancel this task and stop its active run. Its history will be kept.",
-    delete:
-      "Confirm to permanently delete this cancelled task and its private run history. This cannot be undone.",
-  }[operation];
+  const operationLabel = t(PROPOSAL_OPERATION_KEYS[operation]);
+  const confirmedLabel = t(PROPOSAL_CONFIRMED_KEYS[operation]);
+  const explanation = t(PROPOSAL_EXPLAIN_KEYS[operation]);
   return (
     <div
       className="assistant-task-proposal assistant-action-card"
       role="group"
-      aria-label="Task proposal"
+      aria-label={t("assistant.taskProposalAria")}
       tabIndex={-1}
     >
       <div className="assistant-action-head">
         <strong>{proposal.title}</strong>
         <span>
           {proposal.status === "pending"
-            ? "Needs confirmation"
+            ? t("assistant.proposalNeedsConfirmation")
             : proposal.status === "confirmed"
               ? confirmedLabel
-              : "Preview cancelled"}
+              : t("assistant.proposalPreviewCancelled")}
         </span>
       </div>
       {operation !== "create" ? (
         <>
           <p>{operationLabel}</p>
-          <span className="assistant-hint">Task ID: {proposal.task_id}</span>
+          <span className="assistant-hint">
+            {t("assistant.proposalTaskId", { id: proposal.task_id ?? "" })}
+          </span>
         </>
       ) : null}
       <p>{taskScheduleLabel(proposal.schedule)}</p>
       <span className="assistant-hint">
         {proposal.all_workspaces
-          ? `Every workspace Ranger may use when it runs (${proposal.scope.length} now)`
-          : `${proposal.scope.length} authorized workspace${proposal.scope.length === 1 ? "" : "s"}`}
+          ? t("assistant.proposalScopeAll", {
+              count: proposal.scope.length,
+            })
+          : proposal.scope.length === 1
+            ? t("assistant.proposalScopeOne")
+            : t("assistant.proposalScopeMany", {
+                count: proposal.scope.length,
+              })}
       </span>
       <details className="assistant-task-prompt">
-        <summary>Task prompt</summary>
+        <summary>{t("assistant.taskPromptSummary")}</summary>
         <p>{proposal.prompt}</p>
       </details>
       <span className="assistant-hint">
         {proposal.notification_mode === "agent"
-          ? "Ranger decides when to notify"
-          : "Notify when each run finishes"}
+          ? t("assistant.proposalNotifyAgent")
+          : t("assistant.proposalNotifyStatus")}
       </span>
       {proposal.detail ? (
         <p className="assistant-hint">{proposal.detail}</p>
@@ -128,7 +159,7 @@ export function TaskProposalCard({
                 void run("task.confirm_proposal", { proposal_id: proposal.id });
               }}
             >
-              {operation === "create" ? "Confirm task" : `Confirm ${operation}`}
+              {t(PROPOSAL_CONFIRM_KEYS[operation])}
             </button>
             <button
               type="button"
@@ -141,7 +172,7 @@ export function TaskProposalCard({
                 void run("task.cancel_proposal", { proposal_id: proposal.id });
               }}
             >
-              Cancel
+              {t("history.cancel")}
             </button>
           </div>
         </>
@@ -169,6 +200,7 @@ export function AssistantTasks({
   onOpenSettings: () => void;
   onOpenSource: (source: AssistantSource) => void;
 }) {
+  const t = useT();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [runId, setRunId] = useState<string | undefined>();
   const [detail, setDetail] = useState<AssistantTaskDetail | null>(null);
@@ -202,7 +234,7 @@ export function AssistantTasks({
     setConfirmation(null);
     onRequestedTaskHandled?.();
     if (!requestedTaskAvailable) {
-      setError("This Ranger task is no longer available.");
+      setError(t("assistant.taskUnavailable"));
       return;
     }
     setSelectedId(requestedTask.taskId);
@@ -340,7 +372,11 @@ export function AssistantTasks({
       message.actions?.some((action) => action.status === "executing"),
     );
   return (
-    <div className="assistant-tasks" aria-label="Ranger tasks" hidden={!active}>
+    <div
+      className="assistant-tasks"
+      aria-label={t("assistant.tasksAria")}
+      hidden={!active}
+    >
       {error ? (
         <p className="assistant-task-error" role="alert">
           {error}
@@ -388,7 +424,7 @@ export function AssistantTasks({
       ) : !selectedId ? (
         <>
           <div className="assistant-section-heading">
-            <h3>Tasks</h3>
+            <h3>{t("assistant.tasksHeading")}</h3>
             <button
               type="button"
               className="ghost"
@@ -398,26 +434,23 @@ export function AssistantTasks({
                 setEditor("new");
               }}
             >
-              <Plus size={13} /> New task
+              <Plus size={13} /> {t("assistant.newTask")}
             </button>
           </div>
-          <p className="assistant-hint">
-            Runs continue in the background. Open a task to see its history and
-            results.
-          </p>
+          <p className="assistant-hint">{t("assistant.tasksHint")}</p>
           {tasks.some((item) => item.status === "cancelled") ? (
             <label className="assistant-task-filter">
               <button
                 type="button"
                 role="switch"
-                aria-label="Show cancelled"
+                aria-label={t("assistant.showCancelledAria")}
                 aria-checked={showCancelled}
                 className={`settings-switch${showCancelled ? " is-on" : ""}`}
                 onClick={() => setShowCancelled((current) => !current)}
               >
                 <span />
               </button>
-              Show cancelled
+              {t("assistant.showCancelled")}
             </label>
           ) : null}
           {visibleTasks.length ? (
@@ -440,15 +473,21 @@ export function AssistantTasks({
                     <span>{taskScheduleLabel(item.schedule)}</span>
                     <small>
                       {item.current_run
-                        ? `Current: ${item.current_run.status}`
+                        ? t("assistant.taskCurrentRun", {
+                            status: item.current_run.status,
+                          })
                         : item.last_run
-                          ? `Last: ${item.last_run.status}`
-                          : "No runs yet"}
+                          ? t("assistant.taskLastRun", {
+                              status: item.last_run.status,
+                            })
+                          : t("assistant.taskNoRuns")}
                     </small>
                     <small>
                       {item.next_run_at
-                        ? `Next: ${formatUiDateTime(item.next_run_at)}`
-                        : "No upcoming run"}
+                        ? t("assistant.taskNextRun", {
+                            at: formatUiDateTime(item.next_run_at),
+                          })
+                        : t("assistant.taskNoUpcoming")}
                     </small>
                   </button>
                 </li>
@@ -458,14 +497,12 @@ export function AssistantTasks({
             <div className="assistant-panel-empty">
               <strong>
                 {snapshot.tasks === undefined
-                  ? "Update the bridge to use tasks"
+                  ? t("assistant.tasksUpdateBridge")
                   : tasks.length
-                    ? "No active tasks"
-                    : "No tasks yet"}
+                    ? t("assistant.tasksNoneActive")
+                    : t("assistant.tasksNoneYet")}
               </strong>
-              <span>
-                Create a task for a one-time or recurring workspace check.
-              </span>
+              <span>{t("assistant.tasksCreateHint")}</span>
             </div>
           )}
         </>
@@ -477,7 +514,7 @@ export function AssistantTasks({
               className="ghost"
               onClick={() => select(null)}
             >
-              <ChevronLeft size={13} /> All tasks
+              <ChevronLeft size={13} /> {t("assistant.allTasks")}
             </button>
             {task ? (
               <button
@@ -486,7 +523,7 @@ export function AssistantTasks({
                 disabled={busy || !connected || task.status === "cancelled"}
                 onClick={() => setEditor("edit")}
               >
-                Edit
+                {t("assistant.edit")}
               </button>
             ) : null}
           </div>
@@ -494,7 +531,7 @@ export function AssistantTasks({
             <>
               <section
                 className="assistant-task-overview"
-                aria-label="Task overview"
+                aria-label={t("assistant.taskOverviewAria")}
               >
                 <div className="assistant-task-heading">
                   <h3>{task.title}</h3>
@@ -504,15 +541,15 @@ export function AssistantTasks({
                 </div>
                 <dl className="assistant-task-schedule">
                   <div>
-                    <dt>Schedule</dt>
+                    <dt>{t("assistant.taskScheduleLabel")}</dt>
                     <dd>{taskScheduleLabel(task.schedule)}</dd>
                   </div>
                   <div>
-                    <dt>Next run</dt>
+                    <dt>{t("assistant.taskNextRunDt")}</dt>
                     <dd>
                       {task.next_run_at
                         ? formatUiDateTime(task.next_run_at)
-                        : "No upcoming run"}
+                        : t("assistant.taskNoUpcoming")}
                     </dd>
                   </div>
                 </dl>
@@ -528,7 +565,7 @@ export function AssistantTasks({
                     }
                     onClick={() => void mutate("run_now", { task_id: task.id })}
                   >
-                    Run now
+                    {t("assistant.taskRunNow")}
                   </button>
                   {task.status !== "cancelled" ? (
                     <>
@@ -543,7 +580,9 @@ export function AssistantTasks({
                           )
                         }
                       >
-                        {task.status === "paused" ? "Resume" : "Pause"}
+                        {task.status === "paused"
+                          ? t("assistant.taskResume")
+                          : t("assistant.taskPause")}
                       </button>
                       <button
                         type="button"
@@ -551,7 +590,7 @@ export function AssistantTasks({
                         disabled={busy || !connected}
                         onClick={() => setConfirmation("cancel")}
                       >
-                        Cancel task
+                        {t("assistant.proposalOperationCancel")}
                       </button>
                     </>
                   ) : null}
@@ -562,7 +601,7 @@ export function AssistantTasks({
                       disabled={busy || !connected}
                       onClick={() => setConfirmation("delete")}
                     >
-                      Delete task
+                      {t("assistant.proposalOperationDelete")}
                     </button>
                   ) : null}
                   {liveRun(task.current_run?.status) ? (
@@ -572,26 +611,26 @@ export function AssistantTasks({
                       disabled={busy || !connected}
                       onClick={() => void mutate("stop", { task_id: task.id })}
                     >
-                      Stop run
+                      {t("assistant.taskStopRun")}
                     </button>
                   ) : null}
                 </div>
               </section>
               <section
                 className="assistant-task-details"
-                aria-label="Task details"
+                aria-label={t("assistant.taskDetailsAria")}
               >
                 <details className="assistant-task-prompt" open>
-                  <summary>Task prompt</summary>
+                  <summary>{t("assistant.taskPromptSummary")}</summary>
                   <p>{task.prompt}</p>
                 </details>
                 <dl className="assistant-task-metadata">
                   <div>
-                    <dt>Workspaces</dt>
+                    <dt>{t("assistant.taskWorkspacesLegend")}</dt>
                     <dd>
                       {task.all_workspaces ? (
                         <p className="assistant-hint">
-                          All, new ones too. As of the last run:
+                          {t("assistant.taskAllScopeNote")}
                         </p>
                       ) : null}
                       <ul className="assistant-task-workspaces">
@@ -605,25 +644,25 @@ export function AssistantTasks({
                     </dd>
                   </div>
                   <div>
-                    <dt>Model</dt>
+                    <dt>{t("assistant.taskModelDt")}</dt>
                     <dd>{task.model.id}</dd>
                   </div>
                   <div>
-                    <dt>Permissions</dt>
+                    <dt>{t("assistant.taskPermissionsDt")}</dt>
                     <dd>
                       {task.approval_mode === "auto"
                         ? snapshot.config.approval_mode === "auto"
-                          ? "High permission: supported operations execute automatically"
-                          : "High permission saved; global mode is off, so operations need confirmation"
-                        : "Manual permission: operations need confirmation"}
+                          ? t("assistant.taskPermHighAuto")
+                          : t("assistant.taskPermHighGlobalOff")
+                        : t("assistant.taskPermManual")}
                     </dd>
                   </div>
                   <div>
-                    <dt>Notifications</dt>
+                    <dt>{t("assistant.taskNotificationsLabel")}</dt>
                     <dd>
                       {task.notification_mode === "agent"
-                        ? "Ranger decides when to notify"
-                        : "Notify when each run finishes"}
+                        ? t("assistant.proposalNotifyAgent")
+                        : t("assistant.proposalNotifyStatus")}
                     </dd>
                   </div>
                 </dl>
@@ -632,19 +671,21 @@ export function AssistantTasks({
           ) : null}
           {loading && (!detail || (runId && !selectedRun)) ? (
             <p className="assistant-hint" role="status">
-              <LoaderCircle size={13} className="assistant-spinner" /> Loading
-              {runId ? " run history" : " task history"}
+              <LoaderCircle size={13} className="assistant-spinner" />
+              {runId
+                ? t("assistant.loadingRunHistory")
+                : t("assistant.loadingTaskHistory")}
             </p>
           ) : null}
           {detail ? (
             <section
               className="assistant-task-history"
-              aria-label="Run history"
+              aria-label={t("assistant.runHistory")}
             >
-              <h4>Run history</h4>
+              <h4>{t("assistant.runHistory")}</h4>
               {detail.runs.length ? (
                 <ThemedSelect
-                  aria-label="Task run"
+                  aria-label={t("assistant.taskRunAria")}
                   value={runId ?? selectedRun?.id ?? ""}
                   options={detail.runs.map((run) => ({
                     value: run.id,
@@ -657,18 +698,22 @@ export function AssistantTasks({
                   }}
                 />
               ) : (
-                <p className="assistant-task-history-empty">No runs yet.</p>
+                <p className="assistant-task-history-empty">
+                  {t("assistant.runHistoryEmpty")}
+                </p>
               )}
               {selectedRun ? (
                 <div
                   className="assistant-task-run"
-                  aria-label="Task run output"
+                  aria-label={t("assistant.taskRunOutputAria")}
                   aria-busy={liveRun(selectedRun.status)}
                 >
                   <div className="assistant-task-run-status" role="status">
-                    Run {selectedRun.status}
+                    {t("assistant.runStatus", { status: selectedRun.status })}
                     {selectedRun.started_at
-                      ? ` / Started ${formatUiDateTime(selectedRun.started_at)}`
+                      ? t("assistant.runStarted", {
+                          at: formatUiDateTime(selectedRun.started_at),
+                        })
                       : ""}
                   </div>
                   {selectedRun.notice ? (
@@ -683,13 +728,17 @@ export function AssistantTasks({
                     <section
                       className={`assistant-message is-${message.role}`}
                       key={message.id}
-                      aria-label={`${message.role === "assistant" ? "Ranger" : "Task"} message`}
+                      aria-label={
+                        message.role === "assistant"
+                          ? t("assistant.runMessageAriaRanger")
+                          : t("assistant.runMessageAriaTask")
+                      }
                     >
                       <div className="assistant-message-head">
                         <strong>
                           {message.role === "assistant"
                             ? "Ranger"
-                            : "Task prompt"}
+                            : t("assistant.taskPromptSummary")}
                         </strong>
                         <time dateTime={message.sent_at}>
                           {formatUiDateTime(message.sent_at)}
@@ -721,11 +770,13 @@ export function AssistantTasks({
                           // The open reasoning block already reports progress.
                           selectedRun.status === "running" &&
                           message.thinking?.length ? null : (
-                            <span className="assistant-hint">Working...</span>
+                            <span className="assistant-hint">
+                              {t("assistant.working")}
+                            </span>
                           )
                         ) : (
                           <span className="assistant-hint">
-                            No response text was received.
+                            {t("assistant.noResponseText")}
                           </span>
                         )
                       ) : (
@@ -782,16 +833,18 @@ export function AssistantTasks({
             open={active && confirmation !== null}
             title={
               confirmation === "delete"
-                ? "Delete this task?"
-                : "Cancel this task?"
+                ? t("assistant.confirmDeleteTitle")
+                : t("assistant.confirmCancelTitle")
             }
             message={
               confirmation === "delete"
-                ? "Permanently delete this task and all of its run history."
-                : "Stop its current run and cancel future runs. Run history will stay available."
+                ? t("assistant.confirmDeleteMessage")
+                : t("assistant.confirmCancelMessage")
             }
             confirmLabel={
-              confirmation === "delete" ? "Delete task" : "Cancel task"
+              confirmation === "delete"
+                ? t("assistant.proposalOperationDelete")
+                : t("assistant.proposalOperationCancel")
             }
             danger
             onClose={() => setConfirmation(null)}

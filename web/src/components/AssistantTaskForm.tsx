@@ -9,6 +9,7 @@ import {
   type AssistantWorkspaceRef,
   isAssistantTaskInput,
 } from "../../../shared/assistant";
+import { useT } from "../i18n";
 import { ThemedSelect } from "./ThemedSelect";
 import "./AssistantTasks.css";
 
@@ -96,10 +97,13 @@ export function TaskForm({
         (workspace) => workspaceKey(ref) === workspaceKey(workspace),
       ),
   );
+  const t = useT();
   return (
     <form
       className="assistant-task-form"
-      aria-label={task ? "Edit task" : "Create task"}
+      aria-label={
+        task ? t("assistant.editTaskHeading") : t("assistant.newTaskHeading")
+      }
       onSubmit={async (event) => {
         event.preventDefault();
         if (busy || !ready || unavailableScope.length) return;
@@ -145,9 +149,7 @@ export function TaskForm({
             : {}),
         };
         if (!isAssistantTaskInput(input)) {
-          setError(
-            "Enter a name, prompt, valid schedule and at least one workspace.",
-          );
+          setError(t("assistant.taskInvalidInput"));
           return;
         }
         setError(null);
@@ -155,39 +157,40 @@ export function TaskForm({
       }}
     >
       <div className="assistant-section-heading">
-        <h3>{task ? "Edit task" : "New task"}</h3>
+        <h3>
+          {task
+            ? t("assistant.editTaskHeading")
+            : t("assistant.newTaskHeading")}
+        </h3>
         <button
           type="button"
           className="ghost"
           disabled={busy}
           onClick={onCancel}
         >
-          <ChevronLeft size={13} /> Back
+          <ChevronLeft size={13} /> {t("assistant.back")}
         </button>
       </div>
       <p className="assistant-hint">
-        Tasks run on the bridge in their own conversations. Saving uses the
-        current permission mode:{" "}
+        {t("assistant.taskPermissionHintIntro")}{" "}
         {highPermission
-          ? "high permission. Supported workspace operations execute automatically while the global mode stays enabled."
-          : "manual. Workspace operations need your confirmation."}
+          ? t("assistant.taskPermissionHigh")
+          : t("assistant.taskPermissionManual")}
       </p>
       {!ready ? (
         <div className="assistant-setup-notice">
-          <span>
-            Connect a provider and choose a model before saving a task.
-          </span>
+          <span>{t("assistant.taskSetupNotReady")}</span>
           <button type="button" className="ghost" onClick={onOpenSettings}>
-            Model settings
+            {t("assistant.modelSettings")}
           </button>
         </div>
       ) : null}
       <fieldset disabled={busy}>
         <label className="form-field">
-          <span>Name</span>
+          <span>{t("assistant.taskNameLabel")}</span>
           <input
             ref={nameRef}
-            aria-label="Task name"
+            aria-label={t("assistant.taskNameAria")}
             required
             maxLength={100}
             value={title}
@@ -195,9 +198,9 @@ export function TaskForm({
           />
         </label>
         <label className="form-field">
-          <span>Prompt</span>
+          <span>{t("assistant.taskPromptLabel")}</span>
           <textarea
-            aria-label="Task prompt"
+            aria-label={t("assistant.taskPromptAria")}
             required
             rows={5}
             maxLength={32_000}
@@ -206,29 +209,34 @@ export function TaskForm({
           />
           {task?.mentions?.length ? (
             <small className="assistant-hint">
-              References:{" "}
-              {task.mentions
-                .filter((mention) =>
-                  scope.some(
-                    (ref) => workspaceKey(ref) === workspaceKey(mention),
-                  ),
-                )
-                .map(
-                  (mention) => `${mention.label} (${mention.connection_label})`,
-                )
-                .join(", ") || "None in the selected workspaces"}
-              .
+              {t("assistant.taskMentionsList", {
+                list:
+                  task.mentions
+                    .filter((mention) =>
+                      scope.some(
+                        (ref) => workspaceKey(ref) === workspaceKey(mention),
+                      ),
+                    )
+                    .map(
+                      (mention) =>
+                        `${mention.label} (${mention.connection_label})`,
+                    )
+                    .join(", ") || t("assistant.taskMentionsNone"),
+              })}
             </small>
           ) : null}
         </label>
         <div className="form-field">
-          <span>Notifications</span>
+          <span>{t("assistant.taskNotificationsLabel")}</span>
           <ThemedSelect
-            aria-label="Task notifications"
+            aria-label={t("assistant.taskNotificationsAria")}
             value={notificationMode}
             options={[
-              { value: "status", label: "Notify when each run finishes" },
-              { value: "agent", label: "Let Ranger decide" },
+              {
+                value: "status",
+                label: t("assistant.taskNotifyEachRun"),
+              },
+              { value: "agent", label: t("assistant.taskNotifyRangerDecides") },
             ]}
             disabled={busy}
             onChange={(value) =>
@@ -236,20 +244,18 @@ export function TaskForm({
             }
           />
           <small className="assistant-hint">
-            Ranger can send a custom notice when needed. Let Ranger decide keeps
-            routine checks quiet; failed runs and action confirmations still
-            notify.
+            {t("assistant.taskNotificationsHint")}
           </small>
         </div>
         <div className="form-field">
-          <span>Schedule</span>
+          <span>{t("assistant.taskScheduleLabel")}</span>
           <ThemedSelect
-            aria-label="Task schedule"
+            aria-label={t("assistant.taskScheduleAria")}
             value={kind}
             options={[
-              { value: "once", label: "Once" },
-              { value: "daily", label: "Daily" },
-              { value: "interval", label: "Interval" },
+              { value: "once", label: t("assistant.taskScheduleOnce") },
+              { value: "daily", label: t("assistant.taskScheduleDaily") },
+              { value: "interval", label: t("assistant.taskScheduleInterval") },
             ]}
             disabled={busy}
             onChange={(value) =>
@@ -259,10 +265,10 @@ export function TaskForm({
         </div>
         {kind === "once" ? (
           <label className="form-field">
-            <span>Run at (your local time)</span>
+            <span>{t("assistant.taskRunAtLabel")}</span>
             <input
               type="datetime-local"
-              aria-label="Run at"
+              aria-label={t("assistant.taskRunAtAria")}
               required
               value={at}
               onChange={(event) => setAt(event.currentTarget.value)}
@@ -271,19 +277,19 @@ export function TaskForm({
         ) : kind === "daily" ? (
           <>
             <label className="form-field">
-              <span>Time</span>
+              <span>{t("assistant.taskTimeLabel")}</span>
               <input
                 type="time"
-                aria-label="Daily time"
+                aria-label={t("assistant.taskDailyTimeAria")}
                 required
                 value={time}
                 onChange={(event) => setTime(event.currentTarget.value)}
               />
             </label>
             <label className="form-field">
-              <span>Timezone</span>
+              <span>{t("assistant.taskTimezoneLabel")}</span>
               <input
-                aria-label="Task timezone"
+                aria-label={t("assistant.taskTimezoneAria")}
                 required
                 value={timezone}
                 placeholder="Europe/London"
@@ -293,10 +299,10 @@ export function TaskForm({
           </>
         ) : (
           <label className="form-field">
-            <span>Minutes between runs</span>
+            <span>{t("assistant.taskMinutesLabel")}</span>
             <input
               type="number"
-              aria-label="Interval minutes"
+              aria-label={t("assistant.taskIntervalMinutesAria")}
               required
               min={1}
               max={525600}
@@ -307,22 +313,20 @@ export function TaskForm({
           </label>
         )}
         <fieldset className="assistant-task-scope">
-          <legend>Workspaces</legend>
+          <legend>{t("assistant.taskWorkspacesLegend")}</legend>
           {allWorkspacesAllowed ? (
             <p className="assistant-hint">
-              All available workspaces are allowed. Choose the workspaces this
-              task should use; its scope stays fixed when new workspaces appear,
-              unless it covers all of them.
+              {t("assistant.taskAllAllowedHint")}
             </p>
           ) : null}
           {unavailableScope.length ? (
             <div className="assistant-setup-notice" role="alert">
               <span>
-                {unavailableScope.length} selected workspace
-                {unavailableScope.length === 1 ? " is" : "s are"} unavailable or
-                no longer allowed. The saved scope is unchanged. Reconnect or
-                refresh workspace settings, or remove these selections before
-                saving.
+                {unavailableScope.length === 1
+                  ? t("assistant.unavailableScopeOne")
+                  : t("assistant.unavailableScopeMany", {
+                      count: unavailableScope.length,
+                    })}
               </span>
               <button
                 type="button"
@@ -333,7 +337,7 @@ export function TaskForm({
                   )
                 }
               >
-                Remove unavailable selections
+                {t("assistant.removeUnavailableSelections")}
               </button>
             </div>
           ) : null}
@@ -346,10 +350,8 @@ export function TaskForm({
               }
             />
             <span>
-              All workspaces, new ones too
-              <small>
-                Each run covers every workspace Ranger may use at that time.
-              </small>
+              {t("assistant.taskAllWorkspacesLabel")}
+              <small>{t("assistant.taskAllWorkspacesNote")}</small>
             </span>
           </label>
           {allWorkspaces ? null : (
@@ -360,7 +362,7 @@ export function TaskForm({
                 disabled={!choices.length}
                 onClick={() => setScope(everyChoice)}
               >
-                Select all
+                {t("assistant.selectAll")}
               </button>
               <button
                 type="button"
@@ -368,7 +370,7 @@ export function TaskForm({
                 disabled={!scope.length}
                 onClick={() => setScope([])}
               >
-                Clear
+                {t("assistant.clear")}
               </button>
             </div>
           )}
@@ -422,8 +424,8 @@ export function TaskForm({
             {!choices.length ? (
               <span className="assistant-hint">
                 {allWorkspacesAllowed
-                  ? "No connected workspaces available. Reconnect or refresh in Ranger settings."
-                  : "Allow connected workspaces in Ranger settings first."}
+                  ? t("assistant.taskNoWorkspacesAll")
+                  : t("assistant.taskNoWorkspacesAllow")}
               </span>
             ) : null}
           </div>
@@ -435,9 +437,7 @@ export function TaskForm({
         </p>
       ) : null}
       {task?.status === "paused" ? (
-        <p className="assistant-hint">
-          This task will stay paused after saving.
-        </p>
+        <p className="assistant-hint">{t("assistant.taskPausedNote")}</p>
       ) : null}
       <div className="assistant-task-buttons">
         <button
@@ -446,7 +446,7 @@ export function TaskForm({
           disabled={busy}
           onClick={onCancel}
         >
-          Cancel
+          {t("history.cancel")}
         </button>
         <button
           type="submit"
@@ -459,7 +459,9 @@ export function TaskForm({
             !!unavailableScope.length
           }
         >
-          {task ? "Save changes" : "Save and enable"}
+          {task
+            ? t("assistant.taskSaveChanges")
+            : t("assistant.taskSaveAndEnable")}
         </button>
       </div>
     </form>

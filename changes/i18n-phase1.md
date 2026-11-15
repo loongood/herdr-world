@@ -35,6 +35,12 @@
   (copy, speak, expand) and tool-call steps, the chat view's bubbles,
   composer (warnings, image uploads, send receipts and their stop-checking
   notes), the drawer's header, status notices, details overview and per-field
-  labels, plus the shared prompt warnings.
+  labels, plus the shared prompt warnings. The Ranger panel follows as
+  well: its header, view tabs, layout and window controls, settings screens
+  (model, credentials, workspace access, saved chats), the conversation,
+  minimap, permissions popover, queue and steer controls, the mention
+  composer, thinking steps, model and auth forms, action cards and their
+  proposal confirmations, and the task board (list, overview, details, run
+  history, transcripts and task proposals).
   Remaining surfaces keep English
   until their phase lands.

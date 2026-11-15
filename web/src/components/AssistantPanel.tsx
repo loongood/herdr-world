@@ -63,6 +63,7 @@ import {
   useAssistantState,
 } from "../assistant";
 import { formatUiDateTime } from "../uiLocale";
+import { t, useT, type TranslationKey } from "../i18n";
 import { useStoreSelector } from "../store";
 import { MarkdownPreview } from "./markdown";
 import { ConfirmDialog } from "./ModalDialogs";
@@ -174,14 +175,19 @@ function endpointHost(url: string) {
   }
 }
 
-const activityLabels = new Map([
-  ["workspace_status", "Workspace status"],
-  ["workspace_diff", "Workspace changes"],
-  ["workspace_terminal", "Terminal output"],
-  ["workspace_history", "Agent history"],
-  ["list_ranger_tasks", "Ranger tasks"],
-  ["send_user_notification", "Notification"],
-]);
+const ACTIVITY_LABEL_KEYS = {
+  workspace_status: "assistant.activityWorkspaceStatus",
+  workspace_diff: "assistant.activityWorkspaceDiff",
+  workspace_terminal: "assistant.activityTerminal",
+  workspace_history: "assistant.activityHistory",
+  list_ranger_tasks: "assistant.activityRangerTasks",
+  send_user_notification: "assistant.activityNotification",
+} as const satisfies Record<string, TranslationKey>;
+
+const activityLabel = (name: string) => {
+  const key = ACTIVITY_LABEL_KEYS[name as keyof typeof ACTIVITY_LABEL_KEYS];
+  return key ? t(key) : name;
+};
 
 export function AssistantMessageActivity({
   message,
@@ -192,6 +198,7 @@ export function AssistantMessageActivity({
   running: boolean;
   onOpenSource: (source: AssistantSource) => void;
 }) {
+  const t = useT();
   const details = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     if (details.current) details.current.open = running;
@@ -200,8 +207,8 @@ export function AssistantMessageActivity({
     <details className="assistant-tools" ref={details}>
       <summary>
         {running && message.tools.some((tool) => tool.status === "running")
-          ? "Reading workspace context"
-          : "Work performed"}{" "}
+          ? t("assistant.activityReading")
+          : t("assistant.activityWork")}{" "}
         ({message.tools.length + message.sources.length})
       </summary>
       {message.tools.length ? (
@@ -210,7 +217,7 @@ export function AssistantMessageActivity({
             <li key={tool.id}>
               <details className="assistant-activity-card assistant-tool-details">
                 <summary>
-                  <span>{activityLabels.get(tool.name) ?? tool.name}</span>
+                  <span>{activityLabel(tool.name)}</span>
                   <span className={`assistant-tool-state is-${tool.status}`}>
                     {tool.status}
                   </span>
@@ -218,32 +225,36 @@ export function AssistantMessageActivity({
                 <div className="assistant-tool-content">
                   {tool.arguments !== undefined ? (
                     <>
-                      <strong>Arguments</strong>
+                      <strong>{t("assistant.activityArguments")}</strong>
                       <pre tabIndex={0}>{tool.arguments}</pre>
                     </>
                   ) : null}
                   {tool.output !== undefined ? (
                     <>
                       <strong>
-                        {tool.status === "failed" ? "Error" : "Result"}
+                        {tool.status === "failed"
+                          ? t("assistant.activityError")
+                          : t("assistant.activityResult")}
                       </strong>
                       <pre tabIndex={0}>{tool.output}</pre>
                     </>
                   ) : null}
                   {tool.arguments === undefined && tool.output === undefined ? (
                     <p className="assistant-hint">
-                      Call details are unavailable.
+                      {t("assistant.activityCallUnavailable")}
                     </p>
                   ) : null}
                   {tool.arguments !== undefined && tool.output === undefined ? (
                     <p className="assistant-hint">
                       {tool.status === "running"
-                        ? "Result pending."
-                        : "Result unavailable."}
+                        ? t("assistant.activityResultPending")
+                        : t("assistant.activityResultUnavailable")}
                     </p>
                   ) : null}
                   {tool.arguments === undefined && tool.output !== undefined ? (
-                    <p className="assistant-hint">Arguments unavailable.</p>
+                    <p className="assistant-hint">
+                      {t("assistant.activityArgsUnavailable")}
+                    </p>
                   ) : null}
                 </div>
               </details>
@@ -252,7 +263,10 @@ export function AssistantMessageActivity({
         </ul>
       ) : null}
       {message.sources.length ? (
-        <div className="assistant-sources" aria-label="Sources">
+        <div
+          className="assistant-sources"
+          aria-label={t("assistant.sourcesAria")}
+        >
           {message.sources.map((source) => (
             <button
               type="button"
@@ -264,8 +278,10 @@ export function AssistantMessageActivity({
                 <ExternalLink size={12} /> {source.title}
               </span>
               <small>
-                {activityLabels.get(`workspace_${source.kind}`)} &middot; Read{" "}
-                {formatUiDateTime(source.read_at)}
+                {activityLabel(`workspace_${source.kind}`)} &middot;{" "}
+                {t("assistant.sourceRead", {
+                  time: formatUiDateTime(source.read_at),
+                })}
               </small>
             </button>
           ))}
@@ -331,10 +347,11 @@ function AssistantModelForm({
     (savedModel?.custom?.reasoning
       ? ASSISTANT_THINKING_LEVELS.slice(0, 5)
       : ["off"]);
+  const t = useT();
   return (
     <form
       className="assistant-custom-model"
-      aria-label="Custom model connection"
+      aria-label={t("assistant.customModelFormAria")}
       onSubmit={async (event) => {
         event.preventDefault();
         if (
@@ -366,12 +383,12 @@ function AssistantModelForm({
         <fieldset disabled={disabled || tasksRunning}>
           <section
             className="assistant-settings-section"
-            aria-label="Custom models"
+            aria-label={t("assistant.customModelsSectionAria")}
           >
-            <h4>Models</h4>
+            <h4>{t("assistant.modelsHeading")}</h4>
             <label className="form-field">
               <span className="assistant-field-heading">
-                <span>Model IDs</span>
+                <span>{t("assistant.modelIdsLabel")}</span>
                 <small
                   className={
                     models.length > ASSISTANT_MAX_CUSTOM_MODELS
@@ -383,7 +400,7 @@ function AssistantModelForm({
                 </small>
               </span>
               <textarea
-                aria-label="Custom model IDs"
+                aria-label={t("assistant.customModelIdsAria")}
                 aria-describedby="assistant-custom-model-ids-hint"
                 aria-invalid={models.length > ASSISTANT_MAX_CUSTOM_MODELS}
                 required
@@ -398,23 +415,24 @@ function AssistantModelForm({
               />
             </label>
             <p className="assistant-hint" id="assistant-custom-model-ids-hint">
-              One per line or comma-separated, up to{" "}
-              {ASSISTANT_MAX_CUSTOM_MODELS} IDs of 500 characters. Saving adds
-              or updates these IDs and selects the first; other models keep
-              their settings.
+              {t("assistant.modelIdsHint", {
+                max: ASSISTANT_MAX_CUSTOM_MODELS,
+              })}
             </p>
             <fieldset
               className="assistant-thinking-levels"
-              aria-label="Supported thinking efforts"
+              aria-label={t("assistant.thinkingLevelsAria")}
               aria-describedby="assistant-custom-thinking-hint"
             >
-              <legend>Supported thinking efforts</legend>
+              <legend>{t("assistant.thinkingLevelsLegend")}</legend>
               <div>
                 {ASSISTANT_THINKING_LEVELS.map((level) => (
                   <label key={level}>
                     <input
                       type="checkbox"
-                      aria-label={`Support ${thinkingLabels[level]} thinking`}
+                      aria-label={t("assistant.supportThinkingAria", {
+                        label: thinkingLabels[level],
+                      })}
                       checked={supportedLevels.includes(level)}
                       onChange={(event) =>
                         setThinkingLevels(
@@ -432,25 +450,23 @@ function AssistantModelForm({
               </div>
             </fieldset>
             <p className="assistant-hint" id="assistant-custom-thinking-hint">
-              Check every level your endpoint accepts; Off alone means no
-              thinking. Applies to all IDs above. If left unchanged, existing
-              models keep their saved levels.
+              {t("assistant.thinkingHint")}
             </p>
             {!supportedLevels.length ? (
               <p className="assistant-hint is-error" role="alert">
-                Select at least one effort.
+                {t("assistant.selectAtLeastOne")}
               </p>
             ) : null}
           </section>
           <section
             className="assistant-settings-section"
-            aria-label="Custom endpoint"
+            aria-label={t("assistant.endpointSectionAria")}
           >
-            <h4>Endpoint</h4>
+            <h4>{t("assistant.endpointHeading")}</h4>
             <label className="form-field">
-              <span>Provider ID</span>
+              <span>{t("assistant.providerIdLabel")}</span>
               <input
-                aria-label="Custom provider ID"
+                aria-label={t("assistant.customProviderIdAria")}
                 required
                 maxLength={64}
                 pattern="[a-zA-Z0-9][a-zA-Z0-9_.:-]*"
@@ -462,9 +478,9 @@ function AssistantModelForm({
               />
             </label>
             <label className="form-field">
-              <span>API format</span>
+              <span>{t("assistant.apiFormatLabel")}</span>
               <ThemedSelect
-                aria-label="Custom API format"
+                aria-label={t("assistant.customApiFormatAria")}
                 value={api}
                 options={[
                   {
@@ -478,10 +494,10 @@ function AssistantModelForm({
               />
             </label>
             <label className="form-field">
-              <span>API base URL</span>
+              <span>{t("assistant.apiBaseUrlLabel")}</span>
               <input
                 type="url"
-                aria-label="Custom API base URL"
+                aria-label={t("assistant.customApiBaseUrlAria")}
                 required
                 maxLength={2000}
                 autoComplete="off"
@@ -492,16 +508,18 @@ function AssistantModelForm({
               />
             </label>
             <label className="form-field">
-              <span>API key</span>
+              <span>{t("assistant.apiKeyLabel")}</span>
               <input
                 type="password"
-                aria-label="Custom API key"
+                aria-label={t("assistant.customApiKeyAria")}
                 required={!keySaved}
                 maxLength={10000}
                 autoComplete="new-password"
                 spellCheck={false}
                 placeholder={
-                  keySaved ? "Leave blank to keep the saved key" : "API key"
+                  keySaved
+                    ? t("assistant.apiKeyKeepPlaceholder")
+                    : t("assistant.apiKeyLabel")
                 }
                 value={apiKey}
                 onChange={(event) => setApiKey(event.currentTarget.value)}
@@ -509,15 +527,13 @@ function AssistantModelForm({
             </label>
             <p className="assistant-hint">
               {config.credential_source === "pi"
-                ? "Saved to Pi on the bridge host and shared with Pi."
-                : "Saved for Ranger on the bridge host."}{" "}
-              For a local server without authentication, enter a dummy key.
+                ? t("assistant.keySavedPi")
+                : t("assistant.keySavedAssistant")}{" "}
+              {t("assistant.dummyKeyHint")}
             </p>
           </section>
           {tasksRunning ? (
-            <p className="assistant-hint">
-              Stop running tasks before changing a model connection.
-            </p>
+            <p className="assistant-hint">{t("assistant.tasksRunningHint")}</p>
           ) : null}
         </fieldset>
       </div>
@@ -525,11 +541,11 @@ function AssistantModelForm({
         <button
           type="button"
           className="ghost"
-          aria-label="Cancel custom model changes"
+          aria-label={t("assistant.cancelCustomAria")}
           disabled={disabled}
           onClick={onCancel}
         >
-          Cancel
+          {t("history.cancel")}
         </button>
         <button
           className="assistant-settings-primary"
@@ -542,52 +558,62 @@ function AssistantModelForm({
             !supportedLevels.length
           }
         >
-          Save custom models
+          {t("assistant.saveCustomModels")}
         </button>
       </div>
     </form>
   );
 }
 
-const actionNames: Record<AssistantAction["kind"], string> = {
-  create_workspace: "Create workspace",
-  create_worktree: "Create worktree",
-  create_tab: "Create tab",
-  split_pane: "Split pane",
-  start_agent: "Start agent",
-  send_prompt: "Send prompt",
-  close_workspace: "Close workspace",
-  close_pane: "Close pane",
-  close_agent: "Close agent",
-};
+const ACTION_NAME_KEYS = {
+  create_workspace: "assistant.actionCreateWorkspace",
+  create_worktree: "assistant.actionCreateWorktree",
+  create_tab: "assistant.actionCreateTab",
+  split_pane: "assistant.actionSplitPane",
+  start_agent: "assistant.actionStartAgent",
+  send_prompt: "assistant.actionSendPrompt",
+  close_workspace: "assistant.actionCloseWorkspace",
+  close_pane: "assistant.actionClosePane",
+  close_agent: "assistant.actionCloseAgent",
+} as const satisfies Record<AssistantAction["kind"], TranslationKey>;
 
-const actionStatuses: Record<AssistantAction["status"], string> = {
-  pending: "Needs confirmation",
-  executing: "Executing",
-  succeeded: "Succeeded",
-  failed: "Failed",
-  uncertain: "Outcome uncertain",
-  cancelled: "Cancelled",
-};
+const actionName = (kind: AssistantAction["kind"]) => t(ACTION_NAME_KEYS[kind]);
 
-const actionFields = new Map([
-  ["cwd", "Working directory"],
-  ["label", "Workspace label"],
-  ["branch", "Branch"],
-  ["pane_id", "Target pane"],
-  ["tab_id", "Source tab"],
-  ["terminal_id", "Source terminal"],
-  ["direction", "Split direction"],
-  ["pane_count", "Number of panes"],
-  ["panes", "Panes to close"],
-  ["closes_workspace", "Also closes workspace"],
-  ["agent", "Agent"],
-  ["name", "Agent name"],
-  ["prompt", "Prompt"],
-  ["base", "Base branch"],
-  ["setup_hook", "Setup command"],
-  ["setup_hook_enabled", "Run setup command"],
-]);
+const ACTION_STATUS_KEYS = {
+  pending: "assistant.statusPending",
+  executing: "assistant.statusExecuting",
+  succeeded: "assistant.statusSucceeded",
+  failed: "assistant.statusFailed",
+  uncertain: "assistant.statusUncertain",
+  cancelled: "assistant.statusCancelled",
+} as const satisfies Record<AssistantAction["status"], TranslationKey>;
+
+const actionStatus = (status: AssistantAction["status"]) =>
+  t(ACTION_STATUS_KEYS[status]);
+
+const ACTION_FIELD_KEYS = {
+  cwd: "assistant.fieldCwd",
+  label: "assistant.fieldLabel",
+  branch: "assistant.fieldBranch",
+  pane_id: "assistant.fieldPaneId",
+  tab_id: "assistant.fieldTabId",
+  terminal_id: "assistant.fieldTerminalId",
+  direction: "assistant.fieldDirection",
+  pane_count: "assistant.fieldPaneCount",
+  panes: "assistant.fieldPanes",
+  closes_workspace: "assistant.fieldClosesWorkspace",
+  agent: "assistant.fieldAgent",
+  name: "assistant.fieldName",
+  prompt: "assistant.fieldPrompt",
+  base: "assistant.fieldBase",
+  setup_hook: "assistant.fieldSetupHook",
+  setup_hook_enabled: "assistant.fieldSetupHookEnabled",
+} as const satisfies Record<string, TranslationKey>;
+
+const actionField = (key: string) => {
+  const fieldKey = ACTION_FIELD_KEYS[key as keyof typeof ACTION_FIELD_KEYS];
+  return fieldKey ? t(fieldKey) : key;
+};
 
 export function ActionCard({
   action,
@@ -600,7 +626,8 @@ export function ActionCard({
   running: boolean;
   run: (action: string, params?: Record<string, unknown>) => Promise<boolean>;
 }) {
-  const name = actionNames[action.kind];
+  const t = useT();
+  const name = actionName(action.kind);
   const isPrompt = action.kind === "send_prompt";
   const isPaneClose =
     action.kind === "close_pane" || action.kind === "close_agent";
@@ -613,22 +640,22 @@ export function ActionCard({
   const details = (
     <dl
       className="assistant-action-details"
-      aria-label={`${name} details`}
+      aria-label={t("assistant.actionDetailsAria", { name })}
       tabIndex={0}
     >
-      <dt>Connection</dt>
+      <dt>{t("assistant.dtConnection")}</dt>
       <dd>
         {action.connection_label}
         <small>{action.connection_id}</small>
       </dd>
-      <dt>Workspace</dt>
+      <dt>{t("assistant.dtWorkspace")}</dt>
       <dd>
         {action.workspace_label}
         <small>{action.workspace_id}</small>
       </dd>
       {!isAgentAction ? (
         <>
-          <dt>Proposed</dt>
+          <dt>{t("assistant.dtProposed")}</dt>
           <dd>
             <time dateTime={action.created_at}>
               {formatUiDateTime(action.created_at)}
@@ -649,31 +676,31 @@ export function ActionCard({
           <Fragment key={key}>
             <dt>
               {key === "cwd" && action.kind === "create_worktree"
-                ? "Source repository"
+                ? t("assistant.sourceRepository")
                 : key === "pane_id" &&
                     (action.kind === "create_tab" ||
                       action.kind === "split_pane")
-                  ? "Source pane"
+                  ? t("assistant.sourcePane")
                   : key === "terminal_id" && isPaneClose
-                    ? "Target terminal"
-                    : (actionFields.get(key) ?? key)}
+                    ? t("assistant.targetTerminal")
+                    : actionField(key)}
             </dt>
             <dd>
               <pre>
                 {key === "setup_hook_enabled" &&
                 (value === "true" || value === "false")
                   ? value === "true"
-                    ? "Enabled"
-                    : "Disabled"
+                    ? t("assistant.valueEnabled")
+                    : t("assistant.valueDisabled")
                   : key === "closes_workspace"
                     ? value === "true"
-                      ? "Yes"
-                      : "No"
+                      ? t("assistant.valueYes")
+                      : t("assistant.valueNo")
                     : key === "direction" && action.kind === "split_pane"
                       ? value === "right"
-                        ? "Right"
+                        ? t("assistant.directionRight")
                         : value === "down"
-                          ? "Down"
+                          ? t("assistant.directionDown")
                           : value
                       : value}
               </pre>
@@ -686,15 +713,15 @@ export function ActionCard({
     <div
       className={`assistant-action-card is-${action.status}${isAgentAction ? " is-agent-action" : ""}${isPrompt ? " is-prompt" : ""}`}
       role="group"
-      aria-label={`${name} proposal`}
+      aria-label={t("assistant.proposalAria", { name })}
       tabIndex={-1}
     >
       <div className="assistant-action-head">
         <strong>{name}</strong>
         <span role="status">
           {isPrompt && action.status === "uncertain"
-            ? "Unverified"
-            : actionStatuses[action.status]}
+            ? t("assistant.statusUnverified")
+            : actionStatus(action.status)}
         </span>
       </div>
       {isAgentAction ? (
@@ -707,14 +734,14 @@ export function ActionCard({
           </div>
           {!isPrompt && action.params.name ? (
             <div className="assistant-action-agent-name">
-              Name <code>{action.params.name}</code>
+              {t("assistant.namePrefix")} <code>{action.params.name}</code>
             </div>
           ) : null}
           {action.status === "pending" ? (
             <p className="assistant-action-note assistant-prompt-note">
               {isPrompt
-                ? "Review before sending. The agent may change files."
-                : "Start this agent with no custom command or arguments."}
+                ? t("assistant.promptReviewNote")
+                : t("assistant.startAgentNote")}
             </p>
           ) : null}
           {isPrompt ? (
@@ -725,17 +752,21 @@ export function ActionCard({
               }
             >
               <summary>
-                Prompt
-                <span>{action.params.prompt?.length ?? 0} characters</span>
+                {t("assistant.promptLabel")}
+                <span>
+                  {t("assistant.promptCharacters", {
+                    count: action.params.prompt?.length ?? 0,
+                  })}
+                </span>
               </summary>
-              <pre aria-label="Exact prompt" tabIndex={0}>
+              <pre aria-label={t("assistant.exactPromptAria")} tabIndex={0}>
                 {action.params.prompt}
               </pre>
             </details>
           ) : null}
           <details className="assistant-action-meta">
             <summary>
-              Details
+              {t("assistant.detailsLabel")}
               <time dateTime={action.created_at}>
                 {formatUiDateTime(action.created_at)}
               </time>
@@ -760,9 +791,7 @@ export function ActionCard({
               : undefined
           }
         >
-          {acceptedPrompt
-            ? "Accepted by Herdr; delivery unverified. Check the agent before resending."
-            : action.detail}
+          {acceptedPrompt ? t("assistant.acceptedNote") : action.detail}
         </p>
       ) : null}
       {action.status === "pending" ? (
@@ -778,7 +807,7 @@ export function ActionCard({
               void run("action.confirm", { action_id: action.id });
             }}
           >
-            Confirm action
+            {t("assistant.confirmAction")}
           </button>
           <button
             type="button"
@@ -792,7 +821,7 @@ export function ActionCard({
               void run("action.cancel", { action_id: action.id });
             }}
           >
-            Cancel
+            {t("history.cancel")}
           </button>
         </div>
       ) : null}
@@ -828,22 +857,26 @@ function AuthCard({
   const [value, setValue] = useState(auth.prompt?.options?.[0]?.id ?? "");
   const url = assistantAuthUrl(auth.url);
   const pending = auth.status === "waiting" || auth.status === "working";
+  const t = useT();
   return (
-    <div className="assistant-auth-card" aria-label="Model login">
+    <div
+      className="assistant-auth-card"
+      aria-label={t("assistant.modelLoginAria")}
+    >
       <strong>
         {auth.status === "completed"
-          ? `${label} connected`
-          : `Connect ${label}`}
+          ? t("assistant.authConnected", { label })
+          : t("assistant.authConnect", { label })}
       </strong>
       <p role="status">{auth.message}</p>
       {url ? (
         <a href={url} target="_blank" rel="noopener noreferrer">
-          Open sign-in page <ExternalLink size={13} />
+          {t("assistant.openSignIn")} <ExternalLink size={13} />
         </a>
       ) : null}
       {auth.user_code ? (
         <div className="assistant-device-code">
-          <span>Enter this code on the sign-in page</span>
+          <span>{t("assistant.enterCode")}</span>
           <code>{auth.user_code}</code>
         </div>
       ) : null}
@@ -892,7 +925,7 @@ function AuthCard({
             )}
           </label>
           <button type="submit" disabled={busy || !value.trim()}>
-            Continue
+            {t("assistant.continueLabel")}
           </button>
         </form>
       ) : null}
@@ -903,13 +936,11 @@ function AuthCard({
           disabled={busy}
           onClick={() => void run("auth.cancel", { auth_id: auth.id })}
         >
-          Cancel login
+          {t("assistant.cancelLogin")}
         </button>
       ) : null}
       {auth.status === "failed" ? (
-        <span className="assistant-hint">
-          Use a connection button to retry.
-        </span>
+        <span className="assistant-hint">{t("assistant.authRetryHint")}</span>
       ) : null}
     </div>
   );
@@ -934,6 +965,7 @@ export function AssistantPanel({
   onToggleFloating: () => void;
   onOpenSource: (source: AssistantSource) => void;
 }) {
+  const t = useT();
   const state = useAssistantState();
   const snapshot = state.snapshot;
   const currentConnectionId = useStoreSelector(
@@ -984,10 +1016,10 @@ export function AssistantPanel({
       (snapshot?.messages ?? []).map((message) => ({
         id: message.id,
         role: message.role,
-        label: message.role === "user" ? "You" : "Ranger",
+        label: message.role === "user" ? t("history.labelYou") : "Ranger",
         text: message.text,
       })),
-    [snapshot?.messages],
+    [snapshot?.messages, t],
   );
   const pinMinimapLayout = useCallback(() => {
     if (followingOutput.current && listRef.current)
@@ -1087,7 +1119,7 @@ export function AssistantPanel({
       if (
         panelRef.current
           ?.querySelector<HTMLTextAreaElement>(
-            '[aria-label="Custom model IDs"]',
+            `[aria-label="${t("assistant.customModelIdsAria")}"]`,
           )
           ?.closest("fieldset:disabled")
       )
@@ -1103,18 +1135,18 @@ export function AssistantPanel({
       )?.focus();
       settingsReturnTarget.current = null;
     }
-  }, [open, showSettings, modelEditor]);
+  }, [open, showSettings, modelEditor, t]);
   const authPending =
     snapshot?.auth?.status === "waiting" ||
     snapshot?.auth?.status === "working";
   const executing = assistantActionExecuting(snapshot);
   const [headerStatus, headerTone] = !connected
-    ? ["Reconnecting", "warning"]
+    ? [t("assistant.statusReconnecting"), "warning"]
     : executing
-      ? ["Executing action", "busy"]
+      ? [t("assistant.statusExecutingAction"), "busy"]
       : snapshot?.running
-        ? ["Working", "busy"]
-        : ["Idle", "idle"];
+        ? [t("assistant.statusWorking"), "busy"]
+        : [t("assistant.statusIdle"), "idle"];
   const modelLabel =
     snapshot?.models.find(
       (model) =>
@@ -1141,12 +1173,11 @@ export function AssistantPanel({
     );
   const scope =
     allWorkspacesAllowed && contextTruncated ? [] : authorizedScope(workspaces);
-  const truncatedScopeMessage =
-    "The workspace list exceeds Ranger's limit. High-permission questions require the full list. Reduce the number of workspaces or turn off high-permission mode and select a smaller scope.";
+  const truncatedScopeMessage = t("assistant.truncatedScope");
   const unavailableScopeMessage =
     allWorkspacesAllowed && contextTruncated
       ? truncatedScopeMessage
-      : "No authorized workspaces are currently available. Reconnect or refresh in Ranger settings.";
+      : t("assistant.noAuthorizedWorkspaces");
 
   useEffect(() => {
     if (!savedConfig) return;
@@ -1320,23 +1351,18 @@ export function AssistantPanel({
     followingOutput.current = true;
     try {
       const available = await loadContext();
-      if (!available)
-        throw new Error("Unable to refresh authorized workspaces. Try again.");
+      if (!available) throw new Error(t("assistant.refreshScopeFailed"));
       const current = readAssistantState().snapshot;
       if (
         current?.instance_id !== snapshot?.instance_id ||
         current?.session_id !== snapshot?.session_id
       )
-        throw new Error(
-          "The active Ranger chat changed. Select it again before sending.",
-        );
+        throw new Error(t("assistant.chatChanged"));
       if (
         snapshot?.chat_selection &&
         !sameAssistantSelection(current, snapshot)
       )
-        throw new Error(
-          "The Ranger model settings changed. Check the selection before sending.",
-        );
+        throw new Error(t("assistant.modelChanged"));
       if (
         current?.config.approval_mode === "auto" &&
         current.config.workspace_scope === "all" &&
@@ -1391,9 +1417,7 @@ export function AssistantPanel({
             assistantMentionKey(current) === assistantMentionKey(target),
         )
       )
-        throw new Error(
-          "This workspace or agent reference is no longer available. Select it again before using it.",
-        );
+        throw new Error(t("assistant.mentionUnavailable"));
       onOpenSource({
         id: assistantMentionKey(target),
         title: target.label,
@@ -1517,13 +1541,13 @@ export function AssistantPanel({
         <div
           className="assistant-panel-resizer"
           role="separator"
-          aria-label="Resize Ranger"
+          aria-label={t("assistant.resizeAria")}
           aria-orientation="vertical"
           aria-valuemin={300}
           aria-valuemax={Math.round(maximumWidth)}
           aria-valuenow={Math.round(width)}
           tabIndex={0}
-          title="Drag to resize Ranger; double-click to reset"
+          title={t("assistant.resizeTitle")}
           onPointerDown={(event) => {
             if (event.button !== 0 || !panelRef.current) return;
             event.preventDefault();
@@ -1579,13 +1603,16 @@ export function AssistantPanel({
       <header className="assistant-panel-head">
         <div>
           <div className="assistant-panel-title">
-            <strong title="Experimental workspace management assistant">
-              Ranger
-            </strong>
-            <span className="assistant-panel-experimental">Experimental</span>
+            <strong title={t("assistant.experimentalTitle")}>Ranger</strong>
+            <span className="assistant-panel-experimental">
+              {t("assistant.experimentalBadge")}
+            </span>
           </div>
           <div className="assistant-panel-meta">
-            <nav className="assistant-primary-nav" aria-label="Ranger views">
+            <nav
+              className="assistant-primary-nav"
+              aria-label={t("assistant.viewsAria")}
+            >
               {(["chat", "tasks"] as const).map((item) => (
                 <button
                   type="button"
@@ -1598,7 +1625,9 @@ export function AssistantPanel({
                     setHistoryOpen(false);
                   }}
                 >
-                  {item === "chat" ? "Chat" : "Tasks"}
+                  {item === "chat"
+                    ? t("assistant.chatTab")
+                    : t("assistant.tasksTab")}
                 </button>
               ))}
             </nav>
@@ -1615,8 +1644,14 @@ export function AssistantPanel({
           <button
             type="button"
             className="assistant-icon-button"
-            title={floating ? "Fixed layout" : "Floating layout"}
-            aria-label={floating ? "Pin Ranger" : "Float Ranger"}
+            title={
+              floating
+                ? t("assistant.layoutFixed")
+                : t("assistant.layoutFloating")
+            }
+            aria-label={
+              floating ? t("assistant.pinAria") : t("assistant.floatAria")
+            }
             aria-pressed={!floating}
             onClick={() => {
               setMaximized(false);
@@ -1630,8 +1665,16 @@ export function AssistantPanel({
           <button
             type="button"
             className="assistant-icon-button"
-            title={maximized ? "Restore window" : "Maximize window"}
-            aria-label={maximized ? "Restore Ranger" : "Maximize Ranger"}
+            title={
+              maximized
+                ? t("assistant.restoreWindowTitle")
+                : t("assistant.maximizeWindowTitle")
+            }
+            aria-label={
+              maximized
+                ? t("assistant.restoreAria")
+                : t("assistant.maximizeAria")
+            }
             aria-pressed={maximized}
             onClick={() => setMaximized((current) => !current)}
           >
@@ -1641,8 +1684,8 @@ export function AssistantPanel({
         <button
           type="button"
           className="assistant-icon-button"
-          aria-label="Ranger settings"
-          title="Model connection and workspace permissions"
+          aria-label={t("assistant.settingsAria")}
+          title={t("assistant.settingsTitle")}
           aria-pressed={showSettings}
           onClick={() => {
             setSettingsOpen(!showSettings);
@@ -1654,8 +1697,8 @@ export function AssistantPanel({
         <button
           type="button"
           className="assistant-icon-button"
-          aria-label="Close Ranger"
-          title="Close"
+          aria-label={t("assistant.closeRangerAria")}
+          title={t("assistant.closeTitle")}
           onClick={onClose}
         >
           <X size={16} />
@@ -1674,7 +1717,7 @@ export function AssistantPanel({
               void refreshAssistant().catch(() => {});
             }}
           >
-            <RefreshCw size={12} /> Refresh
+            <RefreshCw size={12} /> {t("history.refresh")}
           </button>
         </div>
       ) : null}
@@ -1687,17 +1730,14 @@ export function AssistantPanel({
           )}
           <strong>
             {state.loading
-              ? "Loading Ranger"
+              ? t("assistant.loadingRanger")
               : !connected
-                ? "Waiting for the bridge"
+                ? t("assistant.waitingBridge")
                 : !state.supported
-                  ? "Update Herdr World to use Ranger"
-                  : "Could not load Ranger"}
+                  ? t("assistant.updateToUse")
+                  : t("assistant.loadFailed")}
           </strong>
-          <span>
-            Ranger runs in the World service and stays available across
-            workspaces.
-          </span>
+          <span>{t("assistant.rangerRunsInService")}</span>
         </div>
       ) : showSettings && config ? (
         <div className="assistant-panel-settings">
@@ -1707,8 +1747,8 @@ export function AssistantPanel({
                 <button
                   type="button"
                   className="assistant-icon-button"
-                  aria-label="Back to Ranger settings"
-                  title="Back to settings"
+                  aria-label={t("assistant.backToSettingsAria")}
+                  title={t("assistant.backToSettingsTitle")}
                   disabled={operationBusy}
                   onClick={closeModelEditor}
                 >
@@ -1716,13 +1756,13 @@ export function AssistantPanel({
                 </button>
                 <h3 ref={settingsHeadingRef} tabIndex={-1}>
                   {modelEditor === "edit"
-                    ? "Edit custom models"
-                    : "Add custom models"}
+                    ? t("assistant.editCustomModelsHeading")
+                    : t("assistant.addCustomModelsHeading")}
                 </h3>
               </>
             ) : (
               <>
-                <h3>Settings</h3>
+                <h3>{t("assistant.settingsHeading")}</h3>
                 <button
                   type="button"
                   className="ghost"
@@ -1732,7 +1772,7 @@ export function AssistantPanel({
                     setHistoryOpen(false);
                   }}
                 >
-                  <ChevronLeft size={14} /> Chat
+                  <ChevronLeft size={14} /> {t("assistant.backToChat")}
                 </button>
               </>
             )}
@@ -1777,21 +1817,27 @@ export function AssistantPanel({
               <div className="assistant-settings-body">
                 <section
                   className="assistant-settings-section"
-                  aria-label="Model settings"
+                  aria-label={t("assistant.modelSectionAria")}
                 >
-                  <h4>Model</h4>
+                  <h4>{t("assistant.modelHeading")}</h4>
                   <fieldset disabled={modelLocked}>
                     <div className="form-field">
-                      <span>Credentials</span>
+                      <span>{t("assistant.credentialsLabel")}</span>
                       <div
                         className="assistant-credential-source"
                         role="group"
-                        aria-label="Credential source"
+                        aria-label={t("assistant.credentialSourceAria")}
                       >
                         {(
                           [
-                            { value: "assistant", label: "Ranger connection" },
-                            { value: "pi", label: "Shared Pi credentials" },
+                            {
+                              value: "assistant",
+                              label: t("assistant.credentialAssistant"),
+                            },
+                            {
+                              value: "pi",
+                              label: t("assistant.credentialPi"),
+                            },
                           ] as const
                         ).map((item) => (
                           <button
@@ -1824,18 +1870,18 @@ export function AssistantPanel({
                       </div>
                       <p className="assistant-hint">
                         {config.credential_source === "pi"
-                          ? "Use Pi's saved logins and custom models. Changes are saved to Pi on the bridge host."
-                          : "Logins, API keys and custom models are saved for Ranger on the bridge host."}
+                          ? t("assistant.credentialHintPi")
+                          : t("assistant.credentialHintAssistant")}
                       </p>
                     </div>
                     <div className="form-field">
                       <span className="assistant-field-heading">
-                        <span>Provider</span>
+                        <span>{t("assistant.providerLabel")}</span>
                         <button
                           type="button"
                           className="assistant-icon-button"
-                          aria-label="Refresh Ranger credentials"
-                          title="Reread saved logins, API keys and custom models"
+                          aria-label={t("assistant.refreshCredentialsAria")}
+                          title={t("assistant.refreshCredentialsTitle")}
                           disabled={state.loading}
                           onClick={() => {
                             setError(null);
@@ -1848,10 +1894,10 @@ export function AssistantPanel({
                       <ThemedSelect
                         value={config.provider}
                         options={providerOptions}
-                        aria-label="Model provider"
-                        placeholder="Choose a provider"
-                        searchPlaceholder="Search providers"
-                        emptyText="No providers found"
+                        aria-label={t("assistant.modelProviderAria")}
+                        placeholder={t("assistant.chooseProvider")}
+                        searchPlaceholder={t("assistant.searchProviders")}
+                        emptyText={t("assistant.noProvidersFound")}
                         contentClassName={`assistant-settings-select${mobile ? " is-mobile" : ""}`}
                         disabled={modelLocked}
                         onChange={(value) => {
@@ -1874,8 +1920,20 @@ export function AssistantPanel({
                               className={provider.configured ? "ghost" : ""}
                               aria-label={
                                 method === "oauth"
-                                  ? `${provider.configured ? "Sign in again to" : "Sign in to"} ${provider.label}`
-                                  : `${provider.configured ? "Update API key for" : "Enter API key for"} ${provider.label}`
+                                  ? provider.configured
+                                    ? t("assistant.signInAgainTo", {
+                                        label: provider.label,
+                                      })
+                                    : t("assistant.signInTo", {
+                                        label: provider.label,
+                                      })
+                                  : provider.configured
+                                    ? t("assistant.updateApiKeyFor", {
+                                        label: provider.label,
+                                      })
+                                    : t("assistant.enterApiKeyFor", {
+                                        label: provider.label,
+                                      })
                               }
                               onClick={() =>
                                 void run("auth.start", {
@@ -1886,9 +1944,11 @@ export function AssistantPanel({
                             >
                               {method === "oauth"
                                 ? provider.configured
-                                  ? "Sign in again"
-                                  : "Sign in"
-                                : `${provider.configured ? "Update" : "Enter"} API key`}
+                                  ? t("assistant.signInAgain")
+                                  : t("assistant.signIn")
+                                : provider.configured
+                                  ? t("assistant.updateApiKey")
+                                  : t("assistant.enterApiKey")}
                             </button>
                           ))}
                         </div>
@@ -1915,24 +1975,26 @@ export function AssistantPanel({
                     disabled={modelLocked}
                   >
                     <label className="form-field">
-                      <span>Default model</span>
+                      <span>{t("assistant.defaultModelLabel")}</span>
                       <ThemedSelect
                         value={config.model}
                         options={modelOptions}
-                        aria-label="Ranger model"
+                        aria-label={t("assistant.rangerModelAria")}
                         disabled={!provider?.configured || !modelOptions.length}
                         searchPlaceholder={
-                          modelOptions.length > 8 ? "Search models" : undefined
+                          modelOptions.length > 8
+                            ? t("assistant.searchModels")
+                            : undefined
                         }
                         contentClassName={`assistant-settings-select${mobile ? " is-mobile" : ""}`}
                         placeholder={
                           !provider
-                            ? "Choose a provider first"
+                            ? t("assistant.chooseProviderFirst")
                             : !provider.configured
-                              ? "Connect a provider first"
+                              ? t("assistant.connectProviderFirst")
                               : !modelOptions.length
-                                ? "No models available"
-                                : "Choose a model"
+                                ? t("assistant.noModelsAvailable")
+                                : t("assistant.chooseModel")
                         }
                         onChange={(value) =>
                           setConfig({
@@ -1952,18 +2014,23 @@ export function AssistantPanel({
                     </label>
                     {snapshot.chat_selection ? (
                       <label className="form-field">
-                        <span>Thinking effort</span>
+                        <span>{t("assistant.thinkingEffortLabel")}</span>
                         <ThemedSelect
                           value={config.thinking_level ?? "default"}
                           options={thinkingOptions(selectedModel, config)}
-                          aria-label="Default thinking effort"
+                          aria-label={t("assistant.defaultThinkingEffortAria")}
                           disabled={
                             !thinkingOptions(selectedModel, config).length
                           }
                           placeholder={
                             selectedModel?.default_thinking_level
-                              ? `Default (${thinkingLabels[selectedModel.default_thinking_level]})`
-                              : "No adjustable thinking effort"
+                              ? t("assistant.thinkingDefaultPlaceholder", {
+                                  label:
+                                    thinkingLabels[
+                                      selectedModel.default_thinking_level
+                                    ],
+                                })
+                              : t("assistant.noAdjustableThinking")
                           }
                           onChange={(value) =>
                             setConfig({
@@ -1980,19 +2047,21 @@ export function AssistantPanel({
                   </fieldset>
                   <div className="assistant-custom-models">
                     <div>
-                      <strong>Custom models</strong>
+                      <strong>{t("assistant.customModelsLabel")}</strong>
                       <span>
                         {customEndpoint
                           ? `${provider?.label ?? config.provider} · ${endpointHost(customEndpoint.base_url)}`
-                          : "Your own OpenAI- or Anthropic-compatible endpoint"}
+                          : t("assistant.customEndpointNone")}
                       </span>
                     </div>
                     {customEndpoint && config.model ? (
                       <button
                         type="button"
                         className="ghost"
-                        aria-label="Edit custom models"
-                        title={`Edit ${config.model} and its supported efforts`}
+                        aria-label={t("assistant.editCustomModelsAria")}
+                        title={t("assistant.editCustomModelsTitle", {
+                          model: config.model,
+                        })}
                         data-settings-return="edit"
                         disabled={modelLocked}
                         onClick={() => {
@@ -2000,16 +2069,16 @@ export function AssistantPanel({
                           setModelEditor("edit");
                         }}
                       >
-                        Edit
+                        {t("assistant.edit")}
                       </button>
                     ) : null}
                     <button
                       type="button"
-                      aria-label="Add custom models"
+                      aria-label={t("assistant.addCustomModelsAria")}
                       title={
                         customEndpoint
-                          ? "Add model IDs to this endpoint or a new one"
-                          : "Connect a compatible endpoint"
+                          ? t("assistant.addModelIdsTitle")
+                          : t("assistant.connectEndpointTitle")
                       }
                       data-settings-return="add"
                       disabled={modelLocked}
@@ -2018,22 +2087,30 @@ export function AssistantPanel({
                         setModelEditor("add");
                       }}
                     >
-                      <Plus size={13} /> Add
+                      <Plus size={13} /> {t("assistant.add")}
                     </button>
                   </div>
                 </section>
                 <section
                   className="assistant-settings-section"
-                  aria-label="Workspace access"
+                  aria-label={t("assistant.workspaceAccessAria")}
                 >
-                  <h4>Workspace access</h4>
+                  <h4>{t("assistant.workspaceAccessHeading")}</h4>
                   <div className="assistant-workspaces-heading">
                     <span>
-                      Allowed workspaces
+                      {t("assistant.allowedWorkspaces")}
                       <small>
                         {allWorkspacesAllowed
-                          ? "All"
-                          : `${workspaces.filter((workspace) => includesWorkspace(config.allowed_workspaces, workspace)).length} of ${workspaces.length}`}
+                          ? t("assistant.allowedAll")
+                          : t("assistant.allowedCount", {
+                              count: workspaces.filter((workspace) =>
+                                includesWorkspace(
+                                  config.allowed_workspaces,
+                                  workspace,
+                                ),
+                              ).length,
+                              total: workspaces.length,
+                            })}
                       </small>
                     </span>
                     {!allWorkspacesAllowed ? (
@@ -2041,7 +2118,7 @@ export function AssistantPanel({
                         <button
                           type="button"
                           className="ghost"
-                          aria-label="Select all available Ranger workspaces"
+                          aria-label={t("assistant.selectAllAria")}
                           disabled={
                             contextLoading ||
                             operationBusy ||
@@ -2064,12 +2141,12 @@ export function AssistantPanel({
                             })
                           }
                         >
-                          Select all
+                          {t("assistant.selectAll")}
                         </button>
                         <button
                           type="button"
                           className="ghost"
-                          aria-label="Clear allowed Ranger workspaces"
+                          aria-label={t("assistant.clearAllowedAria")}
                           disabled={
                             contextLoading ||
                             operationBusy ||
@@ -2081,15 +2158,15 @@ export function AssistantPanel({
                             setConfig({ ...config, allowed_workspaces: [] })
                           }
                         >
-                          Clear
+                          {t("assistant.clear")}
                         </button>
                       </>
                     ) : null}
                     <button
                       type="button"
                       className="assistant-icon-button"
-                      aria-label="Refresh Ranger workspaces"
-                      title="Refresh workspaces"
+                      aria-label={t("assistant.refreshWorkspacesAria")}
+                      title={t("assistant.refreshWorkspacesTitle")}
                       disabled={contextLoading || !connected}
                       onClick={() => void loadContext()}
                     >
@@ -2098,17 +2175,18 @@ export function AssistantPanel({
                   </div>
                   <p className="assistant-hint">
                     {allWorkspacesAllowed
-                      ? "All current and future workspaces are allowed automatically. Turn off high-permission mode to restore your manual workspace selection."
+                      ? t("assistant.scopeHintAll")
                       : highPermission
-                        ? "Select workspaces Ranger may read and manage. Each question uses saved authorized workspaces that are currently available. Supported actions execute automatically in these selected workspaces."
-                        : "Select workspaces Ranger may read and manage. Each question uses saved authorized workspaces that are currently available. Actions require confirmation."}{" "}
-                    Workspace status, conversations, terminal output, and diffs
-                    may be sent to your model provider.
+                        ? t("assistant.scopeHintHighPermission")
+                        : t("assistant.scopeHintManual")}{" "}
+                    {t("assistant.providerPrivacyNote")}
                   </p>
                   {!allWorkspacesAllowed &&
                   allAllowedWorkspaces.length > ASSISTANT_MAX_WORKSPACES ? (
                     <p className="assistant-hint">
-                      {`Select up to ${ASSISTANT_MAX_WORKSPACES} workspaces individually; Select all exceeds this limit.`}
+                      {t("assistant.selectLimitHint", {
+                        max: ASSISTANT_MAX_WORKSPACES,
+                      })}
                     </p>
                   ) : null}
                   <fieldset
@@ -2157,11 +2235,10 @@ export function AssistantPanel({
                     {unavailableWorkspaces.length ? (
                       <div
                         role="group"
-                        aria-label="Unavailable authorized workspaces"
+                        aria-label={t("assistant.unavailableWorkspacesAria")}
                       >
                         <p className="assistant-hint">
-                          Unavailable authorized workspaces. Remove permissions
-                          individually, then save settings.
+                          {t("assistant.unavailableWorkspacesNote")}
                         </p>
                         {unavailableWorkspaces.map((ref) => (
                           <div
@@ -2175,8 +2252,11 @@ export function AssistantPanel({
                             <button
                               type="button"
                               className="assistant-icon-button"
-                              aria-label={`Remove unavailable workspace ${ref.workspace_id} on ${ref.connection_id}`}
-                              title="Remove workspace permission"
+                              aria-label={t("assistant.removeUnavailableAria", {
+                                workspace: ref.workspace_id,
+                                connection: ref.connection_id,
+                              })}
+                              title={t("assistant.removePermissionTitle")}
                               disabled={allWorkspacesAllowed}
                               onClick={() =>
                                 setConfig({
@@ -2199,8 +2279,8 @@ export function AssistantPanel({
                     {!workspaces.length ? (
                       <span className="assistant-hint">
                         {contextLoading
-                          ? "Loading workspaces"
-                          : "No connected workspaces available"}
+                          ? t("assistant.loadingWorkspaces")
+                          : t("assistant.noWorkspacesAvailable")}
                       </span>
                     ) : null}
                   </fieldset>
@@ -2208,7 +2288,7 @@ export function AssistantPanel({
                     <p className="assistant-hint" role="alert">
                       {allWorkspacesAllowed
                         ? truncatedScopeMessage
-                        : "Only part of the workspace list is available. Refresh after reducing the number of workspaces."}
+                        : t("assistant.partialListNote")}
                     </p>
                   ) : null}
                   {contextErrors.map((message) => (
@@ -2220,7 +2300,7 @@ export function AssistantPanel({
               </div>
               <div className="assistant-settings-save">
                 <span role="status">
-                  {settingsChanged ? "Unsaved changes" : ""}
+                  {settingsChanged ? t("assistant.unsavedChanges") : ""}
                 </span>
                 <button
                   type="button"
@@ -2231,7 +2311,7 @@ export function AssistantPanel({
                       setSettingsOpen(false);
                   }}
                 >
-                  Save settings
+                  {t("assistant.saveSettings")}
                 </button>
               </div>
             </>
@@ -2240,28 +2320,26 @@ export function AssistantPanel({
       ) : view === "tasks" ? null : historySupported && historyOpen ? (
         <section
           className="assistant-chat-history"
-          aria-label="Saved Ranger chats"
+          aria-label={t("assistant.savedChatsAria")}
         >
           <div className="assistant-history-heading">
             <h3 ref={historyHeadingRef} tabIndex={-1}>
-              History
+              {t("assistant.historyHeading")}
             </h3>
             <button
               type="button"
               className="ghost"
-              aria-label="Close Ranger chat history"
+              aria-label={t("assistant.closeHistoryAria")}
               onClick={() => setHistoryOpen(false)}
             >
-              <ChevronLeft size={14} /> Chat
+              <ChevronLeft size={14} /> {t("assistant.backToChat")}
             </button>
           </div>
           <div className="assistant-history-body">
             {snapshot.messages.some((message) =>
               message.actions?.some((action) => action.status === "pending"),
             ) ? (
-              <p>
-                Opening a chat cancels this chat's unconfirmed action previews.
-              </p>
+              <p>{t("assistant.historyCancelWarning")}</p>
             ) : null}
             {sessions.length ? (
               <ul>
@@ -2296,8 +2374,10 @@ export function AssistantPanel({
                         </time>
                         <span>
                           {session.id === snapshot.session_id
-                            ? "Current"
-                            : `${session.message_count} messages`}
+                            ? t("assistant.currentChat")
+                            : t("assistant.messageCount", {
+                                count: session.message_count,
+                              })}
                         </span>
                       </span>
                     </button>
@@ -2307,8 +2387,8 @@ export function AssistantPanel({
             ) : (
               <div className="assistant-panel-empty">
                 <History size={24} aria-hidden="true" />
-                <strong>No saved chats yet</strong>
-                <span>Your conversations are saved automatically.</span>
+                <strong>{t("assistant.noSavedChats")}</strong>
+                <span>{t("assistant.chatsSavedAutomatically")}</span>
               </div>
             )}
           </div>
@@ -2318,7 +2398,9 @@ export function AssistantPanel({
           <div className="assistant-chat-toolbar">
             {historySupported ? (
               <div className="assistant-chat-title">
-                <strong>{currentSession?.title ?? "New chat"}</strong>
+                <strong>
+                  {currentSession?.title ?? t("assistant.newChat")}
+                </strong>
                 <span
                   title={`${snapshot.config.provider} / ${snapshot.config.model}`}
                 >
@@ -2336,13 +2418,13 @@ export function AssistantPanel({
               <button
                 type="button"
                 className="ghost"
-                aria-label="Ranger chat history"
+                aria-label={t("assistant.chatHistoryAria")}
                 disabled={historyBlocked}
                 onClick={() => {
                   if (!historyBlocked) setHistoryOpen(true);
                 }}
               >
-                <History size={13} /> History
+                <History size={13} /> {t("assistant.historyHeading")}
               </button>
             ) : null}
             <button
@@ -2354,21 +2436,21 @@ export function AssistantPanel({
                   setConfirmNew(true);
               }}
             >
-              <Plus size={13} /> New chat
+              <Plus size={13} /> {` ${t("assistant.newChat")}`}
             </button>
           </div>
           {!ready || authPending || !scope.length ? (
             <div className="assistant-setup-notice">
               <span>
                 {authPending
-                  ? "Provider sign-in is in progress. Open model settings to continue."
+                  ? t("assistant.setupAuthPending")
                   : !ready
-                    ? "Connect a provider and choose a model to send messages."
+                    ? t("assistant.setupNotReady")
                     : !allWorkspacesAllowed &&
                         !snapshot.config.allowed_workspaces.length
-                      ? "Allow workspaces in Ranger settings to send messages."
+                      ? t("assistant.setupNoWorkspaces")
                       : contextLoading
-                        ? "Loading authorized workspaces"
+                        ? t("assistant.setupLoadingScope")
                         : unavailableScopeMessage}
               </span>
               <button
@@ -2380,7 +2462,9 @@ export function AssistantPanel({
                 }}
               >
                 <Settings size={13} />{" "}
-                {ready && !authPending ? "Ranger settings" : "Model settings"}
+                {ready && !authPending
+                  ? t("assistant.rangerSettings")
+                  : t("assistant.modelSettings")}
               </button>
             </div>
           ) : null}
@@ -2388,7 +2472,7 @@ export function AssistantPanel({
             <div
               ref={listRef}
               className="assistant-panel-list"
-              aria-label="Ranger conversation"
+              aria-label={t("assistant.conversationAria")}
               aria-busy={snapshot.running || executing}
               onScroll={(event) => {
                 const list = event.currentTarget;
@@ -2400,11 +2484,8 @@ export function AssistantPanel({
               {!snapshot.messages.length ? (
                 <div className="assistant-panel-empty">
                   <Compass size={24} aria-hidden="true" />
-                  <strong>What would you like to work on?</strong>
-                  <span>
-                    Ask about progress or changes, or ask Ranger to propose
-                    workspace and agent actions in your authorized workspaces.
-                  </span>
+                  <strong>{t("assistant.emptyQuestion")}</strong>
+                  <span>{t("assistant.emptyHint")}</span>
                 </div>
               ) : (
                 snapshot.messages.map((message, index) => (
@@ -2413,11 +2494,18 @@ export function AssistantPanel({
                     data-message-id={message.id}
                     data-sequence={index + 1}
                     className={`assistant-message is-${message.role}`}
-                    aria-label={`${message.role === "user" ? "You" : "Ranger"} message`}
+                    aria-label={t("assistant.messageAria", {
+                      role:
+                        message.role === "user"
+                          ? t("history.labelYou")
+                          : "Ranger",
+                    })}
                   >
                     <div className="assistant-message-head">
                       <strong>
-                        {message.role === "user" ? "You" : "Ranger"}
+                        {message.role === "user"
+                          ? t("history.labelYou")
+                          : "Ranger"}
                       </strong>
                       <time dateTime={message.sent_at}>
                         {formatUiDateTime(message.sent_at)}
@@ -2448,11 +2536,13 @@ export function AssistantPanel({
                           snapshot.messages[snapshot.messages.length - 1] ? (
                         // The open reasoning block already reports progress.
                         message.thinking?.length ? null : (
-                          <span className="assistant-hint">Working...</span>
+                          <span className="assistant-hint">
+                            {t("assistant.working")}
+                          </span>
                         )
                       ) : (
                         <span className="assistant-hint">
-                          No response text was received.
+                          {t("assistant.noResponseText")}
                         </span>
                       )
                     ) : (
@@ -2464,7 +2554,7 @@ export function AssistantPanel({
                     {message.role === "assistant" &&
                     message.text.length >= 32_000 ? (
                       <span className="assistant-hint">
-                        Response text reached the display limit.
+                        {t("assistant.responseTooLong")}
                       </span>
                     ) : null}
                     {message.role === "assistant"
@@ -2510,8 +2600,8 @@ export function AssistantPanel({
                 scrollerRef={listRef}
                 itemsRef={listRef}
                 orientation={mobile ? "horizontal" : "auto"}
-                label="Ranger conversation navigation"
-                emptyText="No response text yet"
+                label={t("assistant.minimapAria")}
+                emptyText={t("assistant.minimapEmpty")}
                 onLayout={pinMinimapLayout}
                 onSelect={jumpToMinimapEntry}
               />
@@ -2585,29 +2675,29 @@ export function AssistantPanel({
                   <button
                     type="button"
                     className={`assistant-permission-trigger${highPermission ? " is-high-permission" : ""}`}
-                    aria-label="Ranger permissions"
+                    aria-label={t("assistant.permissionsAria")}
                     title={
                       highPermission
                         ? allWorkspacesAllowed
-                          ? "High permission: all current and future workspaces"
-                          : "High permission: selected workspaces"
-                        : "Actions require confirmation"
+                          ? t("assistant.permissionTitleAll")
+                          : t("assistant.permissionTitleSelected")
+                        : t("assistant.permissionTitleConfirm")
                     }
                   >
                     <ShieldCheck size={13} aria-hidden="true" />
                     <span>
                       {highPermission
                         ? allWorkspacesAllowed
-                          ? "Full access"
-                          : "High permission"
-                        : "Ask for approval"}
+                          ? t("assistant.permissionFullAccess")
+                          : t("assistant.permissionHigh")
+                        : t("assistant.permissionAsk")}
                     </span>
                     <ChevronDown size={13} aria-hidden="true" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent
                   className={`assistant-permission-popover${mobile ? " is-mobile" : ""}`}
-                  aria-label="Ranger permission settings"
+                  aria-label={t("assistant.permissionPopoverAria")}
                   side="top"
                   align="end"
                   collisionPadding={8}
@@ -2618,20 +2708,20 @@ export function AssistantPanel({
                 >
                   <div className="assistant-permission-toggle">
                     <div>
-                      <strong>High-permission mode</strong>
+                      <strong>{t("assistant.highPermissionHeading")}</strong>
                       <p
                         className="assistant-hint"
                         id="ranger-high-permission-description"
                       >
                         {highPermission && !allWorkspacesAllowed
-                          ? "Applies only to your selected workspaces."
-                          : "Skip confirmations and allow every workspace."}
+                          ? t("assistant.highPermissionSelectedNote")
+                          : t("assistant.highPermissionSkipNote")}
                       </p>
                     </div>
                     <button
                       type="button"
                       role="switch"
-                      aria-label="High-permission mode"
+                      aria-label={t("assistant.highPermissionSwitchAria")}
                       aria-describedby="ranger-high-permission-description"
                       aria-checked={highPermission}
                       className={`settings-switch${highPermission ? " is-on" : ""}`}
@@ -2669,7 +2759,7 @@ export function AssistantPanel({
                         setConfirmApproval(true);
                       }}
                     >
-                      Enable high permission for all workspaces
+                      {t("assistant.enableAllWorkspaces")}
                     </button>
                   ) : null}
                 </PopoverContent>
@@ -2684,8 +2774,8 @@ export function AssistantPanel({
                   <>
                     <button
                       type="button"
-                      aria-label="Queue"
-                      title={`Queue: send after Ranger finishes (${altEnter})`}
+                      aria-label={t("assistant.queueAria")}
+                      title={t("assistant.queueTitle", { keys: altEnter })}
                       disabled={
                         operationBusy ||
                         !connected ||
@@ -2695,12 +2785,12 @@ export function AssistantPanel({
                       onClick={() => void submit(true)}
                     >
                       <ListPlus size={13} />
-                      Queue
+                      {t("assistant.queue")}
                     </button>
                     <button
                       type="submit"
-                      aria-label="Steer"
-                      title="Steer: join the current answer after its next step (Enter)"
+                      aria-label={t("assistant.steerAria")}
+                      title={t("assistant.steerTitle")}
                       disabled={
                         operationBusy ||
                         !connected ||
@@ -2709,26 +2799,26 @@ export function AssistantPanel({
                       }
                     >
                       <CornerDownRight size={13} />
-                      Steer
+                      {t("assistant.steer")}
                     </button>
                   </>
                 ) : null}
                 {snapshot.running ? (
                   <button
                     type="button"
-                    aria-label="Stop"
-                    title="Stop the model response; confirmed actions continue and waiting messages are kept"
+                    aria-label={t("chat.stop")}
+                    title={t("assistant.stopTitle")}
                     disabled={busy || !connected}
                     onClick={() => void run("stop")}
                   >
                     <Square size={13} />
-                    Stop
+                    {t("chat.stop")}
                   </button>
                 ) : (
                   <button
                     type="submit"
-                    aria-label="Send"
-                    title="Send message (Enter); Shift+Enter for a new line"
+                    aria-label={t("history.send")}
+                    title={t("assistant.sendTitle")}
                     disabled={
                       operationBusy ||
                       !connected ||
@@ -2739,7 +2829,7 @@ export function AssistantPanel({
                     }
                   >
                     <Send size={13} />
-                    Send
+                    {t("history.send")}
                   </button>
                 )}
               </div>
@@ -2764,9 +2854,9 @@ export function AssistantPanel({
       ) : null}
       <ConfirmDialog
         open={confirmApproval}
-        title="Enable high-permission mode?"
-        message="Ranger will be allowed to read and manage all current and future workspaces across your connections. Workspace status, conversations, terminal output, and diffs may be sent to your selected model provider. Ranger can run supported operations and create schedules without approval, including setup hooks and starting agents. Applies to new questions and new or edited tasks until disabled. Disabling restores your manual workspace selection."
-        confirmLabel="Enable high-permission mode"
+        title={t("assistant.confirmHighPermissionTitle")}
+        message={t("assistant.confirmHighPermissionMessage")}
+        confirmLabel={t("assistant.confirmHighPermissionConfirm")}
         onConfirm={() =>
           void run("configure_approval", {
             approval_mode: "auto",
@@ -2777,13 +2867,13 @@ export function AssistantPanel({
       />
       <ConfirmDialog
         open={confirmNew}
-        title="Start a new Ranger chat?"
+        title={t("assistant.confirmNewChatTitle")}
         message={
           historySupported
-            ? "The current chat will be saved in History. Unconfirmed action previews will be cancelled. Your model connection and workspace permissions stay saved."
-            : "The current conversation will be cleared. Unconfirmed action previews will be cancelled. Your model connection and workspace permissions stay saved."
+            ? t("assistant.confirmNewChatSaved")
+            : t("assistant.confirmNewChatCleared")
         }
-        confirmLabel="New chat"
+        confirmLabel={t("assistant.newChat")}
         onConfirm={() => void run("new_session")}
         onClose={() => setConfirmNew(false)}
       />
