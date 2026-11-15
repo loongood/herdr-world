@@ -1,6 +1,7 @@
 import "./AgentChat.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Copy, ListTree, RefreshCw, SquareTerminal } from "lucide-react";
+import { useT } from "../i18n";
 import { watchConversation } from "../conversationWatch";
 import { type ChatFocusIntent, useChatFocusIntent } from "../chatFocus";
 import { attachmentUploading } from "../attachmentUploads";
@@ -90,6 +91,7 @@ export function AgentChat({
   const localFocusIntent = useChatFocusIntent(
     active && focusIntent === undefined,
   );
+  const t = useT();
   const connectionClient = useConnectionClient();
   // The other live agents in this Herdr session whose names are valid and
   // unique there: a message typed here as "name: …" reads as relayed from it.
@@ -98,10 +100,11 @@ export function AgentChat({
   );
   const transcript = useMemo(
     () => ({
-      agent: recipientLabel ?? pane.agent_name ?? pane.agent ?? "Agent",
+      agent:
+        recipientLabel ?? pane.agent_name ?? pane.agent ?? t("chat.agentName"),
       agents: new Set(JSON.parse(relayFrom) as string[]),
     }),
-    [relayFrom, pane.agent, pane.agent_name, recipientLabel],
+    [relayFrom, pane.agent, pane.agent_name, recipientLabel, t],
   );
   const [conversation, setConversation] = useState<Conversation | null>(null);
   // Set when the newest read failed; the last good conversation stays shown.
@@ -213,19 +216,15 @@ export function AgentChat({
   const send = useCallback(
     async (value: string) => {
       const text = value.trim();
-      if (!text) throw new Error("Write a message first.");
+      if (!text) throw new Error(t("chat.writeFirst"));
       if (!connectionClient.isCurrent() || !conversation?.session_fingerprint)
-        throw new Error(
-          "The conversation changed. Nothing was sent; check it before sending again.",
-        );
+        throw new Error(t("chat.conversationChanged"));
       if (
         conversation.deliveries?.some(
           (delivery) => delivery.state === "misdelivered",
         )
       )
-        throw new Error(
-          "Read and dismiss the session-switch notice before sending.",
-        );
+        throw new Error(t("chat.dismissNoticeFirst"));
       setNotice("");
       const result = (await connectionClient.call("agent_conversation.send", {
         pane_id: pane.pane_id,
@@ -273,23 +272,26 @@ export function AgentChat({
   );
   const sendRef = useRef({ send, draftKey });
   sendRef.current = { send, draftKey };
-  const askAuthor = useCallback((item: WorkItem) => {
-    const current = sendRef.current;
-    if (
-      terminalComposerUploadCount(current.draftKey) ||
-      attachmentUploading(current.draftKey)
-    ) {
-      setNotice("Wait for the uploads before sending.");
-      return;
-    }
-    if (!beginTerminalComposerSubmission(current.draftKey)) return;
-    void current
-      .send(`↳ #${item.number} Please fix the findings on this pull request.`)
-      .catch((reason: unknown) =>
-        setNotice(reason instanceof Error ? reason.message : String(reason)),
-      )
-      .finally(() => finishTerminalComposerSubmission(current.draftKey));
-  }, []);
+  const askAuthor = useCallback(
+    (item: WorkItem) => {
+      const current = sendRef.current;
+      if (
+        terminalComposerUploadCount(current.draftKey) ||
+        attachmentUploading(current.draftKey)
+      ) {
+        setNotice(t("chat.waitUploads"));
+        return;
+      }
+      if (!beginTerminalComposerSubmission(current.draftKey)) return;
+      void current
+        .send(t("chat.fixFindings", { number: item.number ?? "" }))
+        .catch((reason: unknown) =>
+          setNotice(reason instanceof Error ? reason.message : String(reason)),
+        )
+        .finally(() => finishTerminalComposerSubmission(current.draftKey));
+    },
+    [t],
+  );
   const decorationTokens = useChatBlocks({
     entries: history.messages,
     steps: stepEvidence,
@@ -298,7 +300,7 @@ export function AgentChat({
       generation: connectionClient.serverRuntimeGeneration,
       paneId: pane.pane_id,
       sessionFingerprint: workSessionFingerprint,
-      label: pane.agent_name ?? pane.agent ?? "the agent",
+      label: pane.agent_name ?? pane.agent ?? t("chat.theAgent"),
     },
     onAskAuthor:
       conversation?.status === "ok" && conversation.session_fingerprint
@@ -444,11 +446,13 @@ export function AgentChat({
         text: "",
         keys: ["escape"],
       });
-      setStopNote(`Pressed Esc in ${agentName || "the agent"}'s terminal.`);
+      setStopNote(
+        t("chat.pressedEsc", { name: agentName || t("chat.theAgent") }),
+      );
     } catch (reason) {
       setStopNote(reason instanceof Error ? reason.message : String(reason));
     }
-  }, [agentName, connectionClient, pane.pane_id]);
+  }, [agentName, connectionClient, pane.pane_id, t]);
   const firstEscape = useRef(0);
   useEffect(() => {
     if (!canStop) return;
@@ -469,7 +473,9 @@ export function AgentChat({
         void stop();
       } else {
         firstEscape.current = now;
-        const note = `Press Esc again to stop ${agentName || "the agent"}.`;
+        const note = t("chat.pressEscAgain", {
+          name: agentName || t("chat.theAgent"),
+        });
         setStopNote(note);
         // The note holds only while a second Esc would stop.
         expire = window.setTimeout(
@@ -483,7 +489,7 @@ export function AgentChat({
       window.clearTimeout(expire);
       window.removeEventListener("keydown", keydown);
     };
-  }, [agentName, canStop, stop]);
+  }, [agentName, canStop, stop, t]);
   // A new turn clears the last stop note.
   useEffect(() => {
     if (liveStatus !== "working") setStopNote("");
@@ -494,7 +500,7 @@ export function AgentChat({
       <div className="agent-chat is-details">
         <div className="agent-chat-toolbar">
           <button type="button" onClick={() => setDetails(false)}>
-            Back to chat
+            {t("chat.backToChat")}
           </button>
         </div>
         <AgentHistoryDrawer
@@ -558,7 +564,7 @@ export function AgentChat({
         {/* Only the status and task are announced; the clocks are not. */}
         <span className="agent-chat-now-live" aria-live="polite">
           {fuel ? (
-            <ChatStatusBadge status="fuel" label="Out of fuel" />
+            <ChatStatusBadge status="fuel" label={t("chat.outOfFuel")} />
           ) : (
             <ChatStatusBadge status={liveStatus} />
           )}
@@ -586,12 +592,12 @@ export function AgentChat({
             title={
               // A touch screen has no Esc key to point to.
               window.matchMedia?.("(pointer: coarse)").matches
-                ? "Interrupt this turn in the agent's terminal"
-                : "Press Esc in the agent's terminal to interrupt this turn (or press Esc twice)"
+                ? t("chat.stopTouchTitle")
+                : t("chat.stopTitle")
             }
             onClick={() => void stop()}
           >
-            ■ Stop <kbd>Esc</kbd>
+            ■ {t("chat.stop")} <kbd>Esc</kbd>
           </button>
         ) : null}
         <button
@@ -601,49 +607,47 @@ export function AgentChat({
             refreshHistory();
           }}
           disabled={loading}
-          aria-label="Refresh conversation"
-          title="Refresh"
+          aria-label={t("chat.refreshConversation")}
+          title={t("chat.refresh")}
         >
           <RefreshCw size={13} />
         </button>
         <button
           type="button"
           onClick={() => setDetails(true)}
-          aria-label="Show session details"
-          title="Timeline, tool output and export"
+          aria-label={t("chat.showDetails")}
+          title={t("chat.detailsTitle")}
         >
-          <ListTree size={13} /> Details
+          <ListTree size={13} /> {t("chat.details")}
         </button>
       </div>
       {misdelivered.map((delivery) => (
         <div key={delivery.id} className="agent-chat-misdelivered" role="alert">
           {delivery.evidence === "herdr" ? (
             <>
-              <strong>
-                Your message may have gone to a different session.
-              </strong>
+              <strong>{t("chat.misdeliveredHerdrTitle")}</strong>
               <span>
-                Herdr had switched this pane to {delivery.delivered_to} when it
-                took “{preview(delivery.text)}”, which you sent to{" "}
-                {delivery.expected}. Check that session; Send is paused until
-                you dismiss this.
+                {t("chat.misdeliveredHerdrBody", {
+                  to: delivery.delivered_to ?? "",
+                  text: preview(delivery.text),
+                  expected: delivery.expected,
+                })}
               </span>
             </>
           ) : (
             <>
-              <strong>
-                Your message appears to have gone to a different session.
-              </strong>
+              <strong>{t("chat.misdeliveredTitle")}</strong>
               <span>
-                “{preview(delivery.text)}” was the first thing said in{" "}
-                {delivery.delivered_to} right after you sent it to{" "}
-                {delivery.expected}. Check that session; Send is paused until
-                you dismiss this.
+                {t("chat.misdeliveredBody", {
+                  text: preview(delivery.text),
+                  to: delivery.delivered_to ?? "",
+                  expected: delivery.expected,
+                })}
               </span>
             </>
           )}
           <button type="button" onClick={() => dismiss(delivery.id)}>
-            Dismiss
+            {t("chat.dismiss")}
           </button>
         </div>
       ))}
@@ -655,15 +659,18 @@ export function AgentChat({
         >
           <strong>
             {delivery.state === "uncertain"
-              ? "Chat cannot tell where this went."
-              : "Chat can no longer check this."}
+              ? t("chat.uncertainTitle")
+              : t("chat.uncheckableTitle")}
           </strong>
           <span>
-            You sent “{preview(delivery.text)}” to {delivery.expected}.{" "}
-            {delivery.detail} Look in the Terminal to see where it went.
+            {t("chat.unverifiedBody", {
+              text: preview(delivery.text),
+              expected: delivery.expected,
+              detail: delivery.detail ?? "",
+            })}
           </span>
           <button type="button" onClick={() => dismiss(delivery.id)}>
-            Dismiss
+            {t("chat.dismiss")}
           </button>
         </div>
       ))}
@@ -674,20 +681,22 @@ export function AgentChat({
           role="status"
           data-delivery="elsewhere"
         >
-          Still checking {delivery.expected} for “{preview(delivery.text)}”,
-          sent before this pane moved on.{" "}
+          {t("chat.stillChecking", {
+            expected: delivery.expected,
+            text: preview(delivery.text),
+          })}{" "}
           <button
             type="button"
             className="agent-chat-pending-dismiss"
             onClick={() => dismiss(delivery.id)}
           >
-            Stop checking
+            {t("chat.stopChecking")}
           </button>
         </p>
       ))}
       {stale ? (
         <p className="agent-chat-stale" role="status">
-          Could not refresh, so this is the last conversation read. {stale}
+          {t("chat.staleBody", { detail: stale })}
         </p>
       ) : null}
       {/* History's read failed: keep its last good window, if any, and say
@@ -695,13 +704,13 @@ export function AgentChat({
       {!stale && !unavailable && history.error ? (
         <p className="agent-chat-stale" role="status">
           {history.history
-            ? `Could not refresh the messages, so these are the last read. ${history.error}`
-            : `Could not read the messages. ${history.error}`}
+            ? t("chat.historyStaleBody", { detail: history.error })
+            : t("chat.historyErrorBody", { detail: history.error })}
         </p>
       ) : null}
       {unavailable ? (
         <div className="agent-chat-unavailable" role="status">
-          <strong>Conversation unavailable</strong>
+          <strong>{t("chat.unavailableTitle")}</strong>
           <span>{unavailable.detail}</span>
           {unavailable.command ? (
             <span className="agent-chat-command">
@@ -710,7 +719,7 @@ export function AgentChat({
                 type="button"
                 onClick={() => void copyTextWithFeedback(unavailable.command!)}
               >
-                <Copy size={13} /> Copy command
+                <Copy size={13} /> {t("chat.copyCommand")}
               </button>
             </span>
           ) : null}
@@ -725,17 +734,17 @@ export function AgentChat({
           ) : null}
           <span className="agent-chat-actions">
             <button type="button" onClick={load} disabled={loading}>
-              <RefreshCw size={13} /> Refresh
+              <RefreshCw size={13} /> {t("chat.refresh")}
             </button>
             {onOpenTerminal ? (
               <button type="button" onClick={onOpenTerminal}>
-                <SquareTerminal size={13} /> Open Terminal
+                <SquareTerminal size={13} /> {t("chat.openTerminal")}
               </button>
             ) : null}
           </span>
           {unavailable.issue ? (
             <a href={unavailable.issue} target="_blank" rel="noreferrer">
-              Known issue
+              {t("chat.knownIssue")}
             </a>
           ) : null}
         </div>
@@ -754,10 +763,10 @@ export function AgentChat({
               }
             >
               {history.error
-                ? "Messages could not be read. Use Refresh to try again."
+                ? t("chat.errorEmpty")
                 : noRecord || history.history
-                  ? "No messages yet."
-                  : "Loading conversation…"}
+                  ? t("chat.noMessages")
+                  : t("chat.loadingConversation")}
             </p>
           ) : null}
           <AgentHistoryChat
@@ -795,7 +804,7 @@ export function AgentChat({
                 recipientLabel ??
                   conversation?.agent ??
                   pane.agent ??
-                  "the agent",
+                  t("chat.theAgent"),
                 dismiss,
               ),
             ]}
@@ -815,7 +824,7 @@ export function AgentChat({
                 answered={answered}
                 prompt={showAsk ? prompt : null}
                 tooSmall={tooSmall}
-                agent={conversation?.agent ?? "The agent"}
+                agent={conversation?.agent ?? t("chat.theAgentSentence")}
                 answering={answering}
                 notice={
                   keys.notice ||
@@ -841,7 +850,7 @@ export function AgentChat({
           <span>{conversation?.unavailable?.detail}</span>
           {onOpenTerminal ? (
             <button type="button" onClick={onOpenTerminal}>
-              <SquareTerminal size={13} /> Open Terminal
+              <SquareTerminal size={13} /> {t("chat.openTerminal")}
             </button>
           ) : null}
           {conversation?.unavailable?.command ? (
@@ -853,7 +862,7 @@ export function AgentChat({
                   void copyTextWithFeedback(conversation.unavailable!.command!)
                 }
               >
-                <Copy size={13} /> Copy command
+                <Copy size={13} /> {t("chat.copyCommand")}
               </button>
             </span>
           ) : null}
@@ -863,12 +872,12 @@ export function AgentChat({
         <div className="agent-chat-guessed" role="status">
           <span>
             {conversation.session_binding === "title"
-              ? "The Codex title does not name one saved thread yet, so Chat cannot tell where a message would go. Send the first message from the Terminal; Chat can reply once Codex saves the thread."
-              : "World found this conversation in the pane's folder; Herdr has not tied it to this pane, so Chat cannot send to it."}
+              ? t("chat.codexTitleGuess")
+              : t("chat.folderGuess")}
           </span>
           {onOpenTerminal ? (
             <button type="button" onClick={onOpenTerminal}>
-              <SquareTerminal size={13} /> Open Terminal
+              <SquareTerminal size={13} /> {t("chat.openTerminal")}
             </button>
           ) : null}
         </div>
@@ -883,14 +892,17 @@ export function AgentChat({
           pane={pane}
           fingerprint={conversation?.session_fingerprint ?? ""}
           recipient={
-            recipientLabel ?? conversation?.agent ?? pane.agent ?? "agent"
+            recipientLabel ??
+            conversation?.agent ??
+            pane.agent ??
+            t("chat.agentName")
           }
           notice={notice}
           disabledReason={
             misdelivered.length
-              ? "Read and dismiss the session-switch notice before sending."
+              ? t("chat.dismissNoticeFirst")
               : conversation?.pending_prompt?.menu
-                ? "A menu is open in the terminal; typing would go into it as keys. Close it with the key its card names, then send."
+                ? t("chat.menuOpenDisabled")
                 : undefined
           }
           onSubmit={send}

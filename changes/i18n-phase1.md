@@ -13,5 +13,7 @@
   states, folded sign and pull request lists. The Town Master's greeting
   follows too: its card, the since-you-left recap on the board sign and its
   phone chip, with the away duration and return times in the selected
-  language. Remaining surfaces keep English
+  language. The agent Chat pane follows as well: its toolbar, status and stop
+  notes, delivery notices, errors, empty states and the fixed-findings
+  message it sends. Remaining surfaces keep English
   until their phase lands.

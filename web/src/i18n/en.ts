@@ -412,6 +412,65 @@ export const en = {
     recapHeader: "Since {time} · away {away}",
     clearRecap: "Clear since you left",
   },
+  chat: {
+    agentName: "Agent",
+    theAgent: "the agent",
+    theAgentSentence: "The agent",
+    writeFirst: "Write a message first.",
+    conversationChanged:
+      "The conversation changed. Nothing was sent; check it before sending again.",
+    dismissNoticeFirst:
+      "Read and dismiss the session-switch notice before sending.",
+    waitUploads: "Wait for the uploads before sending.",
+    fixFindings: "↳ #{number} Please fix the findings on this pull request.",
+    pressedEsc: "Pressed Esc in {name}'s terminal.",
+    pressEscAgain: "Press Esc again to stop {name}.",
+    outOfFuel: "Out of fuel",
+    stopTouchTitle: "Interrupt this turn in the agent's terminal",
+    stopTitle:
+      "Press Esc in the agent's terminal to interrupt this turn (or press Esc twice)",
+    stop: "Stop",
+    refreshConversation: "Refresh conversation",
+    refresh: "Refresh",
+    showDetails: "Show session details",
+    detailsTitle: "Timeline, tool output and export",
+    details: "Details",
+    backToChat: "Back to chat",
+    misdeliveredHerdrTitle:
+      "Your message may have gone to a different session.",
+    misdeliveredHerdrBody:
+      "Herdr had switched this pane to {to} when it took “{text}”, which you sent to {expected}. Check that session; Send is paused until you dismiss this.",
+    misdeliveredTitle:
+      "Your message appears to have gone to a different session.",
+    misdeliveredBody:
+      "“{text}” was the first thing said in {to} right after you sent it to {expected}. Check that session; Send is paused until you dismiss this.",
+    dismiss: "Dismiss",
+    uncertainTitle: "Chat cannot tell where this went.",
+    uncheckableTitle: "Chat can no longer check this.",
+    unverifiedBody:
+      "You sent “{text}” to {expected}. {detail} Look in the Terminal to see where it went.",
+    stillChecking:
+      "Still checking {expected} for “{text}”, sent before this pane moved on.",
+    stopChecking: "Stop checking",
+    staleBody:
+      "Could not refresh, so this is the last conversation read. {detail}",
+    historyStaleBody:
+      "Could not refresh the messages, so these are the last read. {detail}",
+    historyErrorBody: "Could not read the messages. {detail}",
+    unavailableTitle: "Conversation unavailable",
+    copyCommand: "Copy command",
+    openTerminal: "Open Terminal",
+    knownIssue: "Known issue",
+    errorEmpty: "Messages could not be read. Use Refresh to try again.",
+    noMessages: "No messages yet.",
+    loadingConversation: "Loading conversation…",
+    codexTitleGuess:
+      "The Codex title does not name one saved thread yet, so Chat cannot tell where a message would go. Send the first message from the Terminal; Chat can reply once Codex saves the thread.",
+    folderGuess:
+      "World found this conversation in the pane's folder; Herdr has not tied it to this pane, so Chat cannot send to it.",
+    menuOpenDisabled:
+      "A menu is open in the terminal; typing would go into it as keys. Close it with the key its card names, then send.",
+  },
 } as const;
 
 // The translation contract: the English key structure with every leaf
