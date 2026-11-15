@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { expect, mock, spyOn, test } from "bun:test";
 
 if (process.env.FILE_PREVIEW_RECOVERY_DOM !== "1") {
@@ -7,7 +8,9 @@ if (process.env.FILE_PREVIEW_RECOVERY_DOM !== "1") {
         process.execPath,
         "test",
         "--preload",
-        new URL("../testing/reactDomPreload.ts", import.meta.url).pathname,
+        fileURLToPath(
+          new URL("../testing/reactDomPreload.ts", import.meta.url),
+        ),
         import.meta.path,
       ],
       {

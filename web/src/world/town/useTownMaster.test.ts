@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { expect, mock, test } from "bun:test";
 import type { OfficeAgent } from "../herdrOfficeProjection";
 
@@ -8,7 +9,9 @@ if (process.env.TOWN_MASTER_DOM !== "1") {
         process.execPath,
         "test",
         "--preload",
-        new URL("../../testing/reactDomPreload.ts", import.meta.url).pathname,
+        fileURLToPath(
+          new URL("../../testing/reactDomPreload.ts", import.meta.url),
+        ),
         import.meta.path,
       ],
       {

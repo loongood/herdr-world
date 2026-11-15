@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { expect, mock, test } from "bun:test";
 
 if (process.env.FILE_PREVIEW_PDF_DOM !== "1") {
@@ -7,7 +8,9 @@ if (process.env.FILE_PREVIEW_PDF_DOM !== "1") {
         process.execPath,
         "test",
         "--preload",
-        new URL("../testing/reactDomPreload.ts", import.meta.url).pathname,
+        fileURLToPath(
+          new URL("../testing/reactDomPreload.ts", import.meta.url),
+        ),
         import.meta.path,
       ],
       {
@@ -40,7 +43,7 @@ if (process.env.FILE_PREVIEW_PDF_DOM !== "1") {
   // PdfPages is the only module that imports PDF.js: importing it is what
   // loads PDF.js and its worker. This stand-in records that import.
   let pdfPagesImports = 0;
-  mock.module(new URL("./PdfPages.tsx", import.meta.url).pathname, () => {
+  mock.module(fileURLToPath(new URL("./PdfPages.tsx", import.meta.url)), () => {
     pdfPagesImports += 1;
     return {
       default: ({ url }: { url: string }) =>

@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { afterEach, expect, mock, spyOn, test } from "bun:test";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -14,7 +15,9 @@ if (process.env.HERDR_CONNECTION_SETTINGS_DOM_TEST !== "1") {
         process.execPath,
         "test",
         "--preload",
-        new URL("../testing/reactDomPreload.ts", import.meta.url).pathname,
+        fileURLToPath(
+          new URL("../testing/reactDomPreload.ts", import.meta.url),
+        ),
         import.meta.path,
       ],
       {
