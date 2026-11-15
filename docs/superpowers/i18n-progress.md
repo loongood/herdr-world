@@ -7,8 +7,8 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`7741061c`(批次 31a,已推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **3352** 键,0 占位符不匹配
+- 最新提交:`33179cdb`(批次 31b,已推送)
+- 词典规模:en / zh-Hans / zh-Hant 各 **3460** 键,0 占位符不匹配
 - 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
@@ -72,7 +72,15 @@
   (都会导致 miss 或意外求值)
 - 替换串必须完整包含锚的所有结构行(如域关闭 `},`);缩进必须逐字一致
 - biome check --write 后文件需重新 Read 才能 Edit;命令输出 >200 行 pipe head/tail
+- **只格式化、不整理导入**:本仓库 pre-commit 跑 `biome format --write --staged`,
+  `biome check --write` 会顺带 organizeImports,给 TownView/WorldControlPlane 等
+  产生上百行无关 diff。批次里改用 `bunx biome format --write <files>`
+- **迁移脚本同一文件多条编辑要串行应用**:先在内存里逐条替换再一次性写盘;
+  否则后一条用旧内容覆盖前一条,键会静默丢失(31b 曾丢 town.ask 三键)
+- **组件可能被测试当普通函数直接调用**(TownTidyRooms.test.ts):这种组件
+  不能用 useT(),只能用模块级 t()
 - 既有环境问题(不修):isolated DOM 测试本地 preload 失败(CI 跑);
+  townSceneBoundary.test.ts 在 Windows 上因路径分隔符失败(与改动无关);
   `[queue] machine-wide check queue unavailable here` 警告无害
 
 ---
@@ -122,17 +130,11 @@
 | 30c | `dd06dfce` | shortcuts 121 键 + shortcutCatalog 键化重写、shortcutCheatSheet、ShortcutCheatSheet、ShortcutLookupDialog |
 | 30d | `2aec6ccd` | shortcuts 20 键(绑定校验错误、保留组合警告、预设校验错误、存储/离线通知、导入错误)+ shortcutBindings、shortcutPreferences 两文件模块级 t 化 |
 | 31a | `7741061c` | 新增 common(11 键)+ toasts(12 键)域与 interest.saveFailed;CloseButton 默认 label、ModalDialogs(保存/取消/确认/确定)、ThemedSelect 空态、UpdateToast、StaleBuildToast、AppToasts、AgentInterestButton |
+| 31b | `33179cdb` | 新增 town.ask/rooms/team/move/room 组、board 33 键与 moves 顶层域(22 键);TownRail、TownTidyRooms、TownChooser、TownAccessibleTargets、townMoveActions(改名 useTownMoveActions)、townMoves、townMoveMenu、townTeamActions、roomRenameClose、boardPaneMove、useBoardPaneMoves、useBoardHerdrActions、worldAsks、WorldControlPlane(Close) |
 
 ---
 
 ## 待完成(按顺序执行;完成一批更新本文件一次)
-
-### 批次 31b:小镇/看板动作
-
-TownRail、TownTidyRooms、TownChooser、TownAccessibleTargets、townMoveActions、
-useBoardHerdrActions、world/roomRenameClose.tsx(提交/确认标签)、
-world/board/useBoardPaneMoves.tsx(confirmLabel="Move pane and close room")、
-world/WorldControlPlane.tsx(confirmLabel="Close")。
 
 ### 批次 31c:分组(groups)模块
 
