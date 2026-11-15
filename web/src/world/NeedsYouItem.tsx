@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useT } from "../i18n";
 import { agentMarkKind } from "./agentMarks";
 import { AgentMark } from "../components/AgentMark";
 import { ChatAfterBlocks } from "../components/chat/blocks/after";
@@ -78,9 +79,10 @@ export function NeedsYouMessage({
   onOpened?(): void;
 }) {
   const { leaf } = item;
+  const t = useT();
   const name = itemName(item);
   const unverified = item.kind === "asks" && !item.ask.actor.verified;
-  const who = `${name}${unverified ? " (unverified)" : ""}`;
+  const who = `${name}${unverified ? ` ${t("needsYou.unverifiedSuffix")}` : ""}`;
   const kind =
     item.kind === "asks"
       ? "asks"
@@ -105,8 +107,8 @@ export function NeedsYouMessage({
         <button
           type="button"
           className="needs-you-name"
-          aria-label={`Open ${name}'s window`}
-          title={`Open ${name}'s window`}
+          aria-label={t("needsYou.openWindow", { name })}
+          title={t("needsYou.openWindow", { name })}
           aria-describedby={card ? cardId : undefined}
           onPointerEnter={(event) =>
             event.pointerType === "mouse" && setCard(true)
@@ -120,8 +122,11 @@ export function NeedsYouMessage({
         <b className="needs-you-name">{name}</b>
       )}
       {unverified ? (
-        <span className="needs-you-tag" title="World could not check this pane">
-          unverified
+        <span
+          className="needs-you-tag"
+          title={t("needsYou.unverifiedTagTitle")}
+        >
+          {t("needsYou.unverifiedTag")}
         </span>
       ) : null}
       <small className="needs-you-meta">{meta}</small>
@@ -130,9 +135,11 @@ export function NeedsYouMessage({
           type="button"
           className="needs-you-icon needs-you-chat"
           aria-label={
-            done ? `Follow up with ${name}` : `Chat with ${name} about this`
+            done
+              ? t("needsYou.followUpWith", { name })
+              : t("needsYou.chatAbout", { name })
           }
-          title={done ? "Follow up in Chat" : "Open in Chat"}
+          title={done ? t("needsYou.followUpInChat") : t("needsYou.openInChat")}
           onClick={() => onChat(leaf.id)}
         >
           <MessageSquare size={16} aria-hidden="true" />
@@ -145,7 +152,7 @@ export function NeedsYouMessage({
     <article
       className={`needs-you-item is-${item.kind}${focused ? " is-focused" : ""}`}
       data-needs-you-item={item.key}
-      aria-label={`${fresh ? "New: " : ""}${who}: ${item.kind === "asks" ? "asks you" : item.kind === "needs" ? "needs you" : "done, not reviewed"}`}
+      aria-label={`${fresh ? t("needsYou.itemNewPrefix") : ""}${who}: ${item.kind === "asks" ? t("needsYou.itemAriaAsks") : item.kind === "needs" ? t("needsYou.itemAriaNeeds") : t("needsYou.itemAriaDone")}`}
       {...(fresh && onOpened
         ? { onPointerDown: onOpened, onKeyDown: onOpened }
         : {})}
@@ -153,7 +160,7 @@ export function NeedsYouMessage({
       {fresh ? (
         <span
           className="needs-you-new"
-          title="New since you left"
+          title={t("needsYou.newSinceYouLeft")}
           aria-hidden="true"
         />
       ) : null}
@@ -205,6 +212,7 @@ export function NeedsYouText({
   id?: string;
   children: ReactNode;
 }) {
+  const t = useT();
   const ownId = useId();
   const textId = id ?? ownId;
   const box = useRef<HTMLDivElement | null>(null);
@@ -277,7 +285,7 @@ export function NeedsYouText({
           aria-controls={textId}
           onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? "less" : "more"}
+          {expanded ? t("needsYou.textLess") : t("needsYou.textMore")}
         </button>
       ) : null}
     </div>
@@ -309,6 +317,7 @@ function NeedsYouAsk({
   onDismiss(): Promise<string | null>;
 }) {
   const { question, options } = ask;
+  const t = useT();
   const deliveryMessage = askDeliveryMessage(ask);
   const questionId = useId();
   const [draft, setDraft] = useState("");
@@ -338,9 +347,7 @@ function NeedsYouAsk({
     if (!canSend || busy) return;
     const text = answerWithAttachments(draft, files.paths);
     if (text.length > ANSWER_MAX_LENGTH) {
-      setError(
-        `The answer and its file paths run past ${ANSWER_MAX_LENGTH} characters. Shorten it or remove a file.`,
-      );
+      setError(t("needsYou.answerTooLong", { limit: ANSWER_MAX_LENGTH }));
       return;
     }
     setBusy(true);
@@ -356,8 +363,8 @@ function NeedsYouAsk({
         <button
           type="button"
           className="needs-you-icon"
-          aria-label={`Dismiss ${who}'s question without answering`}
-          title="Dismiss question"
+          aria-label={t("needsYou.dismissQuestionAria", { who })}
+          title={t("needsYou.dismissQuestion")}
           disabled={busy}
           onClick={() => void act(onDismiss)}
         >
@@ -375,7 +382,7 @@ function NeedsYouAsk({
         <div
           className="needs-you-replies"
           role="group"
-          aria-label={`Answers to ${who}`}
+          aria-label={t("needsYou.answersToAria", { who })}
         >
           {options.map((option, index) => (
             <button
@@ -392,16 +399,16 @@ function NeedsYouAsk({
           <button
             type="button"
             className="ghost"
-            title="Type another answer"
+            title={t("needsYou.typeAnotherAnswer")}
             disabled={busy}
             onClick={() => setTyping(true)}
           >
-            Other…
+            {t("needsYou.otherChoice")}
           </button>
         </div>
       ) : (
         <form
-          aria-label={`Question from ${who}`}
+          aria-label={t("needsYou.questionFromAria", { who })}
           className={`needs-you-field${onAttach ? " can-attach" : ""}`}
           onSubmit={(event) => {
             event.preventDefault();
@@ -416,17 +423,16 @@ function NeedsYouAsk({
             if (!onAttach || !isNativeFileDrag(event.dataTransfer)) return;
             event.preventDefault();
             const dropped = filesFromTerminalDrop(event.dataTransfer);
-            if (dropped === "directory")
-              setError("Drop files only; folders are not supported.");
+            if (dropped === "directory") setError(t("needsYou.dropFilesOnly"));
             else if (dropped?.length) files.add(dropped);
           }}
         >
           <input
             ref={field}
             value={draft}
-            aria-label={`Your answer to ${who}`}
+            aria-label={t("needsYou.yourAnswerAria", { who })}
             aria-describedby={questionId}
-            placeholder={`Answer ${name}…`}
+            placeholder={t("needsYou.answerPlaceholder", { name })}
             onChange={(event) => setDraft(event.target.value)}
             onPaste={(event) => {
               if (!onAttach) return;
@@ -445,8 +451,8 @@ function NeedsYouAsk({
               <button
                 type="button"
                 className="needs-you-icon needs-you-attach"
-                aria-label="Attach files or screenshots"
-                title="Attach files or screenshots"
+                aria-label={t("needsYou.attachFiles")}
+                title={t("needsYou.attachFiles")}
                 disabled={busy}
                 onClick={() => picker.current?.click()}
               >
@@ -470,13 +476,13 @@ function NeedsYouAsk({
           <button
             type="submit"
             className="needs-you-icon needs-you-send"
-            aria-label="Send answer"
+            aria-label={t("needsYou.sendAnswer")}
             title={
               files.uploading
-                ? "Send answer: waiting for files to upload"
+                ? t("needsYou.sendWaiting")
                 : files.failed
-                  ? "Send answer: retry or remove the failed file"
-                  : "Send answer"
+                  ? t("needsYou.sendRetry")
+                  : t("needsYou.sendAnswer")
             }
             disabled={busy || !canSend}
           >
@@ -528,6 +534,7 @@ function NeedsYouAgent({
   onReviewed(stop: string): Promise<boolean>;
 }) {
   // Read again when the stop moves on, so the report and the mark agree.
+  const t = useT();
   const read = useConversationRead(leaf, true, stop);
   const conversation = read.conversation;
   const latest = conversation?.latest ?? null;
@@ -599,13 +606,13 @@ function NeedsYouAgent({
           <button
             type="button"
             className="needs-you-icon"
-            aria-label={`Mark ${name}'s work reviewed`}
+            aria-label={t("needsYou.markWorkReviewedAria", { name })}
             title={
               current
-                ? "Mark reviewed"
+                ? t("needsYou.markReviewed")
                 : unread
-                  ? "Mark reviewed: the latest report could not be read"
-                  : "Mark reviewed: reading the latest report…"
+                  ? t("needsYou.markReviewedUnread")
+                  : t("needsYou.markReviewedReading")
             }
             disabled={marking || !current}
             onClick={() => {
@@ -632,21 +639,21 @@ function NeedsYouAgent({
       ) : (
         <p className="needs-you-empty">
           {conversation?.status === "unavailable"
-            ? (conversation.unavailable?.detail ?? "No conversation.")
+            ? (conversation.unavailable?.detail ?? t("needsYou.noConversation"))
             : conversation
-              ? (leaf.taskSummary ?? "No messages yet.")
+              ? (leaf.taskSummary ?? t("needsYou.noMessagesYet"))
               : read.failed
-                ? "Could not read the conversation."
-                : "Loading conversation…"}
+                ? t("needsYou.readFailed")
+                : t("chat.loadingConversation")}
         </p>
       )}
       {unread ? (
         <div className="needs-you-replies">
           <small className="needs-you-notice" role="alert">
-            Could not read the latest report.
+            {t("needsYou.reportUnread")}
           </small>
           <button type="button" onClick={read.retry}>
-            Retry
+            {t("needsYou.retry")}
           </button>
         </div>
       ) : null}
@@ -679,14 +686,13 @@ function NeedsYouAgent({
       {answered && !answered.acknowledged ? (
         <div className="needs-you-replies">
           <button type="button" onClick={onOpenTerminal}>
-            Open Terminal
+            {t("chat.openTerminal")}
           </button>
         </div>
       ) : null}
       {markError ? (
         <small className="needs-you-notice" role="alert">
-          Could not save the review mark. Try again when the connection is
-          ready.
+          {t("needsYou.markSaveFailed")}
         </small>
       ) : null}
     </>

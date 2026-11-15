@@ -1,6 +1,7 @@
 import { FileText, RotateCw, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatBytes } from "../components/agentSession";
+import { t, useT } from "../i18n";
 import type { AskAttachmentUpload } from "./askAttachments";
 
 /** One file attached to an answer: uploading, stored at its path, or failed. */
@@ -48,7 +49,8 @@ export function useAnswerAttachments(upload: AskAttachmentUpload | undefined) {
       (error: unknown) =>
         patch(id, {
           status: "failed",
-          error: error instanceof Error ? error.message : "Upload failed",
+          error:
+            error instanceof Error ? error.message : t("needsYou.uploadFailed"),
         }),
     );
   };
@@ -58,7 +60,7 @@ export function useAnswerAttachments(upload: AskAttachmentUpload | undefined) {
       (file): AnswerAttachment => ({
         id: `answer-file-${++nextId}`,
         file,
-        name: file.name || "pasted file",
+        name: file.name || t("needsYou.pastedFile"),
         preview: previewOf(file),
         status: "uploading",
         loaded: 0,
@@ -110,9 +112,13 @@ export function NeedsYouAttachmentChips({
   onRemove(id: string): void;
   onRetry(id: string): void;
 }) {
+  const t = useT();
   if (!items.length) return null;
   return (
-    <ul className="needs-you-files" aria-label="Attached files">
+    <ul
+      className="needs-you-files"
+      aria-label={t("needsYou.attachedFilesAria")}
+    >
       {items.map((item) => {
         const percent = item.file.size
           ? Math.min(100, Math.round((item.loaded / item.file.size) * 100))
@@ -120,11 +126,16 @@ export function NeedsYouAttachmentChips({
         const state =
           item.status === "uploading"
             ? item.loaded > 0
-              ? `Uploading ${percent}% of ${formatBytes(item.file.size)}`
-              : "Uploading…"
+              ? t("needsYou.uploadingPercent", {
+                  percent,
+                  size: formatBytes(item.file.size),
+                })
+              : t("needsYou.uploading")
             : item.status === "done"
               ? formatBytes(item.file.size)
-              : `Failed: ${item.error ?? "upload failed"}`;
+              : t("needsYou.failedWith", {
+                  detail: item.error ?? t("needsYou.uploadFailed"),
+                });
         return (
           <li
             key={item.id}
@@ -143,8 +154,8 @@ export function NeedsYouAttachmentChips({
               <button
                 type="button"
                 className="needs-you-icon"
-                aria-label={`Retry ${item.name}`}
-                title="Retry"
+                aria-label={t("needsYou.retryFileAria", { name: item.name })}
+                title={t("needsYou.retry")}
                 disabled={disabled}
                 onClick={() => onRetry(item.id)}
               >
@@ -154,8 +165,8 @@ export function NeedsYouAttachmentChips({
             <button
               type="button"
               className="needs-you-icon"
-              aria-label={`Remove ${item.name}`}
-              title="Remove"
+              aria-label={t("needsYou.removeFileAria", { name: item.name })}
+              title={t("needsYou.remove")}
               disabled={disabled}
               onClick={() => onRemove(item.id)}
             >

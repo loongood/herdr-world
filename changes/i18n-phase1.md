@@ -23,6 +23,9 @@
   follow the language everywhere they appear — every mark title, Board rows
   and summaries, Town edges and peeks, reception's sign and filter, the
   mobile app bar and Chat's status badge — through one marks dictionary;
-  the words' unused `means` descriptions were removed.
+  the words' unused `means` descriptions were removed. The Needs you
+  follows too: its counter and handle, waiting list, per-item cards
+  (questions, quick replies, typed answers with attachment chips and
+  progress), and the outbox route, including its screen-reader labels.
   Remaining surfaces keep English
   until their phase lands.

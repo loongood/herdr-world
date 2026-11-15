@@ -7,6 +7,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
+import { useT } from "../i18n";
 import { AgentMark } from "../components/AgentMark";
 import { useLayoutPreferences } from "../layoutPreferences";
 import { useSystemBack } from "../systemBack";
@@ -86,15 +87,16 @@ export function NeedsYouCounter({
   compact?: boolean;
 }) {
   const count = useWaitingCount(world);
+  const t = useT();
   const { open } = useNeedsYouState();
   if (compact)
     return (
       <button
         type="button"
         className="needs-you-counter is-compact"
-        aria-label={`Needs you, ${count}`}
+        aria-label={t("needsYou.counterCompactAria", { count })}
         aria-pressed={open}
-        title={open ? "Hide Needs you" : "Show Needs you"}
+        title={open ? t("needsYou.hideNeedsYou") : t("needsYou.showNeedsYou")}
         onClick={toggleNeedsYou}
       >
         <Inbox size={16} aria-hidden="true" />
@@ -109,13 +111,13 @@ export function NeedsYouCounter({
     <button
       type="button"
       className="needs-you-counter"
-      aria-label={`Needs you: ${count}`}
+      aria-label={t("needsYou.counterAria", { count })}
       aria-pressed={open}
-      title={open ? "Hide Needs you" : "Show Needs you"}
+      title={open ? t("needsYou.hideNeedsYou") : t("needsYou.showNeedsYou")}
       onClick={toggleNeedsYou}
     >
       <AgentMark kind={count ? "needs" : "idle"} />
-      <span>Needs you</span>
+      <span>{t("needsYou.needsYou")}</span>
       <b>{count}</b>
     </button>
   );
@@ -152,6 +154,7 @@ export function NeedsYouHost({
   onOpenTerminal(leafId: string): void;
 }) {
   const shared = useNeedsYouState();
+  const t = useT();
   const { mobile } = useLayoutPreferences();
   const count = useWaitingCount(world);
   // A full screen on a phone: an agent window opened from it (Chat about
@@ -170,11 +173,11 @@ export function NeedsYouHost({
       <button
         type="button"
         className="needs-you-handle"
-        aria-label={`Show Needs you: ${count}`}
+        aria-label={t("needsYou.showNeedsYouCount", { count })}
         onClick={() => openNeedsYou()}
       >
         <AgentMark kind="needs" />
-        <span>Needs you</span>
+        <span>{t("needsYou.needsYou")}</span>
         <b>{count}</b>
       </button>
     );
@@ -182,7 +185,7 @@ export function NeedsYouHost({
     <aside
       ref={panel}
       className={`needs-you-tab${mobile ? " is-sheet" : ""}`}
-      aria-label="Needs you"
+      aria-label={t("needsYou.needsYou")}
       {...(mobile ? { role: "dialog", "aria-modal": true, tabIndex: -1 } : {})}
     >
       <header className="needs-you-head">
@@ -190,22 +193,22 @@ export function NeedsYouHost({
           <button
             type="button"
             className="needs-you-back"
-            aria-label="Back"
-            title="Back"
+            aria-label={t("needsYou.back")}
+            title={t("needsYou.back")}
             data-layer-back
             onClick={closeNeedsYou}
           >
             <ArrowLeft size={20} aria-hidden="true" />
           </button>
         ) : null}
-        <h2>Needs you</h2>
+        <h2>{t("needsYou.needsYou")}</h2>
         {count ? <b className="needs-you-head-count">{count}</b> : null}
         {mobile ? null : (
           <button
             type="button"
             className="needs-you-icon needs-you-close"
-            aria-label="Hide Needs you"
-            title="Hide Needs you"
+            aria-label={t("needsYou.hideNeedsYou")}
+            title={t("needsYou.hideNeedsYou")}
             onClick={closeNeedsYou}
           >
             <X size={16} aria-hidden="true" />
@@ -388,6 +391,7 @@ export function NeedsYouList({
   attachmentUpload?: typeof askAttachmentUpload;
 }) {
   const ticking = useNow(5_000);
+  const t = useT();
   const now = shownNow ?? ticking;
   const asks = useWorldAsks(asksStore);
   const work = useReviewedWork(deskStore);
@@ -440,13 +444,13 @@ export function NeedsYouList({
         // The header's count shows it; this tells a screen reader.
         <p className="needs-you-count" role="status">
           {count
-            ? `${count} waiting on you`
-            : "Nothing blocked; finished work to review below."}
+            ? t("needsYou.countWaiting", { count })
+            : t("needsYou.nothingBlocked")}
         </p>
       ) : (
         <p className="needs-you-none" role="status">
-          <AgentMark kind="reviewed" label="Nothing waiting" />
-          Nothing needs you.
+          <AgentMark kind="reviewed" label={t("needsYou.nothingWaiting")} />
+          {t("needsYou.nothingNeedsYou")}
         </p>
       )}
       {shownStart > 0 ? (
@@ -455,7 +459,9 @@ export function NeedsYouList({
           className="needs-you-more"
           onClick={() => turn(Math.max(0, shownStart - ITEM_LIMIT))}
         >
-          Show the {Math.min(ITEM_LIMIT, shownStart)} before
+          {t("needsYou.showBefore", {
+            count: Math.min(ITEM_LIMIT, shownStart),
+          })}
         </button>
       ) : null}
       {items.map((item) => (
@@ -504,7 +510,10 @@ export function NeedsYouList({
           className="needs-you-more"
           onClick={() => turn(shownStart + ITEM_LIMIT)}
         >
-          Show {Math.min(ITEM_LIMIT, later)} more of {later}
+          {t("needsYou.showMoreOf", {
+            count: Math.min(ITEM_LIMIT, later),
+            total: later,
+          })}
         </button>
       ) : null}
       {folded.map((entry) => (
@@ -514,8 +523,8 @@ export function NeedsYouList({
           data-needs-you-item={entry.key}
         >
           <p>
-            You answered <b>{entry.text}</b>. Waiting for {entry.name} to pick
-            it up.
+            {t("chat.youAnswered")} <b>{entry.text}</b>.{" "}
+            {t("needsYou.waitingForPickup", { name: entry.name })}
           </p>
         </article>
       ))}
@@ -543,16 +552,21 @@ export function NeedsYouOutbox({
   waiting: number;
   onOpen(): void;
 }) {
+  const t = useT();
   return checks ? (
     <button
       type="button"
       className="needs-you-outbox"
-      aria-label={`Outbox, ${checks} ${checks === 1 ? "answer" : "answers"} to check. Open summary.`}
+      aria-label={
+        checks === 1
+          ? t("needsYou.outboxAriaOne", { count: checks })
+          : t("needsYou.outboxAriaMany", { count: checks })
+      }
       onClick={onOpen}
     >
       <span>
-        ✉ Outbox · {checks} to check
-        {waiting ? ` · ${waiting} waiting` : ""}
+        {t("needsYou.outboxLabel", { count: checks })}
+        {waiting ? t("needsYou.outboxWaitingTail", { count: waiting }) : ""}
       </span>
       <span aria-hidden="true">›</span>
     </button>
