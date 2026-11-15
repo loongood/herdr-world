@@ -85,7 +85,13 @@
   help), the rename-workspace/rename-tab/new-worktree dialogs, the
   close and remove-worktree confirmations, and the stale-selection
   notice — the palette's search keywords stay English so English
-  queries keep matching. The built-in slash-command catalog
+  queries keep matching. The connection switcher follows as well: its
+  browser-transport status and pause controls, the local and SSH profile
+  forms with their security notes, the manage-connections dialog (cards,
+  badges, path labels, lifecycle and type words, test/edit/default/
+  connect/reconnect/disconnect/remove actions with their notices and the
+  remove confirmation), and the switcher menu with its selection notices.
+  The built-in slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
   Remaining surfaces keep English

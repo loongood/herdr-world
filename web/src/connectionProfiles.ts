@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import type { ConnectionLifecycleState, ConnectionSummary } from "./api";
 import {
   validateRemoteSocketPath,
@@ -47,17 +48,17 @@ export function connectionLifecycleLabel(
 ): string {
   switch (state) {
     case "ready":
-      return "Connected";
+      return t("connections.lifecycleConnected");
     case "connecting":
-      return "Connecting";
+      return t("connections.lifecycleConnecting");
     case "reconnecting":
-      return "Reconnecting";
+      return t("connections.lifecycleReconnecting");
     case "stopping":
-      return "Disconnecting";
+      return t("connections.lifecycleDisconnecting");
     case "error":
-      return "Error";
+      return t("connections.lifecycleError");
     case "disconnected":
-      return "Disconnected";
+      return t("connections.lifecycleDisconnected");
   }
 }
 
@@ -82,7 +83,7 @@ export function connectionProfileCapabilities(
 export function connectionTypeLabel(
   connection: Pick<ConnectionSummary, "type">,
 ): string {
-  return connection.type === "ssh" ? "SSH" : "Local";
+  return connection.type === "ssh" ? "SSH" : t("connections.typeLocal");
 }
 
 export function suggestConnectionId(
@@ -248,5 +249,5 @@ export async function reconnectConnectionProfile(args: {
 
 export function connectionErrorDetail(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
-  return "Connection operation failed";
+  return t("connections.operationFailed");
 }

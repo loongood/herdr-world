@@ -1,3 +1,4 @@
+import { useT } from "../i18n";
 import { useCloseGlobalMenuForDialog } from "./useCloseGlobalMenuForDialog";
 import { ConnectionHerdrInfo } from "./ConnectionHerdrInfo";
 import {
@@ -97,6 +98,7 @@ function runtimeStateClass(connection: Pick<ConnectionSummary, "state">) {
 }
 
 function BrowserTransportStatus({ onAction }: { onAction?: () => void }) {
+  const t = useT();
   const state = useStoreSelector(
     (snapshot) => ({
       bridgeStatus: snapshot.bridgeStatus,
@@ -114,7 +116,7 @@ function BrowserTransportStatus({ onAction }: { onAction?: () => void }) {
     );
   const statusLabel = `${label}${
     typeof clientCount === "number"
-      ? ` · ${clientCount} browser${clientCount === 1 ? "" : "s"}`
+      ? ` · ${clientCount === 1 ? t("connections.clientsOne") : t("connections.clientsMany", { count: clientCount })}`
       : ""
   }`;
   return (
@@ -137,13 +139,13 @@ function BrowserTransportStatus({ onAction }: { onAction?: () => void }) {
         <span
           title={
             state.navigationMode === "browser-local"
-              ? "Workspace, tab and pane selection stays in this browser. Topology and sizes are shared."
-              : "Legacy navigation follows shared Herdr focus and can move other clients."
+              ? t("connections.navLocalDetail")
+              : t("connections.navSharedDetail")
           }
         >
           {state.navigationMode === "browser-local"
-            ? "Local navigation"
-            : "Shared navigation"}
+            ? t("connections.navLocal")
+            : t("connections.navShared")}
         </span>
       </div>
       {onAction ? (
@@ -200,6 +202,7 @@ function ProfileForm({
   onSave: (draft: Draft) => void;
   onTest: (draft: Draft) => void;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState(() => draftFor(connection));
   const [idWasEdited, setIdWasEdited] = useState(false);
   const isEditing = !!connection;
@@ -218,22 +221,22 @@ function ProfileForm({
       <div className="modal-head">
         <div>
           <h2 id="connection-profile-form-title">
-            {isEditing ? "Edit local connection" : "Add local connection"}
+            {isEditing ? t("connections.editLocal") : t("connections.addLocal")}
           </h2>
-          <p>Attach to existing Herdr control and render Unix sockets.</p>
+          <p>{t("connections.localSubtitle")}</p>
         </div>
         <button
           type="button"
           className="icon-button"
           onClick={onCancel}
-          aria-label="Back"
+          aria-label={t("connections.back")}
           disabled={!!pending}
         >
           <X size={16} />
         </button>
       </div>
       <label className="form-field">
-        <span>Label</span>
+        <span>{t("connections.labelName")}</span>
         <input
           autoFocus
           data-initial-focus
@@ -250,11 +253,11 @@ function ProfileForm({
                   : current.id,
             }));
           }}
-          placeholder="Local development"
+          placeholder={t("connections.labelPlaceholderLocal")}
         />
       </label>
       <label className="form-field">
-        <span>Connection ID</span>
+        <span>{t("connections.connectionId")}</span>
         <input
           value={draft.id}
           disabled={isEditing}
@@ -269,7 +272,7 @@ function ProfileForm({
         />
       </label>
       <label className="form-field">
-        <span>Control socket path</span>
+        <span>{t("connections.controlSocketPath")}</span>
         <input
           value={draft.controlSocketPath}
           onChange={(event) => update("controlSocketPath", event.target.value)}
@@ -279,7 +282,7 @@ function ProfileForm({
         />
       </label>
       <label className="form-field">
-        <span>Render socket path</span>
+        <span>{t("connections.renderSocketPath")}</span>
         <input
           value={draft.clientSocketPath}
           onChange={(event) => update("clientSocketPath", event.target.value)}
@@ -294,11 +297,10 @@ function ProfileForm({
           checked={draft.autoConnect}
           onChange={(event) => update("autoConnect", event.target.checked)}
         />
-        Connect automatically when Herdr World starts
+        {t("connections.autoConnectLabel")}
       </label>
       <p className="connection-profile-security-note">
-        Local profiles store socket paths only. SSH commands, credentials, keys,
-        and passphrases are never accepted here.
+        {t("connections.localSecurityNote")}
       </p>
       {feedback ? (
         <div
@@ -318,17 +320,19 @@ function ProfileForm({
           onClick={() => onTest(draft)}
           disabled={!!pending}
         >
-          {pending === "test-form" ? "Testing..." : "Test connection"}
+          {pending === "test-form"
+            ? t("connections.testing")
+            : t("connections.testConnection")}
         </button>
         <button type="button" onClick={onCancel} disabled={!!pending}>
           Cancel
         </button>
         <button type="submit" disabled={!!pending}>
           {pending === "save"
-            ? "Saving..."
+            ? t("connections.saving")
             : isEditing
-              ? "Save"
-              : "Add connection"}
+              ? t("connections.save")
+              : t("connections.addConnection")}
         </button>
       </div>
     </form>
@@ -350,6 +354,7 @@ function SshProfileForm({
   onSave: (draft: SshDraft) => void;
   onTest: (draft: SshDraft) => void;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState(() => sshDraftFor(connection));
   const [idWasEdited, setIdWasEdited] = useState(false);
   const isEditing = !!connection;
@@ -368,22 +373,22 @@ function SshProfileForm({
       <div className="modal-head">
         <div>
           <h2 id="connection-profile-form-title">
-            {isEditing ? "Edit SSH connection" : "Add SSH connection"}
+            {isEditing ? t("connections.editSsh") : t("connections.addSsh")}
           </h2>
-          <p>Forward an existing remote Herdr server through OpenSSH.</p>
+          <p>{t("connections.sshSubtitle")}</p>
         </div>
         <button
           type="button"
           className="icon-button"
           onClick={onCancel}
-          aria-label="Back"
+          aria-label={t("connections.back")}
           disabled={!!pending}
         >
           <X size={16} />
         </button>
       </div>
       <label className="form-field">
-        <span>Label</span>
+        <span>{t("connections.labelName")}</span>
         <input
           autoFocus
           data-initial-focus
@@ -400,11 +405,11 @@ function SshProfileForm({
                   : current.id,
             }));
           }}
-          placeholder="Remote development"
+          placeholder={t("connections.labelPlaceholderRemote")}
         />
       </label>
       <label className="form-field">
-        <span>Connection ID</span>
+        <span>{t("connections.connectionId")}</span>
         <input
           value={draft.id}
           disabled={isEditing}
@@ -419,7 +424,7 @@ function SshProfileForm({
         />
       </label>
       <label className="form-field">
-        <span>OpenSSH destination</span>
+        <span>{t("connections.sshDestination")}</span>
         <input
           value={draft.sshDestination}
           maxLength={320}
@@ -430,7 +435,7 @@ function SshProfileForm({
         />
       </label>
       <label className="form-field">
-        <span>Remote host OS</span>
+        <span>{t("connections.remoteHostOs")}</span>
         <select
           value={draft.remotePlatform ?? "unix"}
           onChange={(event) =>
@@ -445,27 +450,27 @@ function SshProfileForm({
             }))
           }
         >
-          <option value="unix">Linux / macOS</option>
+          <option value="unix">{t("connections.osUnix")}</option>
           <option value="windows">Windows</option>
         </select>
       </label>
       {draft.remotePlatform === "windows" ? (
         <>
           <label className="form-field">
-            <span>Herdr executable path (optional)</span>
+            <span>{t("connections.herdrPath")}</span>
             <input
               value={draft.remoteHerdrPath}
               maxLength={1024}
               onChange={(event) =>
                 update("remoteHerdrPath", event.target.value)
               }
-              placeholder="Auto: herdr.exe in PATH"
+              placeholder={t("connections.herdrPathPlaceholder")}
               autoCapitalize="none"
               spellCheck={false}
             />
           </label>
           <label className="form-field">
-            <span>Herdr session (optional)</span>
+            <span>{t("connections.herdrSession")}</span>
             <input
               value={draft.remoteSession}
               onChange={(event) => update("remoteSession", event.target.value)}
@@ -479,25 +484,25 @@ function SshProfileForm({
       ) : (
         <>
           <label className="form-field">
-            <span>Remote control socket path (optional)</span>
+            <span>{t("connections.remoteControlPath")}</span>
             <input
               value={draft.remoteControlSocketPath}
               onChange={(event) =>
                 update("remoteControlSocketPath", event.target.value)
               }
-              placeholder="Auto: ~/.config/herdr/herdr.sock"
+              placeholder={t("connections.remoteControlPlaceholder")}
               autoCapitalize="none"
               spellCheck={false}
             />
           </label>
           <label className="form-field">
-            <span>Remote render socket path (optional)</span>
+            <span>{t("connections.remoteRenderPath")}</span>
             <input
               value={draft.remoteClientSocketPath}
               onChange={(event) =>
                 update("remoteClientSocketPath", event.target.value)
               }
-              placeholder="Auto: ~/.config/herdr/herdr-client.sock"
+              placeholder={t("connections.remoteRenderPlaceholder")}
               autoCapitalize="none"
               spellCheck={false}
             />
@@ -510,16 +515,13 @@ function SshProfileForm({
           checked={draft.autoConnect}
           onChange={(event) => update("autoConnect", event.target.checked)}
         />
-        Connect automatically when Herdr World starts
+        {t("connections.autoConnectLabel")}
       </label>
       <p className="connection-profile-security-note">
         {draft.remotePlatform === "windows"
-          ? "Windows requires a running Herdr 0.9.1+ session and Windows PowerShell. The default session is used unless specified. Terminal and Herdr workspace actions are supported; remote file and Git tools require a Unix host. "
-          : "Leave the socket paths empty to use the default Herdr sockets under the remote home directory. "}
-        Authentication comes from the bridge service user&apos;s OpenSSH config,
-        ssh-agent, or system Keychain. Establish host trust outside Herdr World.
-        Passwords, keys, passphrases, commands, ports, and SSH options are never
-        stored here.
+          ? t("connections.windowsNote")
+          : t("connections.unixNote")}
+        {t("connections.sshAuthNote")}
       </p>
       {feedback ? (
         <div
@@ -539,17 +541,19 @@ function SshProfileForm({
           onClick={() => onTest(draft)}
           disabled={!!pending}
         >
-          {pending === "test-form" ? "Testing..." : "Test connection"}
+          {pending === "test-form"
+            ? t("connections.testing")
+            : t("connections.testConnection")}
         </button>
         <button type="button" onClick={onCancel} disabled={!!pending}>
           Cancel
         </button>
         <button type="submit" disabled={!!pending}>
           {pending === "save"
-            ? "Saving..."
+            ? t("connections.saving")
             : isEditing
-              ? "Save"
-              : "Add connection"}
+              ? t("connections.save")
+              : t("connections.addConnection")}
         </button>
       </div>
     </form>
@@ -557,6 +561,7 @@ function SshProfileForm({
 }
 
 export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const connections = useStoreSelector((snapshot) => snapshot.connections);
   const [editing, setEditing] = useState<
     ConnectionSummary | "new-local" | "new-ssh" | null
@@ -667,7 +672,7 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
     void performAction(
       "test-form",
       () => bridge.call("connections.test", { profile }),
-      "Connection succeeded.",
+      t("connections.testSucceeded"),
     );
   };
   const saveProfile = (profile: unknown) => {
@@ -680,7 +685,9 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
               profile,
             })
           : bridge.call("connections.create", { profile }),
-      formConnection ? "Connection updated." : "Connection added.",
+      formConnection
+        ? t("connections.connectionUpdated")
+        : t("connections.connectionAdded"),
     ).then((result) => {
       if (result && mounted.current) setEditing(null);
     });
@@ -777,8 +784,10 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
       >
         <div className="modal-head">
           <div>
-            <h2 id="connection-manager-title">Manage connections</h2>
-            <p>Profiles are shared by authenticated browsers on this bridge.</p>
+            <h2 id="connection-manager-title">
+              {t("connections.managerTitle")}
+            </h2>
+            <p>{t("connections.managerSubtitle")}</p>
           </div>
           <CloseButton onClick={onClose} disabled={!!pending} />
         </div>
@@ -789,14 +798,14 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
             onClick={() => setEditing("new-local")}
             disabled={!!pending}
           >
-            <Plus size={14} /> Add Local
+            <Plus size={14} /> {t("connections.addLocalButton")}
           </button>
           <button
             type="button"
             onClick={() => setEditing("new-ssh")}
             disabled={!!pending}
           >
-            <Plus size={14} /> Add SSH
+            <Plus size={14} /> {t("connections.addSshButton")}
           </button>
         </div>
         {feedback ? (
@@ -827,10 +836,12 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                   <div className="connection-profile-badges">
                     {connection.is_default ? (
                       <span>
-                        <Star size={11} /> Default
+                        <Star size={11} /> {t("connections.badgeDefault")}
                       </span>
                     ) : null}
-                    {connection.read_only ? <span>Read-only</span> : null}
+                    {connection.read_only ? (
+                      <span>{t("connections.badgeReadOnly")}</span>
+                    ) : null}
                     <span>{status}</span>
                   </div>
                 </div>
@@ -838,17 +849,25 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                   {connection.type === "ssh" ? (
                     <>
                       <code title={connection.ssh_destination}>
-                        Destination: {connection.ssh_destination}
+                        {t("connections.destLabel", {
+                          value: connection.ssh_destination ?? "",
+                        })}
                       </code>
                       {connection.remote_platform === "windows" ? (
                         <>
                           <code>
-                            Herdr:{" "}
-                            {connection.remote_herdr_path || "auto (herdr.exe)"}
+                            {t("connections.herdrLabel", {
+                              value:
+                                connection.remote_herdr_path ||
+                                t("connections.autoHerdrExe"),
+                            })}
                           </code>
                           <code>
-                            Windows session:{" "}
-                            {connection.remote_session || "default"}
+                            {t("connections.sessionLabel", {
+                              value:
+                                connection.remote_session ||
+                                t("connections.sessionDefault"),
+                            })}
                           </code>
                         </>
                       ) : (
@@ -856,22 +875,26 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                           <code
                             title={
                               connection.remote_control_socket_path ||
-                              "Inferred under the remote home directory"
+                              t("connections.inferredTitle")
                             }
                           >
-                            Remote control:{" "}
-                            {connection.remote_control_socket_path ||
-                              "auto (~/.config/herdr/herdr.sock)"}
+                            {t("connections.remoteControlLabel", {
+                              value:
+                                connection.remote_control_socket_path ||
+                                t("connections.autoRemoteControl"),
+                            })}
                           </code>
                           <code
                             title={
                               connection.remote_client_socket_path ||
-                              "Inferred under the remote home directory"
+                              t("connections.inferredTitle")
                             }
                           >
-                            Remote render:{" "}
-                            {connection.remote_client_socket_path ||
-                              "auto (~/.config/herdr/herdr-client.sock)"}
+                            {t("connections.remoteRenderLabel", {
+                              value:
+                                connection.remote_client_socket_path ||
+                                t("connections.autoRemoteRender"),
+                            })}
                           </code>
                         </>
                       )}
@@ -879,24 +902,28 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                   ) : (
                     <>
                       <code title={connection.control_socket_path}>
-                        Control:{" "}
-                        {connection.control_socket_path ??
-                          "Legacy configuration"}
+                        {t("connections.controlLabel", {
+                          value:
+                            connection.control_socket_path ??
+                            t("connections.legacyConfig"),
+                        })}
                       </code>
                       <code title={connection.client_socket_path}>
-                        Render:{" "}
-                        {connection.client_socket_path ??
-                          "Legacy configuration"}
+                        {t("connections.renderLabel", {
+                          value:
+                            connection.client_socket_path ??
+                            t("connections.legacyConfig"),
+                        })}
                       </code>
                     </>
                   )}
                 </div>
                 <div className="connection-profile-policy">
                   {connection.auto_connect === undefined
-                    ? "Startup policy from legacy configuration"
+                    ? t("connections.policyLegacy")
                     : connection.auto_connect
-                      ? "Auto-connect enabled"
-                      : "Manual connection"}
+                      ? t("connections.policyAuto")
+                      : t("connections.policyManual")}
                 </div>
                 {connection.error?.message ? (
                   <div className="connection-profile-error">
@@ -918,13 +945,13 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                           bridge.call("connections.test", {
                             id: connection.id,
                           }),
-                        "Connection succeeded.",
+                        t("connections.testSucceeded"),
                       )
                     }
                   >
                     {pending === `test-${connection.id}`
-                      ? "Testing..."
-                      : "Test"}
+                      ? t("connections.testing")
+                      : t("connections.test")}
                   </button>
                   {capabilities.canEdit ? (
                     <button
@@ -932,7 +959,7 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                       disabled={!!pending}
                       onClick={() => setEditing(connection)}
                     >
-                      <Pencil size={13} /> Edit
+                      <Pencil size={13} /> {t("connections.edit")}
                     </button>
                   ) : null}
                   {capabilities.canSetDefault ? (
@@ -946,11 +973,11 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                             bridge.call("connections.set_default", {
                               id: connection.id,
                             }),
-                          "Default connection changed.",
+                          t("connections.defaultChanged"),
                         )
                       }
                     >
-                      Set default
+                      {t("connections.setDefault")}
                     </button>
                   ) : null}
                   {capabilities.canConnect ? (
@@ -964,11 +991,11 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                             bridge.call("connections.connect", {
                               id: connection.id,
                             }),
-                          "Connection started.",
+                          t("connections.connectStarted"),
                         )
                       }
                     >
-                      Connect
+                      {t("connections.connect")}
                     </button>
                   ) : null}
                   {capabilities.canReconnect ? (
@@ -984,11 +1011,11 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                               call: (method, params) =>
                                 bridge.call(method, params),
                             }),
-                          "Connection restarted.",
+                          t("connections.connectRestarted"),
                         )
                       }
                     >
-                      Reconnect
+                      {t("connections.reconnect")}
                     </button>
                   ) : null}
                   {capabilities.canDisconnect ? (
@@ -1002,11 +1029,11 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                             bridge.call("connections.disconnect", {
                               id: connection.id,
                             }),
-                          "Herdr connection disconnected.",
+                          t("connections.disconnectNotice"),
                         )
                       }
                     >
-                      Disconnect
+                      {t("connections.disconnect")}
                     </button>
                   ) : null}
                   {!connection.read_only ? (
@@ -1021,7 +1048,7 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                       }
                       onClick={() => setRemoveTarget(connection)}
                     >
-                      Remove
+                      {t("connections.remove")}
                     </button>
                   ) : null}
                 </div>
@@ -1030,9 +1057,7 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
                     id={`connection-remove-help-${connection.id}`}
                     className="connection-profile-policy"
                   >
-                    To remove this default connection, use Set default on
-                    another connection first. If none is available, add a
-                    connection first.
+                    {t("connections.removeDefaultHelp")}
                   </p>
                 ) : null}
               </section>
@@ -1041,13 +1066,15 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
         </div>
         <ConfirmDialog
           open={!!removeTarget}
-          title="Remove Connection"
+          title={t("connections.removeConnectionTitle")}
           message={
             removeTarget
-              ? `Remove connection "${removeTarget.label}"? This disconnects Herdr World but does not stop the Herdr server.`
-              : "Remove this connection?"
+              ? t("connections.removeConnectionNamed", {
+                  name: removeTarget.label,
+                })
+              : t("connections.removeConnectionThis")
           }
-          confirmLabel="Remove"
+          confirmLabel={t("connections.remove")}
           danger
           onClose={() => setRemoveTarget(null)}
           onConfirm={() => {
@@ -1057,7 +1084,7 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
             void performAction(
               `remove-${target.id}`,
               () => bridge.call("connections.remove", { id: target.id }),
-              "Connection removed.",
+              t("connections.connectionRemoved"),
             );
           }}
         />
@@ -1067,6 +1094,7 @@ export function ConnectionManagerDialog({ onClose }: { onClose: () => void }) {
 }
 
 export function ConnectionSwitcher() {
+  const t = useT();
   const state = useStoreSelector(
     (snapshot) => ({
       activeConnectionId: snapshot.activeConnectionId,
@@ -1098,7 +1126,7 @@ export function ConnectionSwitcher() {
       id: state.activeConnectionId,
       label:
         state.activeConnectionId === "startup-default"
-          ? "Default"
+          ? t("connections.badgeDefault")
           : state.activeConnectionId,
       source: "startup-config",
       is_default: state.defaultConnectionId === state.activeConnectionId,
@@ -1107,9 +1135,9 @@ export function ConnectionSwitcher() {
     } satisfies ConnectionSummary);
 
   const browserWarning = state.connectionPaused
-    ? "Browser sync paused"
+    ? t("connections.browserSyncPaused")
     : state.status === "disconnected"
-      ? "Browser disconnected from bridge"
+      ? t("connections.browserDisconnected")
       : null;
 
   const menuItems = () =>
@@ -1215,7 +1243,7 @@ export function ConnectionSwitcher() {
             ref={menuRef}
             className="connection-switcher-popover"
             role="menu"
-            aria-label="Connections"
+            aria-label={t("connections.ariaConnections")}
             align="start"
             collisionPadding={8}
             onKeyDown={onMenuKeyDown}
@@ -1284,7 +1312,9 @@ export function ConnectionSwitcher() {
                         }
                         store.notify({
                           kind: "success",
-                          message: `Selected ${connection.label}`,
+                          message: t("connections.selectedNotice", {
+                            name: connection.label,
+                          }),
                         });
                       })
                       .catch((error) => {
@@ -1296,7 +1326,9 @@ export function ConnectionSwitcher() {
                         }
                         store.notify({
                           kind: "error",
-                          message: `Failed to connect ${connection.label}`,
+                          message: t("connections.failedToConnect", {
+                            name: connection.label,
+                          }),
                           detail: connectionErrorDetail(error),
                         });
                       });
@@ -1310,14 +1342,19 @@ export function ConnectionSwitcher() {
                     <small>
                       {connectionTypeLabel(connection)} /{" "}
                       {connectionLifecycleLabel(connection.state)}
-                      {connection.read_only ? " / Read-only" : ""}
+                      {connection.read_only
+                        ? " / " + t("connections.badgeReadOnly")
+                        : ""}
                     </small>
                   </span>
                   {connection.is_default ? (
-                    <Star size={12} aria-label="Default" />
+                    <Star
+                      size={12}
+                      aria-label={t("connections.badgeDefault")}
+                    />
                   ) : null}
                   {connection.id === state.activeConnectionId ? (
-                    <Check size={14} aria-label="Active" />
+                    <Check size={14} aria-label={t("connections.activeAria")} />
                   ) : null}
                 </button>
               ))}
@@ -1333,7 +1370,7 @@ export function ConnectionSwitcher() {
                 setManageOpen(true);
               }}
             >
-              <Server size={14} /> Manage connections
+              <Server size={14} /> {t("connections.manageConnections")}
             </button>
           </PopoverContent>
         </div>

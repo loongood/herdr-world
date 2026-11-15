@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ConnectionStatus } from "../api";
 
 export interface BrowserTransportPresentation {
@@ -13,13 +14,13 @@ export function browserTransportPresentation(
   status: ConnectionStatus,
   reportedClientCount: number | null | undefined,
 ): BrowserTransportPresentation {
-  let label = "Browser disconnected from bridge";
+  let label = t("connections.browserDisconnected");
   if (connectionPaused) {
-    label = "Browser sync paused";
+    label = t("connections.browserSyncPaused");
   } else if (status === "connected") {
-    label = "Browser connected to bridge";
+    label = t("connections.browserConnected");
   } else if (status === "connecting") {
-    label = "Browser connecting to bridge";
+    label = t("connections.browserConnecting");
   }
   const clientCount =
     !connectionPaused && status === "connected"
@@ -29,16 +30,18 @@ export function browserTransportPresentation(
     typeof clientCount === "number" ? Math.max(0, clientCount - 1) : 0;
   let pauseOthersLabel: string | null = null;
   if (otherClientCount === 1) {
-    pauseOthersLabel = "Pause other browser";
+    pauseOthersLabel = t("connections.pauseOtherBrowser");
   } else if (otherClientCount > 1) {
-    pauseOthersLabel = `Pause other browsers (${otherClientCount})`;
+    pauseOthersLabel = t("connections.pauseOtherBrowsers", {
+      count: otherClientCount,
+    });
   }
   const needsResume = connectionPaused || status === "disconnected";
-  let toggleLabel = "Pause browser sync";
+  let toggleLabel = t("connections.pauseBrowserSync");
   if (connectionPaused) {
-    toggleLabel = "Resume browser sync";
+    toggleLabel = t("connections.resumeBrowserSync");
   } else if (status === "disconnected") {
-    toggleLabel = "Reconnect browser";
+    toggleLabel = t("connections.reconnectBrowser");
   }
 
   return {
