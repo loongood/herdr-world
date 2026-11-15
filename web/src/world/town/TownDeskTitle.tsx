@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { useT } from "../../i18n";
 import {
   TownPlaceCardSummary,
   usePlaceCard,
@@ -33,6 +34,7 @@ export function TownDeskTitle({
 }) {
   const { opened, open } = usePlaceCard();
   const touched = useRef(false);
+  const t = useT();
   // Once built, the card stays built: the pointer may leave the table for
   // the card itself, which keeps it open by hover.
   useEffect(() => {
@@ -42,7 +44,7 @@ export function TownDeskTitle({
     <div
       className={`town-desk-title${shown ? " is-open" : ""}`}
       role="group"
-      aria-label={`Table ${label}`}
+      aria-label={t("desk.tableAria", { label })}
       tabIndex={-1}
       onFocus={open}
     >

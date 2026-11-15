@@ -1,6 +1,7 @@
 import type { AgentSessionIdentity } from "../types";
 import { useLayoutEffect, useRef } from "react";
 import { bridge, type ConnectionClient } from "../api";
+import { t } from "../i18n";
 import type { HostsFilter } from "./hostsFilter";
 import { connectionClientScopeGeneration } from "../useConnectionClient";
 import {
@@ -16,9 +17,9 @@ export function deskRevealUnavailable(
   current: WorldObjectNode | undefined,
 ): string | null {
   if (captured.stale || current?.stale)
-    return `Cached observation on ${captured.hostLabel}; wait for a fresh connection.`;
+    return t("desk.revealCached", { host: captured.hostLabel });
   if (!captured.actionable || !current?.actionable)
-    return `Agent unavailable on ${captured.hostLabel}.`;
+    return t("desk.revealUnavailable", { host: captured.hostLabel });
   if (
     current.kind !== "agent" ||
     current.connectionId !== captured.connectionId ||
@@ -30,7 +31,7 @@ export function deskRevealUnavailable(
     !captured.agentSessionFingerprint ||
     current.agentSessionFingerprint !== captured.agentSessionFingerprint
   )
-    return `Agent session changed or unavailable on ${captured.hostLabel}; reopen the summary to choose a current agent.`;
+    return t("desk.revealSessionChanged", { host: captured.hostLabel });
   return null;
 }
 
@@ -75,7 +76,7 @@ export async function revealDeskAgent(
     connectionClientScopeGeneration(client) === captured.generation &&
     client.isCurrent();
   const unavailable = () =>
-    new Error(`Agent unavailable or session changed on ${captured.hostLabel}.`);
+    new Error(t("desk.revealFailed", { host: captured.hostLabel }));
   if (!clientCurrent()) throw unavailable();
   let result;
   try {

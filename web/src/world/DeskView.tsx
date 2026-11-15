@@ -21,6 +21,7 @@ import {
   useState,
 } from "react";
 import { bridge } from "../api";
+import { t, useT, type TranslationKey } from "../i18n";
 import { worldSessionStorage } from "../browserStorage";
 import {
   fetchFullReport,
@@ -187,11 +188,14 @@ function Screen({
 export { useMediaQuery } from "./deskMediaQuery";
 
 export type DeskMode = "now" | "agents" | "reviewed";
-const DESK_MODES: { mode: DeskMode; label: string }[] = [
-  { mode: "now", label: "Now" },
-  { mode: "agents", label: "Agents" },
-  { mode: "reviewed", label: "Reviewed" },
-];
+const DESK_MODES: DeskMode[] = ["now", "agents", "reviewed"];
+const MODE_LABEL_KEYS = {
+  now: "desk.modeNow",
+  agents: "desk.modeAgents",
+  reviewed: "desk.modeReviewed",
+} as const satisfies Record<DeskMode, TranslationKey>;
+/** Read at render time so the label follows the selected language. */
+const modeLabel = (mode: DeskMode) => t(MODE_LABEL_KEYS[mode]);
 const PREVIEW_DELAY_MS = 150;
 
 export { agentFolder, matchesQuery } from "./deskAgentLabels";
@@ -272,6 +276,7 @@ export function DeskBoard({
 }) {
   // The Town Master's greeting opens at the summary on wide screens.
   const greetingAnchor = useGreetingAnchor();
+  const t = useT();
   const now = useNow(10_000);
   const asks = useWorldAsks();
   const asking = useMemo(() => asksForWorld(asks, world), [asks, world]);
@@ -312,7 +317,7 @@ export function DeskBoard({
   const [toast, setToast] = useState<{ id: string; name: string } | null>(null);
   // On desktop the search rests as an icon; a phone keeps the box.
   const search = useFoldingSearch(query, !usePhoneViewport());
-  const searchTitle = useViewSearchTitle("Search Desk");
+  const searchTitle = useViewSearchTitle(t("desk.searchDesk"));
   useViewSearchShortcut(search.expand);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [fullReports, setFullReports] = useState<Map<string, string>>(
@@ -400,7 +405,7 @@ export function DeskBoard({
   const hostLabel =
     world.hosts.length === 1
       ? world.hosts[0]?.label
-      : `${world.hosts.length} hosts`;
+      : t("desk.hostsCount", { count: world.hosts.length });
   const oldestWait = needs[0]?.since ? formatSpan(now - needs[0].since) : null;
 
   const previewTimer = useRef<number | undefined>(undefined);
@@ -422,7 +427,7 @@ export function DeskBoard({
     void recordOpen(leaf);
     void onOpen(leaf.id).catch((reason: unknown) =>
       setError(
-        reason instanceof Error ? reason.message : "Could not open this agent",
+        reason instanceof Error ? reason.message : t("desk.couldNotOpen"),
       ),
     );
   };
@@ -467,9 +472,7 @@ export function DeskBoard({
       index >= 0 ? (order[index + 1] ?? order[index - 1]) : undefined;
     const saved = await mark(item.handoffId, !item.handled);
     if (!saved) {
-      setError(
-        "Could not save the review mark. Try again when the connection is ready.",
-      );
+      setError(t("desk.couldNotSaveMark"));
       return;
     }
     setError(null);
@@ -641,16 +644,18 @@ export function DeskBoard({
           {age ? (
             <span className="desk-card-age">
               {item.lane === "needs"
-                ? `waiting ${age}`
+                ? t("desk.waitingAge", { span: age })
                 : item.lane === "working"
-                  ? `running ${age}`
-                  : `${age} ago`}
+                  ? t("desk.runningAge", { span: age })
+                  : t("desk.ago", { span: age })}
             </span>
           ) : null}
         </div>
         {ask ? (
           <p className="desk-card-ask">
-            <span>{item.lane === "working" ? "On" : "You asked"}</span>
+            <span>
+              {item.lane === "working" ? t("desk.onTask") : t("desk.youAsked")}
+            </span>
             {ask}
           </p>
         ) : null}
@@ -665,10 +670,14 @@ export function DeskBoard({
                     ? [receipt.report]
                     : []
             }
-            fallback="Waiting for your answer in its terminal."
+            fallback={t("desk.answerWaitingFallback")}
           />
         ) : item.lane === "working" ? (
-          <Screen lines={activityFromScreen(screen)} live fallback="Working…" />
+          <Screen
+            lines={activityFromScreen(screen)}
+            live
+            fallback={t("desk.workingEllipsis")}
+          />
         ) : receipt?.report ? (
           <>
             <p
@@ -699,26 +708,37 @@ export function DeskBoard({
                       .catch(() => {});
                 }}
               >
-                {isExpanded ? "Show less" : "Read all"}
+                {isExpanded ? t("desk.showLess") : t("desk.readAll")}
               </button>
             ) : null}
           </>
         ) : (
           <Screen
             lines={activityFromScreen(screen, 5)}
-            fallback="Finished its turn without a readable transcript. Open it to read the result."
+            fallback={t("desk.unreadableTranscript")}
           />
         )}
         {receipt && item.lane !== "needs" ? (
           <div className="desk-card-facts">
             {[
               receipt.duration_ms !== null && item.lane === "review"
-                ? `ran ${formatSpan(receipt.duration_ms)}`
+                ? t("desk.ranSpan", {
+                    span: formatSpan(receipt.duration_ms) ?? "",
+                  })
                 : null,
-              `${receipt.tool_calls} tool call${receipt.tool_calls === 1 ? "" : "s"}`,
+              receipt.tool_calls === 1
+                ? t("desk.toolCallsOne", { count: receipt.tool_calls })
+                : t("desk.toolCallsMany", { count: receipt.tool_calls }),
               receipt.files.length
-                ? `${receipt.files.length}${receipt.files_truncated ? "+" : ""} file${receipt.files.length === 1 ? "" : "s"} edited`
-                : "no files edited",
+                ? t(
+                    receipt.files.length === 1
+                      ? "desk.filesEditedOne"
+                      : "desk.filesEditedMany",
+                    {
+                      count: `${receipt.files.length}${receipt.files_truncated ? "+" : ""}`,
+                    },
+                  )
+                : t("desk.noFilesEdited"),
             ]
               .filter(Boolean)
               .join(" · ")}
@@ -747,22 +767,20 @@ export function DeskBoard({
             }
           >
             {item.lane === "needs"
-              ? "Answer"
+              ? t("desk.answer")
               : item.lane === "review"
-                ? "Open"
-                : "Watch"}
+                ? t("desk.openButton")
+                : t("desk.watch")}
             <kbd>↵</kbd>
           </button>
           {item.lane === "review" ? (
             <button
               type="button"
               disabled={item.pending}
-              title={
-                item.pending ? "Waiting for this turn's receipt" : undefined
-              }
+              title={item.pending ? t("desk.waitingReceiptTitle") : undefined}
               onClick={() => toggleReviewed(item)}
             >
-              {item.handled ? "Reopen" : "Mark reviewed"}
+              {item.handled ? t("desk.reopen") : t("desk.markReviewed")}
               <kbd>E</kbd>
             </button>
           ) : null}
@@ -779,7 +797,7 @@ export function DeskBoard({
     const meta = [
       agentRuntime(leaf),
       showWorkspace ? leaf.spaceLabel : null,
-      leaf.tabLabel ? `desk ${leaf.tabLabel}` : null,
+      leaf.tabLabel ? t("desk.deskTab", { tab: leaf.tabLabel }) : null,
       agentFolder(leaf),
     ].filter(Boolean);
     return (
@@ -806,7 +824,7 @@ export function DeskBoard({
             {line ? <span className="desk-row-line">{line}</span> : null}
           </span>
           <span className="desk-row-age">
-            {at ? `${formatSpan(now - at)} ago` : ""}
+            {at ? t("desk.ago", { span: formatSpan(now - at) ?? "" }) : ""}
           </span>
         </button>
       </li>
@@ -817,9 +835,7 @@ export function DeskBoard({
     agents: agents.length,
     reviewed: reviewed.length,
   };
-  const noMatch = (
-    <p className="desk-empty">Nothing here matches &ldquo;{query}&rdquo;.</p>
-  );
+  const noMatch = <p className="desk-empty">{t("desk.noMatch", { query })}</p>;
 
   return (
     <div
@@ -849,7 +865,7 @@ export function DeskBoard({
         <div
           ref={greetingAnchor}
           className="desk-summary"
-          aria-label="Attention summary"
+          aria-label={t("desk.attentionSummaryAria")}
         >
           <button
             type="button"
@@ -858,8 +874,12 @@ export function DeskBoard({
           >
             <strong>{needs.length}</strong>
             <span>
-              need{needs.length === 1 ? "s" : ""} you
-              {oldestWait ? <em>oldest {oldestWait}</em> : null}
+              {needs.length === 1
+                ? t("desk.needsYouOne")
+                : t("desk.needsYouMany")}
+              {oldestWait ? (
+                <em>{t("desk.oldestWait", { span: oldestWait })}</em>
+              ) : null}
             </span>
           </button>
           <button
@@ -868,7 +888,7 @@ export function DeskBoard({
             onClick={() => setMode("now")}
           >
             <strong>{pendingReview.length}</strong>
-            <span>to review</span>
+            <span>{t("desk.toReview")}</span>
           </button>
           <button
             type="button"
@@ -876,7 +896,7 @@ export function DeskBoard({
             onClick={() => setMode("now")}
           >
             <strong>{working.length}</strong>
-            <span>working</span>
+            <span>{t("desk.workingCount")}</span>
           </button>
           <button
             type="button"
@@ -884,7 +904,7 @@ export function DeskBoard({
             onClick={() => setMode("agents")}
           >
             <strong>{quiet.length}</strong>
-            <span>quiet</span>
+            <span>{t("desk.quietCount")}</span>
           </button>
         </div>
         <DeskOtherHosts
@@ -903,20 +923,22 @@ export function DeskBoard({
           }
         />
         <div className="desk-controls">
-          <div className="desk-modes" role="tablist" aria-label="Desk views">
+          <div
+            className="desk-modes"
+            role="tablist"
+            aria-label={t("desk.deskViewsAria")}
+          >
             {DESK_MODES.map((candidate) => (
               <button
-                key={candidate.mode}
+                key={candidate}
                 type="button"
                 role="tab"
-                aria-selected={mode === candidate.mode}
-                className={mode === candidate.mode ? "is-active" : ""}
-                onClick={() => setMode(candidate.mode)}
+                aria-selected={mode === candidate}
+                className={mode === candidate ? "is-active" : ""}
+                onClick={() => setMode(candidate)}
               >
-                {candidate.label}
-                <span className="desk-mode-count">
-                  {modeCount[candidate.mode]}
-                </span>
+                {modeLabel(candidate)}
+                <span className="desk-mode-count">{modeCount[candidate]}</span>
               </button>
             ))}
           </div>
@@ -925,7 +947,7 @@ export function DeskBoard({
               ref={search.toggleRef}
               type="button"
               className="desk-search-toggle"
-              aria-label="Search Desk"
+              aria-label={t("desk.searchDesk")}
               title={searchTitle}
               onClick={search.expand}
             >
@@ -933,13 +955,13 @@ export function DeskBoard({
             </button>
           ) : (
             <label className="desk-search" {...search.boxProps}>
-              <span className="desk-search-label">Find</span>
+              <span className="desk-search-label">{t("desk.find")}</span>
               <input
                 ref={search.inputRef}
                 type="search"
                 value={query}
-                placeholder="Agent, workspace, tab, folder or request"
-                aria-label="Find an agent"
+                placeholder={t("desk.searchPlaceholder")}
+                aria-label={t("desk.findAgentAria")}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Escape") {
@@ -960,28 +982,34 @@ export function DeskBoard({
       ) : null}
       {mode === "now" ? (
         <div className="desk-lanes">
-          <section className="desk-lane is-needs" aria-label="Needs you">
+          <section
+            className="desk-lane is-needs"
+            aria-label={t("desk.needsLaneAria")}
+          >
             <h2>
-              Needs you <small>questions and approvals, oldest first</small>
+              {t("desk.needsLane")} <small>{t("desk.needsLaneNote")}</small>
             </h2>
             {shownNeeds.length ? (
               <ol>{shownNeeds.map(card)}</ol>
             ) : query && needs.length ? (
               noMatch
             ) : (
-              <p className="desk-empty">Nobody is waiting on you.</p>
+              <p className="desk-empty">{t("desk.nobodyWaiting")}</p>
             )}
           </section>
-          <section className="desk-lane is-review" aria-label="To review">
+          <section
+            className="desk-lane is-review"
+            aria-label={t("desk.reviewLaneAria")}
+          >
             <h2>
-              To review <small>finished turns and what they produced</small>
+              {t("desk.reviewLane")} <small>{t("desk.reviewLaneNote")}</small>
               {reviewed.length ? (
                 <button
                   type="button"
                   className="desk-link desk-lane-link"
                   onClick={() => setMode("reviewed")}
                 >
-                  {reviewed.length} reviewed
+                  {t("desk.reviewedLink", { count: reviewed.length })}
                 </button>
               ) : null}
             </h2>
@@ -990,28 +1018,29 @@ export function DeskBoard({
             ) : query && pendingReview.length ? (
               noMatch
             ) : (
-              <p className="desk-empty">
-                Nothing to review. Finished turns land here with the request,
-                the agent&rsquo;s report and the files it edited.
-              </p>
+              <p className="desk-empty">{t("desk.nothingToReview")}</p>
             )}
           </section>
-          <section className="desk-lane is-working" aria-label="In flight">
+          <section
+            className="desk-lane is-working"
+            aria-label={t("desk.inFlightLaneAria")}
+          >
             <h2>
-              In flight <small>live from each terminal</small>
+              {t("desk.inFlightLane")} <small>{t("desk.inFlightNote")}</small>
             </h2>
             {shownWorking.length ? (
               <ol>{shownWorking.map(card)}</ol>
             ) : query && working.length ? (
               noMatch
             ) : (
-              <p className="desk-empty">No agent is working right now.</p>
+              <p className="desk-empty">{t("desk.noAgentWorking")}</p>
             )}
             {shownQuiet.length ? (
               <details className="desk-quiet">
                 <summary>
-                  {shownQuiet.length} quiet agent
-                  {shownQuiet.length === 1 ? "" : "s"}
+                  {shownQuiet.length === 1
+                    ? t("desk.quietAgentsOne", { count: shownQuiet.length })
+                    : t("desk.quietAgentsMany", { count: shownQuiet.length })}
                 </summary>
                 <ul className="desk-rows">
                   {shownQuiet.map((leaf) => row(leaf, true))}
@@ -1021,12 +1050,15 @@ export function DeskBoard({
           </section>
         </div>
       ) : mode === "agents" ? (
-        <section className="desk-directory" aria-label="Agents">
+        <section
+          className="desk-directory"
+          aria-label={t("desk.agentsLaneAria")}
+        >
           {query && !directoryCount ? noMatch : null}
           {directory.recent.length ? (
             <div className="desk-group is-recent">
               <h3>
-                Recently opened <small>from the Desk, newest first</small>
+                {t("desk.recentGroup")} <small>{t("desk.recentNote")}</small>
               </h3>
               <ul className="desk-rows">
                 {directory.recent.map((leaf) => row(leaf, true))}
@@ -1038,8 +1070,11 @@ export function DeskBoard({
               <h3>
                 {group.workspace}
                 <small>
-                  {group.agents.length} agent
-                  {group.agents.length === 1 ? "" : "s"}
+                  {group.agents.length === 1
+                    ? t("desk.agentsInGroupOne", { count: group.agents.length })
+                    : t("desk.agentsInGroupMany", {
+                        count: group.agents.length,
+                      })}
                 </small>
               </h3>
               <ul className="desk-rows">
@@ -1048,51 +1083,46 @@ export function DeskBoard({
             </div>
           ))}
           {!agents.length ? (
-            <p className="desk-empty">No agents on {hostLabel}.</p>
+            <p className="desk-empty">
+              {t("desk.noAgentsOn", { hostLabel: hostLabel ?? "" })}
+            </p>
           ) : null}
         </section>
       ) : (
         <section
           className="desk-lane is-review desk-reviewed"
-          aria-label="Reviewed"
+          aria-label={t("desk.reviewedLaneAria")}
         >
           <h2>
-            Reviewed{" "}
-            <small>
-              each agent&rsquo;s latest stop you marked, while it stays idle or
-              done
-            </small>
+            {t("desk.reviewedLane")} <small>{t("desk.reviewedLaneNote")}</small>
           </h2>
           {shownReviewed.length ? (
             <ol>{shownReviewed.map(card)}</ol>
           ) : query && reviewed.length ? (
             noMatch
           ) : (
-            <p className="desk-empty">
-              Nothing marked reviewed yet. An agent&rsquo;s latest stop stays
-              here after you mark it until the agent works again; every agent is
-              always under Agents.
-            </p>
+            <p className="desk-empty">{t("desk.nothingReviewed")}</p>
           )}
         </section>
       )}
       {toast ? (
         <div className="desk-toast" role="status">
           <span>
-            Marked <strong>{toast.name}</strong> reviewed
+            {t("desk.markedLead")} <strong>{toast.name}</strong>{" "}
+            {t("desk.markedTail")}
           </span>
           <button
             type="button"
             onClick={() => {
               void mark(toast.id, false).then((saved) => {
                 if (saved) setToast(null);
-                else setError("Could not undo this review mark.");
+                else setError(t("desk.couldNotUndo"));
               });
               // The toast (and this button) leaves the page.
               focusCard(focusedId);
             }}
           >
-            Undo
+            {t("desk.undo")}
           </button>
           <button
             type="button"
@@ -1103,27 +1133,27 @@ export function DeskBoard({
               focusCard(null);
             }}
           >
-            See reviewed
+            {t("desk.seeReviewed")}
           </button>
         </div>
       ) : null}
       <footer className="desk-keys" aria-hidden="true">
         <span>
-          <kbd>/</kbd> find
+          <kbd>/</kbd> {t("desk.keyFind")}
         </span>
         <span>
           <kbd>J</kbd>
-          <kbd>K</kbd> move
+          <kbd>K</kbd> {t("desk.keyMove")}
         </span>
         <span>
-          <kbd>↵</kbd> open terminal
+          <kbd>↵</kbd> {t("desk.keyOpenTerminal")}
         </span>
         <span>
-          <kbd>E</kbd> mark reviewed
+          <kbd>E</kbd> {t("desk.keyMarkReviewed")}
         </span>
         {reading ? (
           <span>
-            <kbd>Esc</kbd> close pane
+            <kbd>Esc</kbd> {t("desk.keyClosePane")}
           </span>
         ) : null}
       </footer>

@@ -7,6 +7,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { actionablePullRequest } from "../../../../shared/pullRequests";
+import { useT } from "../../i18n";
 import { useLayer } from "../../layerStack";
 import { PullRequestCard } from "../PullRequestCard";
 import { useWorldSources } from "../worldSources";
@@ -29,6 +30,7 @@ export function DeskWorkBadge({
   const snapshot = useWorldSources();
   const [open, setOpen] = useState(false);
   const anchor = useRef<HTMLButtonElement | null>(null);
+  const t = useT();
   if (!badge) return null;
   const item = snapshot.items.find((entry) => entry.key === badge.itemKey);
   if (!item || !actionablePullRequest(item))
@@ -39,7 +41,10 @@ export function DeskWorkBadge({
         href={badge.url}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`${badge.text} at ${deskLabel}`}
+        aria-label={t("desk.hostBadgeAria", {
+          text: badge.text,
+          desk: deskLabel,
+        })}
       >
         {badge.text}
       </a>
@@ -51,7 +56,10 @@ export function DeskWorkBadge({
         type="button"
         className="town-desk-badge town-desk-badge-button"
         data-tone={badge.tone}
-        aria-label={`${badge.text} at ${deskLabel}: pull request`}
+        aria-label={t("desk.hostBadgePrAria", {
+          text: badge.text,
+          desk: deskLabel,
+        })}
         aria-expanded={open}
         // The desk under the nameplate takes presses for selection and drags.
         onPointerDown={(event) => event.stopPropagation()}
@@ -81,15 +89,16 @@ const PHONE = 640;
 export function BadgePopover({
   anchor,
   onClose,
-  label = "Pull request",
+  label,
   children,
 }: {
   anchor: { current: HTMLElement | null };
   onClose(): void;
-  /** The dialog's name. */
+  /** The dialog's name; the pull request phrase by default. */
   label?: string;
   children: React.ReactNode;
 }) {
+  const t = useT();
   const panel = useRef<HTMLDivElement | null>(null);
   // Only whether it is placed is React state: its place moves with the
   // camera each drawn frame and is written to the panel directly.
@@ -146,7 +155,7 @@ export function BadgePopover({
       ref={panel}
       className="town-badge-popover"
       role="dialog"
-      aria-label={label}
+      aria-label={label ?? t("desk.pullRequest")}
       data-placed={placed ? "" : undefined}
     >
       {children}

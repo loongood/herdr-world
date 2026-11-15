@@ -26,6 +26,10 @@
   the words' unused `means` descriptions were removed. The Needs you
   follows too: its counter and handle, waiting list, per-item cards
   (questions, quick replies, typed answers with attachment chips and
-  progress), and the outbox route, including its screen-reader labels.
+  progress), and the outbox route, including its screen-reader labels. The
+  Desk follows as well: its modes, attention summary, search, lanes and
+  cards (ages, facts, actions), directory, reviewed view, toast and key
+  legend, plus the other-hosts summaries, the reveal notes, the desk name
+  plates and their work badges' screen-reader labels.
   Remaining surfaces keep English
   until their phase lands.

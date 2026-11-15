@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../i18n";
 import type { WorldLeafObject, WorldObject } from "./worldObject";
 import { agentName, where } from "./deskAgentLabels";
 import { deskRevealUnavailable, type DeskRevealResult } from "./deskReveal";
@@ -64,6 +65,7 @@ export function DeskOtherHosts({
   const [error, setError] = useState<{ id: string; message: string } | null>(
     null,
   );
+  const t = useT();
   const others = otherHostSummaries(world, filtered);
   const reveal = async (leaf: WorldLeafObject) => {
     setBusy(true);
@@ -76,7 +78,7 @@ export function DeskOtherHosts({
         message:
           cause instanceof Error
             ? cause.message
-            : `Could not open the agent on ${leaf.hostLabel}.`,
+            : t("desk.openAgentFailed", { host: leaf.hostLabel }),
       });
     } finally {
       setBusy(false);
@@ -110,32 +112,35 @@ export function DeskOtherHosts({
           }}
         >
           {host.label}
-          {host.stale ? " · cached" : ""}
-          {host.needs ? ` · ${host.needs} need you` : ""}
-          {host.done ? ` · ${host.done} done` : ""}
-          {host.working ? ` · ${host.working} working` : ""}
-          {!host.needs && !host.done && !host.working ? " · quiet" : ""}
+          {host.stale ? t("desk.otherHostsCached") : ""}
+          {host.needs ? t("desk.otherHostsNeeds", { count: host.needs }) : ""}
+          {host.done ? t("desk.otherHostsDone", { count: host.done }) : ""}
+          {host.working
+            ? t("desk.otherHostsWorking", { count: host.working })
+            : ""}
+          {!host.needs && !host.done && !host.working
+            ? t("desk.otherHostsQuiet")
+            : ""}
         </button>
       ))}
       {expanded && (
         <section
           className="desk-host-agents"
-          aria-label={`Agents outside Hosts filter on ${expanded.label}`}
+          aria-label={t("desk.outsideFilterAria", { host: expanded.label })}
         >
           <div className="desk-host-heading">
-            <strong>Outside Hosts filter · {expanded.label}</strong>
+            <strong>
+              {t("desk.outsideFilterTitle", { host: expanded.label })}
+            </strong>
             <button
               type="button"
               disabled={busy}
               onClick={() => setExpanded(null)}
             >
-              Close summary
+              {t("desk.closeSummary")}
             </button>
           </div>
-          <p>
-            Reveal &amp; open adds this host to Hosts and opens the selected
-            agent. Open Inspectors keep their own hosts.
-          </p>
+          <p>{t("desk.outsideFilterNote")}</p>
           <ul>
             {expanded.agents.map((leaf) => {
               const reason = deskRevealUnavailable(
@@ -158,7 +163,10 @@ export function DeskOtherHosts({
                     }
                     onClick={() => void reveal(leaf)}
                   >
-                    Reveal &amp; open {agentName(leaf)} on {leaf.hostLabel}
+                    {t("desk.revealAndOpen", {
+                      name: agentName(leaf),
+                      host: leaf.hostLabel,
+                    })}
                   </button>
                 </li>
               );
