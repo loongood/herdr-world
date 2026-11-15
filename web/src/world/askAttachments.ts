@@ -8,6 +8,7 @@ import {
 import { leafOwner } from "./conversationRead";
 import type { WorldAsk } from "./worldAsks";
 import type { WorldLeafObject } from "./worldObject";
+import { t } from "../i18n";
 
 /**
  * Files the owner attaches to an answer in Needs you. Each is stored with the
@@ -26,7 +27,7 @@ export type AskAttachmentUpload = (
 export const ANSWER_MAX_LENGTH = 4000;
 
 /** The line that heads the attached paths in an answer. */
-export const ATTACHED_FILES_HEADING = "Attached files:";
+export const attachedFilesHeading = () => t("attachments.heading");
 
 /**
  * The answer as the asker receives it: the typed text, then one stored path
@@ -35,7 +36,7 @@ export const ATTACHED_FILES_HEADING = "Attached files:";
 export function answerWithAttachments(text: string, paths: readonly string[]) {
   const answer = text.trim();
   if (!paths.length) return answer;
-  const list = [ATTACHED_FILES_HEADING, ...paths].join("\n");
+  const list = [attachedFilesHeading(), ...paths].join("\n");
   return answer ? `${answer}\n\n${list}` : list;
 }
 
@@ -81,8 +82,8 @@ export function askAttachmentUpload(
     if (!client)
       throw new Error(
         leaf || ask.actor.connection_id !== undefined
-          ? "The asker's host is not connected"
-          : "The World host is not connected",
+          ? t("attachments.askerHostNotConnected")
+          : t("attachments.worldHostNotConnected"),
       );
     return file.type.startsWith("image/")
       ? uploadTerminalImage(client, file, onProgress)

@@ -27,7 +27,7 @@ import {
   type VisualRouteAction,
   type VisualRouteActionTarget,
 } from "./visualRouteActions";
-import { WORLD_COMMAND_PLACEHOLDER, worldFindGroup } from "./worldCommandBox";
+import { worldCommandPlaceholder, worldFindGroup } from "./worldCommandBox";
 import { focusWorldNode } from "./worldInspectorSelection";
 import { type WorldInspectorController } from "./useWorldInspectorController";
 import { EMPTY_VISUAL_ACTION_EXTENSION } from "./worldControlPlaneContract";
@@ -437,7 +437,7 @@ export function useWorldVisualActions(controller: WorldInspectorController) {
           search,
           (nodeId) => void shellActionContext.current.selectNode(nodeId),
         ),
-      placeholder: WORLD_COMMAND_PLACEHOLDER,
+      placeholder: worldCommandPlaceholder(),
       groups: [
         { heading: t("worldActions.headingCreate"), actions: creationActions },
         {

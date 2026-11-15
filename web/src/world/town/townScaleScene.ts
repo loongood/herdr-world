@@ -11,6 +11,7 @@
 import type { Pane, Tab, Workspace } from "../../types";
 import type { WorldRuntimeConnection } from "../runtimeStore";
 import type { TownStep, TownStepKind } from "./townSteps";
+import { t } from "../../i18n";
 
 export const TOWN_SCALE_SCENE = "town-scale";
 
@@ -80,14 +81,21 @@ const MIX: readonly [TownScaleState, number][] = [
   ["idle", 88],
   ["unknown", 100],
 ];
-const SUMMARY: Record<TownScaleState, string | undefined> = {
-  working: "Implementing the change",
-  asking: "Asks: allow running the migration?",
-  blocked: "Blocked: CI failing on the lint step",
-  done: "Finished: pull request ready",
-  idle: undefined,
-  unknown: undefined,
-};
+/** The scene's summary line for an agent in that state, in its language. */
+function summaryOf(state: TownScaleState): string | undefined {
+  switch (state) {
+    case "working":
+      return t("townScene.summaryWorking");
+    case "asking":
+      return t("townScene.summaryAsking");
+    case "blocked":
+      return t("townScene.summaryBlocked");
+    case "done":
+      return t("townScene.summaryDone");
+    default:
+      return undefined;
+  }
+}
 
 /** A fixed linear congruential sequence: the same scene on every load. */
 function sequence(seed: number) {
@@ -142,7 +150,7 @@ function host(index: number, random: () => number): WorldRuntimeConnection {
             ? HARNESSES[Math.floor(random() * HARNESSES.length)]!
             : "",
           agent_status: status,
-          task_summary: state ? SUMMARY[state] : undefined,
+          task_summary: state ? summaryOf(state) : undefined,
           revision: 1,
         });
       }
@@ -200,13 +208,13 @@ export function townScaleSceneConnection(connectionId: string) {
 }
 
 const SCENE_TASKS = [
-  "Fix login redirect",
-  "Add retry to the sync job",
-  "Speed up the search index",
-  "Tidy the billing tests",
-  "Write the release notes",
-  "Migrate the cache keys",
-  "Trim the bundle size",
+  "townScene.taskFixLogin",
+  "townScene.taskRetrySync",
+  "townScene.taskSpeedSearch",
+  "townScene.taskTidyBilling",
+  "townScene.taskReleaseNotes",
+  "townScene.taskMigrateKeys",
+  "townScene.taskTrimBundle",
 ] as const;
 /**
  * The scene's current steps and how many minutes each has run: a mix of
@@ -255,6 +263,6 @@ export function townScaleStep(
       kind === "think"
         ? null
         : loadedAt - minutes * 60_000 - ((desk * 13 + seat * 7) % 50) * 1000,
-    task: SCENE_TASKS[(desk + room) % SCENE_TASKS.length]!,
+    task: t(SCENE_TASKS[(desk + room) % SCENE_TASKS.length]!),
   };
 }

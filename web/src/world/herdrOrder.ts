@@ -11,6 +11,7 @@ import { operationalStore } from "../store";
 import { townScaleRuntime } from "./town/townScaleRuntime";
 import { deskReorderIndex } from "../../../shared/tabOrder";
 import type { Tab, Workspace } from "../types";
+import { t } from "../i18n";
 
 /** The connection and runtime generation that own what moves. */
 export type HerdrOrderOwner = { connectionId: string; generation: number };
@@ -70,7 +71,7 @@ export function herdrOrderNeighbor(
 const CHANGED = (what: string): HerdrOrderOutcome => ({
   status: "refused",
   reason: "changed",
-  message: `${what} changed. Try again.`,
+  message: t("herdrOrder.changed", { what }),
 });
 
 async function herdrWorkspaceOrder(owner: HerdrOrderOwner) {
@@ -97,7 +98,7 @@ export async function requestWorkspaceOrder(
   if (!ids.length) return { status: "moved" };
   const { client, order } = await herdrWorkspaceOrder(owner);
   const moves = herdrWorkspaceOrderMoves(order, ids);
-  if (!moves) return CHANGED("The building");
+  if (!moves) return CHANGED(t("herdrOrder.building"));
   for (const move of moves) await client.call("workspace.move", move);
   return { status: "moved" };
 }
@@ -171,7 +172,7 @@ async function reorderTab(
       ? deskReorderIndex(order, tabId, ontoId)
       : undefined;
   if (!workspaceId || insertIndex === undefined)
-    return CHANGED("The room") as HerdrTabOrderOutcome;
+    return CHANGED(t("herdrOrder.room")) as HerdrTabOrderOutcome;
   if (insertIndex === null)
     return { status: "moved", tab_id: tabId, workspace_id: workspaceId };
   const result = operations
@@ -185,7 +186,7 @@ async function reorderTab(
   return {
     status: "refused",
     reason: "tab_move",
-    message: operations?.get().error ?? "Herdr did not reorder the tab.",
+    message: operations?.get().error ?? t("herdrOrder.tabNotReordered"),
   };
 }
 

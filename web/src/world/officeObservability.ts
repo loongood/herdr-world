@@ -1,3 +1,5 @@
+import { t } from "../i18n";
+
 export type ObservabilityHealth = "available" | "degraded" | "unavailable";
 
 export type ObservabilityExtensionResponse = {
@@ -426,7 +428,9 @@ export function formatOfficeModelName(model: string) {
 }
 
 async function responseError(response: Response) {
-  const fallback = `Office observability request failed: ${response.status}`;
+  const fallback = t("observability.requestFailed", {
+    status: response.status,
+  });
   try {
     const text = (await response.text()).slice(0, 4_096);
     const value = JSON.parse(text) as { error?: unknown };

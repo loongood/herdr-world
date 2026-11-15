@@ -12,6 +12,7 @@ import type { WorkItem } from "../../../../shared/worldSources";
 import type { LensAgent, LensDesk, TownLensFacts } from "./townLens";
 import type { TownPlaceEconomy, TownUsagePlace } from "./townPlaceUsage";
 import type { TownQuestMark } from "./townQuestPennant";
+import { t } from "../../i18n";
 import {
   townScaleDeskTokens,
   townScaleRoll,
@@ -35,10 +36,10 @@ const PULLS: readonly Pick<
   { lane: "fixing", checks: "pass", mergeable: "conflicting" },
 ];
 const QUESTS = [
-  "Ship the search index",
-  "Retire the old billing flow",
-  "Green the nightly build",
-  "Document the API",
+  "townScene.questSearchIndex",
+  "townScene.questBillingFlow",
+  "townScene.questNightlyBuild",
+  "townScene.questDocumentApi",
 ] as const;
 
 /** The scene's room (workspace) of a synthetic tab or workspace ID. */
@@ -95,7 +96,7 @@ export function townScaleLensFacts(
         source: "github",
         kind: "pull_request",
         ref: `example/town#${number}`,
-        title: `Synthetic change ${number}`,
+        title: t("townScene.syntheticChange", { number }),
         url: `https://example.com/town/pull/${number}`,
         status: pull.lane,
         roles: ["author"],
@@ -111,8 +112,9 @@ export function townScaleLensFacts(
       const done = Math.floor((roll / 0.45) * (total + 1));
       const blocked = townScaleRoll(agentKey, "blocked") > 0.85;
       return {
-        title:
+        title: t(
           QUESTS[Math.floor(townScaleRoll(agentKey, "title") * QUESTS.length)]!,
+        ),
         progress: `${done}/${total}`,
         done,
         total,

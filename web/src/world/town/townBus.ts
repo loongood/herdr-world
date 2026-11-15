@@ -5,7 +5,7 @@
  */
 
 import type { BinEntry } from "../../../../shared/bin";
-import { t } from "../../i18n";
+import { t } from "../../i18n/core";
 import { binClockLabel } from "../bin/binStore";
 import { TOWN_WALK_SPEED } from "./townActors";
 import {

@@ -1,4 +1,5 @@
 import { CREATED_PANE_ADMISSION_TIMEOUT_MS } from "./officeRoomActions";
+import { t } from "../i18n";
 
 export function createdTerminalIdentity(result: unknown) {
   if (!result || typeof result !== "object") return null;
@@ -52,8 +53,7 @@ export function admitCreatedTerminal({
     let settled = false;
     let opening = false;
     let attemptedObservation: string | null = null;
-    let lastFailure =
-      "The created terminal was not admitted within the World snapshot window.";
+    let lastFailure = t("worldInspector.terminalAdmissionFailed");
     let unsubscribe = () => {};
     const timer = setTimeout(() => finish(new Error(lastFailure)), timeoutMs);
     function finish(error?: Error) {
@@ -67,7 +67,7 @@ export function admitCreatedTerminal({
       else resolve();
     }
     function cancelled() {
-      finish(new Error("Terminal activation was superseded"));
+      finish(new Error(t("worldInspector.terminalActivationSuperseded")));
     }
     function check() {
       if (settled) return;

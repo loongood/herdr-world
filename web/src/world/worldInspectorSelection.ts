@@ -22,6 +22,7 @@ import {
   worldInspectorWindowIdForNode,
   type WorldInspectorConversation,
 } from "./worldTerminalPresentation";
+import { t } from "../i18n";
 
 export function worldSelectionIsCurrent(
   selected: WorldObjectNode | null,
@@ -253,19 +254,19 @@ export function selectedHostStatusLabel(
 ) {
   return host
     ? `${host.label} · ${hostStateLabel(host.hostState)}`
-    : "No host selected";
+    : t("world.noHostSelected");
 }
 
 function hostStateLabel(state: WorldObjectNode["hostState"]) {
   switch (state) {
     case "active":
-      return "Active";
+      return t("intent.hostActive");
     case "ready-inactive":
-      return "Ready · inactive";
+      return t("intent.hostReadyInactive");
     case "reconnecting":
-      return "Reconnecting";
+      return t("intent.hostReconnecting");
     case "offline-stale":
-      return "Offline · stale";
+      return t("intent.hostOfflineStale");
   }
 }
 
@@ -304,21 +305,21 @@ export async function dispatchWorldInspectorRequest(
   onAdmitted: () => void = () => {},
 ) {
   const target = workspaceTarget(node);
-  if (!target) throw new Error("Select a space, agent, or terminal first");
+  if (!target) throw new Error(t("world.selectTargetFirst"));
   const availableViews = worldIntentViews(node);
   if (!availableViews.includes(view)) {
-    throw new Error(`${view} is not available for this selection`);
+    throw new Error(t("world.viewNotAvailable", { view }));
   }
   await focusWorldNode(node, focusStore);
   if (!worldNodeLeaseIsCurrent(node, focusStore)) {
-    throw new Error("The selected host changed while it was opening");
+    throw new Error(t("world.hostChangedWhileOpening"));
   }
   const connectionGeneration = focusStore.get().connectionGeneration;
   if (
     typeof connectionGeneration !== "number" ||
     !Number.isSafeInteger(connectionGeneration)
   ) {
-    throw new Error("The browser connection changed while it was opening");
+    throw new Error(t("world.browserConnectionChanged"));
   }
   onAdmitted();
   eventTarget.dispatchEvent(
@@ -359,12 +360,11 @@ export async function focusWorldNode(
   agentSession?: string | AgentSessionIdentity,
   isCurrent?: () => boolean,
 ) {
-  if (isCurrent?.() === false)
-    throw new Error("Inspector activation was superseded");
+  if (isCurrent?.() === false) throw new Error(t("world.activationSuperseded"));
   const agentSessionId =
     typeof agentSession === "string" ? agentSession : agentSession?.value;
   const target = workspaceTarget(node);
-  if (!target) throw new Error("Select a space, agent, or terminal first");
+  if (!target) throw new Error(t("world.selectTargetFirst"));
   const connection = focusStore
     .get()
     .connections.find((candidate) => candidate.id === node.connectionId);
@@ -374,10 +374,10 @@ export async function focusWorldNode(
     connection.generation !== node.generation ||
     !node.actionable
   ) {
-    throw new Error("The selected host generation is no longer available");
+    throw new Error(t("world.hostGenerationUnavailable"));
   }
   if (!worldNodeLeaseIsCurrent(node, focusStore)) {
-    throw new Error("The selected host changed while it was opening");
+    throw new Error(t("world.hostChangedWhileOpening"));
   }
   const focused = await focusStore.focusQualifiedTarget({
     connectionId: node.connectionId,
@@ -395,13 +395,12 @@ export async function focusWorldNode(
         }
       : {}),
   });
-  if (isCurrent?.() === false)
-    throw new Error("Inspector activation was superseded");
+  if (isCurrent?.() === false) throw new Error(t("world.activationSuperseded"));
   if (!focused) {
-    throw new Error("The selected item could not be focused");
+    throw new Error(t("world.selectedItemCouldNotFocus"));
   }
   if (!worldNodeLeaseIsCurrent(node, focusStore)) {
-    throw new Error("The selected host changed while it was opening");
+    throw new Error(t("world.hostChangedWhileOpening"));
   }
 }
 
@@ -420,10 +419,10 @@ export async function activateWorldNodeHost(
     connection.state !== "ready" ||
     connection.generation !== node.generation
   ) {
-    throw new Error("The observed host generation is no longer ready");
+    throw new Error(t("world.hostNotReady"));
   }
   if (!focusStore.selectConnection(node.connectionId)) {
-    throw new Error("The selected host could not be activated");
+    throw new Error(t("world.hostActivationFailed"));
   }
   await focusStore.refresh();
   const snapshot = focusStore.get();
@@ -436,7 +435,7 @@ export async function activateWorldNodeHost(
     current?.state !== "ready" ||
     current.generation !== node.generation
   ) {
-    throw new Error("The host changed while it was being activated");
+    throw new Error(t("world.hostChangedWhileActivating"));
   }
 }
 

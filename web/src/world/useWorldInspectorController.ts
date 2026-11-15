@@ -48,6 +48,7 @@ import { useWorldObservation } from "./useWorldObservation";
 import { useWorldInspectorWindows } from "./useWorldInspectorWindows";
 import { useWorldCreatedTerminal } from "./useWorldCreatedTerminal";
 import { useWorldInspectorIntentLease } from "./useWorldInspectorIntentLease";
+import { t } from "../i18n";
 
 export function useWorldInspectorController(props: WorldControlPlaneProps) {
   const {
@@ -542,7 +543,7 @@ export function useWorldInspectorController(props: WorldControlPlaneProps) {
       void action.catch((error) =>
         store.notify({
           kind: "error",
-          message: "Inspector command failed",
+          message: t("worldInspector.commandFailed"),
           detail: String(error),
         }),
       );
@@ -794,7 +795,7 @@ export function useWorldInspectorController(props: WorldControlPlaneProps) {
     requested: InspectorView = "terminal",
   ) => {
     if (signal?.aborted) {
-      throw new Error("Inspector activation was superseded");
+      throw new Error(t("worldInspector.activationSuperseded"));
     }
     const existing = inspectorConversations.find(
       (conversation) =>
@@ -815,7 +816,7 @@ export function useWorldInspectorController(props: WorldControlPlaneProps) {
             signal,
           ))
         ) {
-          throw new Error("Inspector activation was superseded");
+          throw new Error(t("worldInspector.activationSuperseded"));
         }
         if (dockedInspectorIdRef.current === worldInspectorWindowId(existing)) {
           onDockedInspectorIdChange(null);
@@ -832,13 +833,14 @@ export function useWorldInspectorController(props: WorldControlPlaneProps) {
           signal,
         ))
       ) {
-        throw new Error("Inspector activation was superseded");
+        throw new Error(t("worldInspector.activationSuperseded"));
       }
       focusInspectorTerminal(worldInspectorWindowId(existing));
       return;
     }
     const conversation = conversationFor(node, requested);
-    if (!conversation) throw new Error("This Inspector is no longer available");
+    if (!conversation)
+      throw new Error(t("worldInspector.inspectorUnavailable"));
     const requestId = intentRequestRef.current + 1;
     intentRequestRef.current = requestId;
     const chatFocusIntent =
@@ -854,7 +856,7 @@ export function useWorldInspectorController(props: WorldControlPlaneProps) {
     try {
       await focusWorldNode(node);
       if (signal?.aborted || intentRequestRef.current !== requestId) {
-        throw new Error("Inspector activation was superseded");
+        throw new Error(t("worldInspector.activationSuperseded"));
       }
       setSelection(node);
       const admittedConversation = {
@@ -893,9 +895,10 @@ export function useWorldInspectorController(props: WorldControlPlaneProps) {
     candidateWorld = world,
     requested: InspectorView | null = "terminal",
   ) => {
-    if (signal?.aborted) throw new Error("Terminal activation was superseded");
+    if (signal?.aborted)
+      throw new Error(t("worldInspector.terminalActivationSuperseded"));
     const node = candidateWorld.nodeById.get(id);
-    if (!node) throw new Error("This terminal is no longer available");
+    if (!node) throw new Error(t("worldInspector.terminalUnavailable"));
     const opened = requested ?? defaultOpenView(node) ?? "terminal";
     try {
       const existing = inspectorConversationsRef.current.find(
@@ -961,7 +964,7 @@ export function useWorldInspectorController(props: WorldControlPlaneProps) {
     if (signal?.aborted) return false;
     const target =
       selectedNode ?? aggregateWorld.nodeById.get(conversation.nodeId);
-    if (!target) throw new Error("This Inspector is no longer available");
+    if (!target) throw new Error(t("worldInspector.inspectorUnavailable"));
     const requestId = focusTarget
       ? intentRequestRef.current + 1
       : intentRequestRef.current;

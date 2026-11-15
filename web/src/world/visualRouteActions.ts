@@ -1,5 +1,6 @@
 import type { InspectorView } from "../workspaceResource";
 import type { WorldObject, WorldObjectNode } from "./worldObject";
+import { t } from "../i18n";
 
 export type VisualRouteAction = InspectorView | "spaces";
 
@@ -62,18 +63,18 @@ export function resolveVisualRouteActionTarget(
   },
 ): VisualRouteActionResolution {
   if (!target) {
-    return { node: null, reason: "Select a space, agent, or terminal first." };
+    return { node: null, reason: t("worldActions.selectEntityFirst") };
   }
   if (lease.selectedId !== target.id) {
-    return { node: null, reason: "The selected item changed." };
+    return { node: null, reason: t("worldRoute.selectedItemChanged") };
   }
   if (lease.activeConnectionId !== target.connectionId) {
-    return { node: null, reason: "The selected host changed." };
+    return { node: null, reason: t("worldRoute.selectedHostChanged") };
   }
   if (lease.runtimeGeneration !== target.runtimeGeneration) {
     return {
       node: null,
-      reason: "The selected host generation is no longer available.",
+      reason: t("worldRoute.hostGenerationUnavailable"),
     };
   }
   const node = world.nodeById.get(target.id);
@@ -91,10 +92,10 @@ export function resolveVisualRouteActionTarget(
         node.nativeId !== target.paneId ||
         node.terminalId !== target.terminalId)
   ) {
-    return { node: null, reason: "The selected item is no longer available." };
+    return { node: null, reason: t("worldRoute.selectedItemUnavailable") };
   }
   if (!node.actionable || node.stale) {
-    return { node: null, reason: "The selected item is no longer available." };
+    return { node: null, reason: t("worldRoute.selectedItemUnavailable") };
   }
   return { node, reason: null };
 }

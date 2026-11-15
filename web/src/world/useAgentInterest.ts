@@ -13,6 +13,7 @@ import { buildGroupViews } from "../../../shared/groupViews";
 import { deriveGroupInterest } from "../../../shared/groupInterest";
 import { groupRuntimeObservations } from "./groupObservations";
 import { setChimeInterestSource } from "../chimes/chimeCenter";
+import { t } from "../i18n";
 
 /**
  * Each agent's interest as World's service keeps it (shared/interest.ts), for
@@ -85,8 +86,8 @@ export function agentInterest(
       stored[interestKey(connectionId, terminalId)] ?? null,
     descriptionOf: (connectionId, terminalId) =>
       stored[interestKey(connectionId, terminalId)]
-        ? `${stored[interestKey(connectionId, terminalId)]} · individual override`
-        : "Watched · Default (from groups)",
+        ? `${stored[interestKey(connectionId, terminalId)]} · ${t("interest.individualOverride")}`
+        : t("interest.watchedDefault"),
     anyFocused,
   };
 }
@@ -142,7 +143,7 @@ export function createAgentInterestReader(
         stored[interestKey(connectionId, terminalId)] ?? null,
       descriptionOf: (connectionId, terminalId) =>
         derived.get(interestKey(connectionId, terminalId))?.description ??
-        "Watched · Default (from groups)",
+        t("interest.watchedDefault"),
       anyFocused,
     };
     return value;

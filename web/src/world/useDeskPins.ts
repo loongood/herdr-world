@@ -8,6 +8,7 @@ import {
   type DeskPin,
 } from "./board/boardDocument";
 import { terminalColorKey, type TerminalColorTarget } from "./terminalColor";
+import { t } from "../i18n";
 
 /**
  * Town desk pins, a view setting World's service keeps beside the terminal
@@ -93,18 +94,18 @@ export function worldTabPin(
   if (toggleCard)
     return {
       label: {
-        pin: "Pin card on Board",
-        unpin: "Unpin card on Board",
-        title: "A pinned card keeps its place on Board until you drag it",
+        pin: t("pins.cardPin"),
+        unpin: t("pins.cardUnpin"),
+        title: t("pins.cardTitle"),
       },
       pinnedOf: (owner, tab) => board.pinned.has(keyOf(owner, tab)),
       onPin: (owner, tab) => toggleCard(keyOf(owner, tab)),
     };
   return {
     label: {
-      pin: "Pin desk in Town",
-      unpin: "Unpin desk in Town",
-      title: "A pinned desk keeps its place in Town, and its agents stay at it",
+      pin: t("pins.deskPin"),
+      unpin: t("pins.deskUnpin"),
+      title: t("pins.deskTitle"),
     },
     pinnedOf: (owner, tab) => Boolean(deskPins[keyOf(owner, tab)]),
     onPin: (owner, tab, pinned) => void pinDesk(targetOf(owner, tab), pinned),

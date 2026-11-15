@@ -3,7 +3,7 @@
  * phone): each state has one glyph, one colour (agentMarks.css) and one word
  * (the i18n `marks` dictionary).
  */
-import { t } from "../i18n";
+import { t } from "../i18n/core";
 import type { TranslationKey } from "../i18n/en";
 
 export type AgentMarkKind =

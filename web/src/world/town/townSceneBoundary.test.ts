@@ -1,12 +1,14 @@
 import { expect, test } from "bun:test";
 import { mkdtemp, mkdir, rm, writeFile, copyFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 
 /*
  * The Town scene model's headless boundary (town/scene/). Its whole module
  * graph stays free of frameworks, renderers, stores and clock adapters, and
- * the lint rule that guards its source files rejects each way in.
+ * the lint rule that guards its source files rejects each way in. The i18n
+ * dictionaries are the one exception: they are plain data, so the scene can
+ * read translated words without a framework.
  */
 
 const root = join(import.meta.dir, "../../../..");
@@ -22,6 +24,9 @@ const ADAPTERS = [
   "web/src/store.ts",
   "web/src/api.ts",
 ];
+
+/** The scene's only dependency outside the world: the translation data. */
+const DICTIONARIES = "web/src/i18n/";
 
 /** The scene model's modules; each is bundled on its own. */
 const ENTRIES = [
@@ -46,7 +51,9 @@ test("the scene model's module graph has no framework, renderer or adapter", asy
     const map = build.outputs.find((output) => output.path.endsWith(".map"));
     const sources = (JSON.parse(await map!.text()) as { sources: string[] })
       .sources;
-    const files = sources.map((source) => relative(root, join(root, source)));
+    const files = sources.map((source) =>
+      relative(root, join(root, source)).split(sep).join("/"),
+    );
     // Sanity: the source map lists the module itself.
     expect(files).toContain(`${scene}/${entry}`);
     const outside = files.filter(
@@ -54,7 +61,11 @@ test("the scene model's module graph has no framework, renderer or adapter", asy
         file.includes("node_modules") ||
         file.endsWith(".tsx") ||
         ADAPTERS.includes(file) ||
-        !(file.startsWith("shared/") || file.startsWith("web/src/world/")),
+        !(
+          file.startsWith("shared/") ||
+          file.startsWith("web/src/world/") ||
+          file.startsWith(DICTIONARIES)
+        ),
     );
     expect({ entry, outside }).toEqual({ entry, outside: [] });
   }

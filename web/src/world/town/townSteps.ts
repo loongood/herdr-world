@@ -7,6 +7,7 @@
  */
 
 import { titleTask } from "../../components/chat/blocks/now";
+import { t } from "../../i18n";
 
 export type TownStepKind =
   | "edit"
@@ -320,23 +321,25 @@ export function townStepAge(step: TownStep, now: number) {
   return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, "0")}m`;
 }
 
+const STEP_WORD_KEYS = {
+  edit: "townStep.wordEdit",
+  test: "townStep.wordTest",
+  command: "townStep.wordCommand",
+  read: "townStep.wordRead",
+  web: "townStep.wordWeb",
+  think: "townStep.wordThink",
+  agent: "townStep.wordAgent",
+} as const;
+
 /** The step's word in a bubble, as short as Chat's Now bar. */
-export const TOWN_STEP_WORDS: Readonly<Record<TownStepKind, string>> = {
-  edit: "editing",
-  test: "tests",
-  command: "command",
-  read: "reading",
-  web: "web",
-  think: "thinking",
-  agent: "subagent",
-};
+export function townStepWord(kind: TownStepKind): string {
+  return t(STEP_WORD_KEYS[kind]);
+}
 
 /** The step with its timer: "tests 3m", or "editing" in its first minute. */
 export function townStepLabel(step: TownStep, now: number) {
   const age = townStepAge(step, now);
-  return age
-    ? `${TOWN_STEP_WORDS[step.kind]} ${age}`
-    : TOWN_STEP_WORDS[step.kind];
+  return age ? `${townStepWord(step.kind)} ${age}` : townStepWord(step.kind);
 }
 
 /** A bubble's words at desk zoom: "Run the login tests · tests 3m". */
@@ -345,13 +348,17 @@ export function townStepWords(step: TownStep, now: number) {
   return step.task ? `${step.task} · ${label}` : label;
 }
 
+const STEP_NAME_KEYS = {
+  edit: "townStep.nameEdit",
+  test: "townStep.nameTest",
+  command: "townStep.nameCommand",
+  read: "townStep.nameRead",
+  web: "townStep.nameWeb",
+  think: "townStep.nameThink",
+  agent: "townStep.nameAgent",
+} as const;
+
 /** The agent's step for screen readers and tests: "Running tests, 14m". */
-export const TOWN_STEP_NAMES: Readonly<Record<TownStepKind, string>> = {
-  edit: "Editing files",
-  test: "Running tests",
-  command: "Running a command",
-  read: "Reading code",
-  web: "Browsing the web",
-  think: "Thinking",
-  agent: "Waiting on a subagent",
-};
+export function townStepName(kind: TownStepKind): string {
+  return t(STEP_NAME_KEYS[kind]);
+}

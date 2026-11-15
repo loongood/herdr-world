@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, expect, test } from "bun:test";
 import { Window } from "happy-dom";
 import type { Root } from "react-dom/client";
@@ -9,7 +10,9 @@ if (process.env.HERDR_WORLD_RADIX_DOM_TEST !== "1") {
         process.execPath,
         "test",
         "--preload",
-        new URL("../testing/reactDomPreload.ts", import.meta.url).pathname,
+        fileURLToPath(
+          new URL("../testing/reactDomPreload.ts", import.meta.url),
+        ),
         import.meta.path,
       ],
       {

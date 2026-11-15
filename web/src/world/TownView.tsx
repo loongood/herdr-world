@@ -114,6 +114,7 @@ import {
 } from "./needsYou";
 import { preferredOfficeConnectorAnchor } from "./worldConnectorGeometry";
 import { officeCreationInputsEqual } from "./officeCreationInputs";
+import { t } from "../i18n";
 
 /** Town's chrome insets: Needs you is a World tab now, not a Town rail. */
 const TOWN_CHROME = { left: 0, right: 0 };
@@ -501,10 +502,13 @@ export default function TownView({
     for (const agent of fresh.slice(0, 2))
       toast(
         "ok",
-        `${agent.displayLabel} finished · ${whereOfAgent(agent.key)}`,
+        t("town.agentFinished", {
+          agent: agent.displayLabel,
+          where: whereOfAgent(agent.key),
+        }),
       );
     if (fresh.length > 2)
-      toast("ok", `${fresh.length - 2} more agents finished`);
+      toast("ok", t("town.moreAgentsFinished", { count: fresh.length - 2 }));
     // whereOfAgent reads the same roster as unseenCompletions.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unseenCompletions, toast]);
@@ -676,12 +680,20 @@ export default function TownView({
     if (!leaf) return false;
     try {
       await sendTownReply(leaf, text, submit);
-      toast("ok", text ? `Sent to ${label}` : `Pressed Enter for ${label}`);
+      toast(
+        "ok",
+        text
+          ? t("town.sentTo", { label })
+          : t("town.pressedEnterFor", { label }),
+      );
       return true;
     } catch (cause) {
       toast(
         "error",
-        `Not sent to ${label}: ${cause instanceof Error ? cause.message : String(cause)}`,
+        t("town.notSentTo", {
+          label,
+          cause: cause instanceof Error ? cause.message : String(cause),
+        }),
       );
       return false;
     }

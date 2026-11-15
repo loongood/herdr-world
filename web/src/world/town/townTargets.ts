@@ -1,4 +1,4 @@
-import { t } from "../../i18n";
+import { t } from "../../i18n/core";
 import { agentStateWord } from "../agentMarks";
 import type {
   OfficeAgent,

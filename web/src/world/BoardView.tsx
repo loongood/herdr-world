@@ -3044,19 +3044,32 @@ export default function BoardView({
     const tab = m.tabByKey.get(tabKey),
       space = m.workspaceByKey.get(workspaceKey);
     if (!tab || !space) return;
-    setToast({ text: `Moving ${tab.label} to ${space.label}…` });
+    setToast({
+      text: t("moves.movingTo", { what: tab.label, where: space.label }),
+    });
     try {
       const outcome = await moveTab(tab, space, allowClose);
       if (outcome.status === "moved" && outcome.tab_id) {
         // The service rewrites saved strings for every move (here or in
         // another view) and broadcasts the board; refresh to draw them now.
         void boardStore.refresh();
-        setToast({ text: `Moved ${tab.label} to ${space.label}` });
+        setToast({
+          text: t("boardView.movedTo", { what: tab.label, where: space.label }),
+        });
       } else if (outcome.reason === "room_would_close")
         setMoveAsk({ tabKey, workspaceKey, lastTab: true });
-      else setToast({ text: outcome.message ?? `${tab.label} was not moved.` });
+      else
+        setToast({
+          text:
+            outcome.message ?? t("boardView.wasNotMoved", { what: tab.label }),
+        });
     } catch (error) {
-      setToast({ text: `${tab.label} may not have moved: ${String(error)}` });
+      setToast({
+        text: t("moves.mayNotHaveMoved", {
+          what: tab.label,
+          reason: String(error),
+        }),
+      });
     }
   }
   /** A new terminal or agent in a workspace, with no note. */
@@ -3110,7 +3123,12 @@ export default function BoardView({
   ) => {
     setStartFor(null);
     const name = chosenName || noteTabName(note);
-    setToast({ text: `Starting ${startLabel(kind)} in ${space.label}…` });
+    setToast({
+      text: t("boardView.startingIn", {
+        label: startLabel(kind),
+        space: space.label,
+      }),
+    });
     try {
       // A note strung to one pane on this host asks that pane's agent's
       // helper: the new agent is its child (with the terminal seen there).
@@ -3347,9 +3365,7 @@ export default function BoardView({
     const tab = model.tabByKey.get(key),
       leaf = tab?.panes[0]?.leaf;
     if (tab && !leaf) {
-      void report(
-        Promise.resolve(t("boardView.terminalAppearanceUnavailable")),
-      );
+      void report(Promise.resolve(t("appearance.unavailable")));
       return;
     }
     void report(
@@ -3545,7 +3561,9 @@ export default function BoardView({
                       <button
                         type="button"
                         className="board-zone-add"
-                        aria-label={`New workspace on ${host.label}`}
+                        aria-label={t("boardView.newWorkspaceOn", {
+                          host: host.label,
+                        })}
                         onClick={() => setNewWorkspaceOn(host)}
                       >
                         +
@@ -3878,7 +3896,9 @@ export default function BoardView({
                     <button
                       type="button"
                       className="board-badge"
-                      aria-label={`Open ${tab.label} in Needs you`}
+                      aria-label={t("boardView.openInNeedsYou", {
+                        tab: tab.label,
+                      })}
                       disabled={tab.status === "unknown"}
                       onPointerDown={(event) => event.stopPropagation()}
                       onClick={(event) => {

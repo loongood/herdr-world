@@ -7,7 +7,7 @@ import {
   EMPTY_BIN,
 } from "../../../../shared/bin";
 import type { BridgeControlMsg, ConnectionStatus } from "../../api";
-import { t } from "../../i18n";
+import { t } from "../../i18n/core";
 import type { WorldLeafObject } from "../worldObject";
 
 /** The service's bin as this page last read it. */

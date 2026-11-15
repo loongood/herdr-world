@@ -355,7 +355,7 @@ export const BoardZoneFacts = memo(function BoardZoneFacts({
   return (
     <span className="board-zone-facts">
       <span>
-        {t("town.windowToday")}{" "}
+        {t("town.windowTodayLower")}{" "}
         {boardTotalText(townHostExpenses(today, host.connectionId), t)} ·{" "}
         {t("town.window7d")}{" "}
         {boardTotalText(townHostExpenses(week, host.connectionId), t)}
@@ -399,7 +399,7 @@ export const BoardWorkspaceEconomy = memo(function BoardWorkspaceEconomy({
   const week = boardPlaceText(townPlaceEconomy(useBoardUsage("7d"), place), t);
   return (
     <div className="board-economy">
-      {t("town.windowToday")} {today} · {t("town.window7d")} {week}
+      {t("town.windowTodayLower")} {today} · {t("town.window7d")} {week}
     </div>
   );
 });

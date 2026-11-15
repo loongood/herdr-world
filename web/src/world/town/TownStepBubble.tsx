@@ -12,11 +12,11 @@ import { useTownAges } from "./useTownHud";
 import { townStepGlyphUrl } from "./townStepArt";
 import type { TownStepStore } from "./townStepStore";
 import {
-  TOWN_STEP_NAMES,
-  TOWN_STEP_WORDS,
   townStepAge,
   townStepLabel,
   townStepLong,
+  townStepName,
+  townStepWord,
 } from "./townSteps";
 import "./townStep.css";
 
@@ -72,7 +72,7 @@ export function TownStepBubble({
       data-top={top || undefined}
       data-long={age ? true : undefined}
       data-selected={selected || undefined}
-      data-step={`${TOWN_STEP_NAMES[step.kind]}${age ? `, ${age}` : ""}`}
+      data-step={`${townStepName(step.kind)}${age ? `, ${age}` : ""}`}
       style={{ left: x }}
       aria-hidden="true"
     >
@@ -85,7 +85,7 @@ export function TownStepBubble({
       <span className="town-step-words">
         {step.task ? <span className="town-step-task">{step.task}</span> : null}
         <span className="town-step-label">
-          {age ? TOWN_STEP_WORDS[step.kind] : townStepLabel(step, now)}
+          {age ? townStepWord(step.kind) : townStepLabel(step, now)}
         </span>
       </span>
       {age ? <b className="town-step-age">{age}</b> : null}

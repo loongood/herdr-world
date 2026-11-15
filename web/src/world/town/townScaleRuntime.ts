@@ -20,6 +20,7 @@ import {
 } from "../../../../shared/deskState";
 import type { Pane, Tab, Workspace } from "../../types";
 import type { WorldRuntimeConnection } from "../runtimeStore";
+import { t } from "../../i18n";
 import {
   townScaleConnections,
   townScaleSceneConnection,
@@ -29,33 +30,35 @@ import {
 /** How long an answered agent works before it finishes (idle, unreviewed). */
 export const SCENE_ANSWER_WORK_MS = 4_000;
 
-const QUESTION = [
-  "The tests need the staging copy migrated first.",
-  "Allow running the migration?",
-  "❯ 1. Yes",
-  "  2. Yes, and don't ask again",
-  "  3. No, tell the agent what to do",
-  "",
-  "Esc to cancel",
-].join("\n");
-const BLOCKED =
-  "CI is failing on the lint step after the rule change.\nShould I revert the rule or fix the code?";
+/** The question an asking agent shows, in the reader's language. */
+const question = () =>
+  [
+    t("townScene.questionMigration"),
+    t("townScene.questionAllow"),
+    t("townScene.questionChoiceYes"),
+    `  ${t("townScene.questionChoiceYesAlways")}`,
+    `  ${t("townScene.questionChoiceNo")}`,
+    "",
+    t("townScene.questionCancel"),
+  ].join("\n");
+/** The blocked agent's message, in the reader's language. */
+const blocked = () => t("townScene.blockedLint");
 
 /** What an agent last said, by its scene state. */
 function latestText(pane: Pane, answered: boolean): string | null {
   if (answered)
     return pane.agent_status === "working"
-      ? "Thanks. Running the migration, then the tests."
-      : "Migration ran and the tests pass. The change is ready.";
+      ? t("townScene.answeredThanks")
+      : t("townScene.answeredDone");
   switch (pane.agent_status) {
     case "working":
-      return "Implementing the change: editing the handler and its tests.";
+      return t("townScene.workingChange");
     case "blocked":
-      return pane.task_summary?.startsWith("Asks:")
-        ? "The tests need the staging copy migrated first. May I run the migration?"
-        : "CI is failing on the lint step. I need a decision before I go on.";
+      return pane.task_summary === t("townScene.summaryAsking")
+        ? t("townScene.blockedAsks")
+        : t("townScene.blockedLintShort");
     case "done":
-      return "Finished: the pull request is ready for review.";
+      return t("townScene.doneReady");
     default:
       return null;
   }
@@ -133,7 +136,7 @@ export class TownScaleRuntime {
       if (method === "world.desk.review" || method === "world.desk.open") {
         const key = deskKey(params as DeskIdentity);
         const record = this.desk.get(key);
-        if (!record) throw new Error("This scene agent has no stop to review.");
+        if (!record) throw new Error(t("townScene.noStopToReview"));
         this.desk.set(
           key,
           method === "world.desk.review"
@@ -147,7 +150,7 @@ export class TownScaleRuntime {
         this.deskRevision += 1;
         return this.deskState();
       }
-      throw new Error(`The scale scene cannot ${method}.`);
+      throw new Error(t("townScene.cannotMethod", { method }));
     },
     onControl: (listener: DeskControlListener) => {
       this.deskListeners.add(listener);
@@ -203,7 +206,7 @@ export class TownScaleRuntime {
         return { tabs: byNumber(snapshot.tabs), tab_move_supported: true };
       case "workspace.rename": {
         const label = String(params.label ?? "").trim();
-        if (!label) throw new Error("A room needs a name.");
+        if (!label) throw new Error(t("townScene.roomNeedsName"));
         return this.change(connection, ({ workspaces, tabs, panes }) => ({
           workspaces: workspaces.map((workspace) =>
             workspace.workspace_id === params.workspace_id
@@ -271,9 +274,9 @@ export class TownScaleRuntime {
         const text =
           pane.agent_status !== "blocked"
             ? (latestText(pane, this.answered.has(pane.pane_id)) ?? "")
-            : pane.task_summary?.startsWith("Asks:")
-              ? QUESTION
-              : BLOCKED;
+            : pane.task_summary === t("townScene.summaryAsking")
+              ? question()
+              : blocked();
         return { read: { pane_id: pane.pane_id, text } };
       }
       case "pane.send_input": {
@@ -288,7 +291,7 @@ export class TownScaleRuntime {
           connectionId,
           pane.pane_id,
           "working",
-          "Running the migration",
+          t("townScene.runningMigration"),
         );
         setTimeout(() => {
           const current = this.connections.find(
@@ -338,7 +341,7 @@ export class TownScaleRuntime {
         };
       }
       default:
-        throw new Error(`The scale scene's synthetic hosts cannot ${method}.`);
+        throw new Error(t("townScene.hostsCannotMethod", { method }));
     }
   }
 

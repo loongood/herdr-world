@@ -9,7 +9,7 @@ import type {
   WorkItem,
   WorldSourcesSnapshot,
 } from "../../../../shared/worldSources";
-import { t } from "../../i18n";
+import { t } from "../../i18n/core";
 import type { TranslationKey } from "../../i18n/en";
 import { TOWN_CENTER_FRIEZE_Y, type TownCenterLot } from "./townCenter";
 import { TOWN_TILE, type TownLayout } from "./townLayout";

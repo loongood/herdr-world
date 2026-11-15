@@ -206,7 +206,7 @@ export function useSpacesTabWindowArrangement(active: boolean): {
   ] as const) {
     const reason =
       mobile && preset !== "single"
-        ? "Available in desktop layout."
+        ? t("worldInspector.availableInDesktopLayout")
         : terminalWindowArrangementReason(
             preset,
             { left: 0, top: 0, ...stage },
@@ -223,12 +223,12 @@ export function useSpacesTabWindowArrangement(active: boolean): {
   }
   for (const command of ["fit-right", "fit-left"] as const) {
     if (native || !state.activeId)
-      disabledReasons[command] = "No window is open.";
+      disabledReasons[command] = t("worldInspector.noWindowOpen");
   }
   if (!state.baseline)
-    disabledReasons.restore = "No arranged positions to restore.";
+    disabledReasons.restore = t("worldInspector.noPositionsToRestore");
   if (suspended || !state.order.length)
-    disabledReasons["close-all"] = "No windows are presented.";
+    disabledReasons["close-all"] = t("worldInspector.noWindowsPresented");
   const keyFor = (id: string) => JSON.stringify([scopeKey, id]);
   const spacesTabWindows =
     native || !active || suspended
@@ -271,7 +271,7 @@ export function useSpacesTabWindowArrangement(active: boolean): {
                 <WindowFrame
                   key={entry.id}
                   id={entry.id}
-                  label={`${label} terminal window`}
+                  label={t("worldInspector.terminalWindowLabel", { label })}
                   geometry={geometry}
                   restoreGeometry={
                     entry.maximized || entry.placement.kind !== "floating"

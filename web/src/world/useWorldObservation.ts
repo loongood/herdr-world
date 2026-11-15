@@ -23,6 +23,7 @@ import { useMediaQuery } from "./DeskView";
 import { hasValidSelectedConnection } from "./worldInspectorSelection";
 import { type WorldControlPlaneProps } from "./worldControlPlaneContract";
 import { townScaleRuntime } from "./town/townScaleRuntime";
+import { t } from "../i18n";
 
 const noSubscription = () => () => {};
 const noScene = () => null;
@@ -133,7 +134,13 @@ export function useWorldObservation({ onPresentedWorldChange }: Input) {
   );
   const unavailableWatchHosts = world.hosts.length - watchAdmissions.length;
   const unavailableWatchStatus = unavailableWatchHosts
-    ? ` · ${unavailableWatchHosts} ${unavailableWatchHosts === 1 ? "host" : "hosts"} unavailable`
+    ? ` · ${
+        unavailableWatchHosts === 1
+          ? t("world.watchHostsUnavailableOne")
+          : t("world.watchHostsUnavailableMany", {
+              count: unavailableWatchHosts,
+            })
+      }`
     : "";
   const watchCoverage = watchAdmissions.reduce(
     (counts, admission) => ({
@@ -155,13 +162,19 @@ export function useWorldObservation({ onPresentedWorldChange }: Input) {
   const watchStatus =
     watchlist.error ??
     (!watchlist.verified
-      ? "Watches unavailable while disconnected"
+      ? t("worldActions.watchesUnavailable")
       : watchAdmissions.some(
             (admission) =>
               !admission || admission.revision !== watchlist.revision,
           )
-        ? "Watch availability pending for filtered hosts"
-        : `${watchCoverage.registered} pinned in filter · ${watchCoverage.admitted} admitted · ${watchCoverage.missing} missing · ${watchCoverage.unresolved} unresolved · ${watchCoverage.admissionFailed} not admitted${unavailableWatchStatus}`);
+        ? t("world.watchAvailabilityPending")
+        : `${t("world.watchCoverageSummary", {
+            registered: watchCoverage.registered,
+            admitted: watchCoverage.admitted,
+            missing: watchCoverage.missing,
+            unresolved: watchCoverage.unresolved,
+            failed: watchCoverage.admissionFailed,
+          })}${unavailableWatchStatus}`);
   const [officeInspectorPresentation, setOfficeInspectorPresentation] =
     useState<OfficeInspectorPresentation>(
       () => readOfficePreferences(worldLocalStorage).inspectorPresentation,

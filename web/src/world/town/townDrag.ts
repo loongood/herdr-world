@@ -1,4 +1,4 @@
-import { t } from "../../i18n";
+import { t } from "../../i18n/core";
 import type { TownLevel } from "./townCamera";
 import type { TownHit } from "./townHitTest";
 import { TOWN_TILE, type TownLayout } from "./townLayout";

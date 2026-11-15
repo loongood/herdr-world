@@ -28,16 +28,15 @@ import type { WorldView } from "./worldViewRouting";
 /** Found items the box lists; more words narrow the rest. */
 export const WORLD_COMMAND_FINDS = 8;
 
-export const WORLD_COMMAND_PLACEHOLDER =
-  "Find an agent, room or table, or an action…";
+export const worldCommandPlaceholder = () => t("worldCommandBox.placeholder");
 
-const KIND_WORDS: Record<WorldSearchResult["kind"], string> = {
-  building: "Building",
-  room: "Room",
-  table: "Table",
-  agent: "Agent",
-  terminal: "Terminal",
-};
+const KIND_WORD_KEYS = {
+  building: "search.kindBuilding",
+  room: "search.kindRoom",
+  table: "search.kindTable",
+  agent: "search.kindAgent",
+  terminal: "search.kindTerminal",
+} as const satisfies Record<WorldSearchResult["kind"], string>;
 
 const KIND_ICONS = {
   building: <Building size={15} />,
@@ -69,9 +68,9 @@ function findAction(
     ),
     title: result.label,
     detail: [
-      KIND_WORDS[result.kind],
+      t(KIND_WORD_KEYS[result.kind]),
       mark ? agentMarkWord(mark) : null,
-      result.stale && !mark ? "stale" : null,
+      result.stale && !mark ? t("worldCommandBox.stale") : null,
       result.place.join(" › ") || null,
       excerpt ?? null,
     ]
@@ -98,12 +97,12 @@ export function worldFindGroup(
     actions.push({
       key: "world-find-more",
       icon: <Search size={15} />,
-      title: `${more} more in World`,
-      disabledReason: "Add a word to narrow the search",
+      title: t("worldCommandBox.moreInWorld", { count: more }),
+      disabledReason: t("worldCommandBox.addWordHint"),
       score: 0.01,
       run: () => {},
     });
-  return { heading: "In World", actions };
+  return { heading: t("worldCommandBox.headingInWorld"), actions };
 }
 
 /** Going to each view but the current one. */
@@ -112,7 +111,7 @@ export function worldViewGroup(
   onSelect: (view: WorldView) => void,
 ): ActionGroupDefinition {
   return {
-    heading: "Views",
+    heading: t("worldCommandBox.headingViews"),
     actions: WORLD_VIEW_DESTINATIONS.filter(
       (destination) => destination.view !== view,
     ).map(({ view: destination, Icon }) => ({

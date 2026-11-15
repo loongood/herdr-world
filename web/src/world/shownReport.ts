@@ -5,6 +5,7 @@ import { sharedDeskStore, useSharedDeskStore } from "./deskStateStore";
 import { deskIdentity } from "./useDeskState";
 import { reviewStop } from "./useReviewedWork";
 import type { WorldLeafObject } from "./worldObject";
+import { t } from "../i18n";
 
 /**
  * The current stop of one agent, as the reviewed record names it, or null
@@ -81,8 +82,8 @@ export async function markShownReport(
   toast(
     saved ? "ok" : "error",
     saved
-      ? `${label}'s work reviewed`
-      : `Could not save the review mark for ${label}. Try again when the connection is ready.`,
+      ? t("boardView.workReviewed", { label })
+      : t("boardView.reviewMarkFailed", { label }),
   );
   return saved;
 }

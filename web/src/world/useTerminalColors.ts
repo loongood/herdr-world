@@ -37,6 +37,7 @@ import { worldRuntimeStore } from "./runtimeStore";
 import type { WorldObject } from "./worldObject";
 import { DEVTOOLS } from "./devtools/flag";
 import { countWorldWork } from "./devtools/renderer";
+import { t } from "../i18n";
 
 /** Terminal colours as World's service keeps them (see terminalColor.ts). */
 
@@ -208,7 +209,7 @@ export function setTerminalColor(
       item.native_id === target.tabId,
   );
   if (!connection || !observed)
-    return Promise.resolve("Terminal appearance is unavailable");
+    return Promise.resolve(t("appearance.unavailable"));
   return saveAppearance(
     { ...observed, connection_generation: connection.generation },
     { color },

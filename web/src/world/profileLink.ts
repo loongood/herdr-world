@@ -1,4 +1,5 @@
 import type { ProfilesDocument } from "./agentProfiles";
+import { t } from "../i18n";
 
 /**
  * The profile an agent was launched from (one assignment per terminal), as
@@ -18,10 +19,13 @@ export function profileLinkFor(
     ? document?.profiles.find((p) => p.id === assignment.profile_id)
     : undefined;
   return profile
-    ? { profileId: profile.id, label: `Edit profile · ${profile.name}` }
+    ? {
+        profileId: profile.id,
+        label: t("launcher.editProfile", { name: profile.name }),
+      }
     : {
         label: assignment?.profile_name
-          ? `Profile · ${assignment.profile_name}`
-          : "Profiles…",
+          ? t("launcher.profileOf", { name: assignment.profile_name })
+          : t("launcher.profilesEllipsis"),
       };
 }

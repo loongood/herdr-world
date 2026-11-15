@@ -1,6 +1,7 @@
 import type { WorldAsk } from "./worldAsks";
 import "../components/AgentMark.css";
 import "./worldAsks.css";
+import { t } from "../i18n";
 
 /** The same quiet question mark in Board and Desk; the enclosing agent still opens normally. */
 export function WorldAskMark({ ask }: { ask?: WorldAsk }) {
@@ -10,8 +11,8 @@ export function WorldAskMark({ ask }: { ask?: WorldAsk }) {
       className="agent-mark world-ask-mark"
       data-mark="asks"
       data-world-ask={ask.id}
-      title={`Owner question: ${ask.question}`}
-      aria-label={`Owner question: ${ask.question}`}
+      title={t("world.ownerQuestion", { question: ask.question })}
+      aria-label={t("world.ownerQuestion", { question: ask.question })}
     >
       ?
     </span>

@@ -248,7 +248,7 @@ export function townMasterAction<T extends TownMasterAgent>({
   };
   return {
     id: "master",
-    label: "Town master",
+    label: t("town.townMaster"),
     icon: Crown,
     // The role holder wins over the name; its name is its own.
     detail: holder ? undefined : name,

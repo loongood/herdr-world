@@ -2,6 +2,7 @@ import { useEffect, type RefObject } from "react";
 import { store } from "../store";
 import { onAssistantShow } from "../assistant";
 import type { WorkspaceSurfaceSelection } from "../App";
+import { t } from "../i18n";
 
 /** Use the shared Inspector admission path without selecting a different runtime. */
 export function useAssistantShow(
@@ -16,9 +17,8 @@ export function useAssistantShow(
         const unavailable = () =>
           store.notify({
             kind: "error",
-            message: "Ranger could not show this workspace or session",
-            detail:
-              "The selected runtime or workspace is no longer available. Refresh and ask Ranger again.",
+            message: t("assistant.showFailed"),
+            detail: t("assistant.showUnavailable"),
           });
         if (!open) {
           unavailable();

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { worldLocalStorage } from "../browserStorage";
+import { t } from "../i18n";
 
 const KEY = "worldHostsFilter.v1";
 const EVENT = "world-hosts-filter-changed";
@@ -48,10 +49,9 @@ export function useHostsFilter(
     const retained = ids.filter((id) => knownIds.has(id));
     if (retained.length === ids.length) return;
     setExplanation(
-      "Some selected host profiles were removed. " +
-        (retained.length
-          ? "Showing the remaining selected hosts."
-          : "Showing All hosts."),
+      retained.length
+        ? t("hostsFilter.removedSome")
+        : t("hostsFilter.removedAll"),
     );
     writeHostsFilter(retained.length ? retained : null);
   }, [catalogueKey, catalogueReady, ids]);

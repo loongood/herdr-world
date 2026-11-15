@@ -275,7 +275,9 @@ export function ProfileEditor({
             <button
               type="button"
               className="profile-roster-new"
-              onClick={() => create(STARTER_PROFILES[1]!, "New agent")}
+              onClick={() =>
+                create(STARTER_PROFILES[1]!, t("profileEditor.launchNew"))
+              }
             >
               <Plus size={14} aria-hidden="true" />{" "}
               {t("profileEditor.newProfile")}

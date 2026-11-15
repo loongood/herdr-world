@@ -52,6 +52,7 @@ import {
 import { type WorldControlPlaneProps } from "./worldControlPlaneContract";
 import { Dispatch, SetStateAction, MutableRefObject } from "react";
 import { type WorldObservation } from "./useWorldObservation";
+import { t } from "../i18n";
 
 type Input = Pick<
   WorldControlPlaneProps,
@@ -304,9 +305,11 @@ export function useWorldInspectorWindows({
         if (omitted > 0)
           store.notify({
             kind: "info",
-            message: `Open all omitted ${omitted} observed ${omitted === 1 ? "tab" : "tabs"}`,
-            detail:
-              "Those tabs have no current available terminal target in the Hosts filter.",
+            message:
+              omitted === 1
+                ? t("worldInspector.openAllOmittedOne")
+                : t("worldInspector.openAllOmittedMany", { count: omitted }),
+            detail: t("worldInspector.noTerminalTarget"),
           });
         const current = inspectorConversationsRef.current;
         const openIds = new Set(current.map(worldInspectorWindowId));
@@ -397,7 +400,7 @@ export function useWorldInspectorWindows({
     ] as const) {
       const reason =
         compactArrangement && preset !== "single"
-          ? "Available in desktop layout."
+          ? t("worldInspector.availableInDesktopLayout")
           : terminalWindowArrangementReason(
               preset,
               { left: 0, top: 0, ...windowStage },
@@ -413,22 +416,22 @@ export function useWorldInspectorWindows({
       if (reason) disabledReasons[preset] = reason;
     }
     for (const command of ["fit-right", "fit-left"] as const) {
-      if (!activeInspectorId) disabledReasons[command] = "No window is open.";
+      if (!activeInspectorId)
+        disabledReasons[command] = t("worldInspector.noWindowOpen");
     }
     if (!managedWindows.baseline)
-      disabledReasons.restore = "No arranged positions to restore.";
+      disabledReasons.restore = t("worldInspector.noPositionsToRestore");
     if (!managedInputs.length)
-      disabledReasons["close-all"] = "No windows are open.";
+      disabledReasons["close-all"] = t("worldInspector.noWindowsOpen");
     if (!availableWindowTabs.size)
-      disabledReasons["open-all"] =
-        "No available terminal tabs in the Hosts filter.";
+      disabledReasons["open-all"] = t("worldInspector.noTerminalTabs");
     else if (
       [...availableWindowTabs.keys()].every((id) => {
         const entry = managedWindows.windows[id];
         return entry && !entry.minimized && !entry.dismissed;
       })
     )
-      disabledReasons["open-all"] = "All available tabs are already open.";
+      disabledReasons["open-all"] = t("worldInspector.allTabsOpen");
     return {
       activePreset:
         compactArrangement || managedWindows.focusMode

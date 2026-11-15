@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 import { connectionSnapshot, store } from "../store";
 import { worldRuntimeStore } from "./runtimeStore";
 import { buildWorldObject } from "./worldObject";
+import { t } from "../i18n";
 
 type Input = {
   active: boolean;
@@ -43,21 +44,24 @@ export function useWorldCreatedTerminal({
     if (event.phase !== "created" || !captured || !active) return;
     const identity = createdTerminalIdentity(event.result);
     const paneId = identity?.paneId;
-    const title = event.kind === "tab" ? "Tab" : "Workspace";
+    const title =
+      event.kind === "tab"
+        ? t("worldInspector.tabTitle")
+        : t("worldInspector.workspaceTitle");
     if (!identity || !paneId) {
       store.notify({
         kind: "error",
-        message: `${title} created, but Inspector focus failed`,
-        detail: "Herdr did not return the created terminal identity.",
+        message: t("worldInspector.createdFocusFailed", { title }),
+        detail: t("worldInspector.createdIdentityMissing"),
       });
       return;
     }
     const preserveNamingNotice =
-      store.get().notice?.message === "Tab created, but naming failed";
+      store.get().notice?.message === t("worldInspector.createdNamingFailed");
     if (!preserveNamingNotice)
       store.notify({
         kind: "success",
-        message: `${title} created; opening terminal…`,
+        message: t("worldInspector.createdOpening", { title }),
         loading: true,
       });
     const noticeId = store.get().notice?.id;
@@ -100,18 +104,18 @@ export function useWorldCreatedTerminal({
           observation: `${worldRuntimeStore.get().observedAt}:${connectionSnapshot(snapshot, event.connectionId).lastRefresh}`,
           invalidReason:
             intentRequestRef.current !== expectedIntent
-              ? "A newer Inspector selection superseded automatic focus."
+              ? t("worldInspector.newerSelectionSuperseded")
               : snapshot.status !== "connected" ||
                   host?.state !== "ready" ||
                   host.generation !== event.runtimeGeneration
-                ? "The owning host or runtime changed before terminal admission."
+                ? t("worldInspector.ownerChangedBeforeAdmission")
                 : undefined,
         };
       },
       open: async (signal) => {
         const node = exactNode();
         if (!node)
-          throw new Error("The created terminal is no longer available.");
+          throw new Error(t("worldInspector.createdTerminalUnavailable"));
         // The opener advances intent before synchronous browser navigation publishes.
         expectedIntent = intentRequestRef.current + 1;
         const opening = creationOpener.current(node.id, signal, latestWorld());
@@ -128,7 +132,7 @@ export function useWorldCreatedTerminal({
         if (!admission.signal.aborted)
           store.notify({
             kind: "error",
-            message: `${title} created, but Inspector focus failed`,
+            message: t("worldInspector.createdFocusFailed", { title }),
             detail: String(error),
           });
       })

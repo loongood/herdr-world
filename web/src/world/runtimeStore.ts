@@ -23,6 +23,7 @@ import {
 import { worldObjectForHosts } from "./worldFilters";
 import { DEVTOOLS } from "./devtools/flag";
 import { countWorldWork } from "./devtools/renderer";
+import { t } from "../i18n";
 
 const INVALIDATION_DEBOUNCE_MS = 80;
 const FALLBACK_REFRESH_MS = 15_000;
@@ -487,7 +488,7 @@ export class WorldRuntimeStore {
     this.unlistenStatus = this.client.onStatus((status) => {
       if (status === "connected") void this.refresh();
       else if (status === "disconnected") {
-        this.invalidateObservation("World service disconnected");
+        this.invalidateObservation(t("world.serviceDisconnected"));
       }
     });
     this.fallbackTimer = this.timers.every(
@@ -577,7 +578,7 @@ export class WorldRuntimeStore {
         this.state.status === "error" &&
         !this.refreshInFlight
       ) {
-        throw new Error(this.state.error ?? "World snapshot refresh failed");
+        throw new Error(this.state.error ?? t("world.snapshotRefreshFailed"));
       }
     }
   }

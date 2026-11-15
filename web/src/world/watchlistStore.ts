@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { BridgeControlMsg, ConnectionStatus } from "../api";
+import { t } from "../i18n";
 
 export type WorldWatch = {
   connectionId: string;
@@ -143,7 +144,7 @@ export class WorldWatchlistStore {
     if (!this.state.verified) {
       this.set({
         ...this.state,
-        error: "World watchlist is disconnected",
+        error: t("world.watchlistDisconnected"),
       });
       return false;
     }

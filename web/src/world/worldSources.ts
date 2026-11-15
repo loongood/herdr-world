@@ -96,7 +96,7 @@ export async function runPullRequestVerb(
   const body = record(await response.json());
   worldSourcesStore.publishSettled(parseWorldSources(body.snapshot));
   const action = parseAction(body.action);
-  if (!action) throw new Error("World did not report the outcome");
+  if (!action) throw new Error(t("sources.outcomeMissing"));
   return action;
 }
 
@@ -362,6 +362,7 @@ export {
   workItemsByPane,
   type LinkedPane,
 } from "./workLinks";
+import { t } from "../i18n";
 
 type Listener = () => void;
 
@@ -489,7 +490,7 @@ async function responseError(response: Response) {
   } catch {
     // Fall through to the status text.
   }
-  return `Sources request failed (${response.status})`;
+  return t("sources.requestFailed", { status: response.status });
 }
 
 function record(value: unknown): Record<string, unknown> {
