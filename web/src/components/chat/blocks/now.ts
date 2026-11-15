@@ -29,5 +29,9 @@ const STATUS_KEYS: Record<string, TranslationKey> = {
 };
 
 /** The word for a chat status, or the status itself when it has none. */
-export const statusWord = (status: string) =>
-  STATUS_KEYS[status] ? t(STATUS_KEYS[status]) : status;
+export const statusWord = (status: string) => {
+  const key = Object.prototype.hasOwnProperty.call(STATUS_KEYS, status)
+    ? STATUS_KEYS[status]
+    : undefined;
+  return key ? t(key) : status;
+};

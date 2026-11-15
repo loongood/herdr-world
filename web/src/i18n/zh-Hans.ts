@@ -1498,6 +1498,8 @@ export const zhHans: Dictionary = {
     mentionTooLong: "此引用会超出消息长度上限。",
     newTaskHeading: "新建任务",
     editTaskHeading: "编辑任务",
+    createTaskAria: "创建任务",
+    editTaskAria: "编辑任务",
     back: "返回",
     taskPermissionHintIntro:
       "任务在桥接上以各自的对话运行。保存时使用当前权限模式:",

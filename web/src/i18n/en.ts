@@ -1556,6 +1556,8 @@ export const en = {
     mentionTooLong: "This reference would exceed the message length limit.",
     newTaskHeading: "New task",
     editTaskHeading: "Edit task",
+    createTaskAria: "Create task",
+    editTaskAria: "Edit task",
     back: "Back",
     taskPermissionHintIntro:
       "Tasks run on the bridge in their own conversations. Saving uses the current permission mode:",

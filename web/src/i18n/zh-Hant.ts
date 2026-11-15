@@ -1501,6 +1501,8 @@ export const zhHant: Dictionary = {
     mentionTooLong: "此參照會超出訊息長度上限。",
     newTaskHeading: "新增任務",
     editTaskHeading: "編輯任務",
+    createTaskAria: "建立任務",
+    editTaskAria: "編輯任務",
     back: "返回",
     taskPermissionHintIntro:
       "任務在橋接上以各自的工作階段執行。儲存時使用目前權限模式:",

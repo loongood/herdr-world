@@ -102,7 +102,7 @@ export function TaskForm({
     <form
       className="assistant-task-form"
       aria-label={
-        task ? t("assistant.editTaskHeading") : t("assistant.newTaskHeading")
+        task ? t("assistant.editTaskAria") : t("assistant.createTaskAria")
       }
       onSubmit={async (event) => {
         event.preventDefault();

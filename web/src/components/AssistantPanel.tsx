@@ -185,7 +185,11 @@ const ACTIVITY_LABEL_KEYS = {
 } as const satisfies Record<string, TranslationKey>;
 
 const activityLabel = (name: string) => {
-  const key = ACTIVITY_LABEL_KEYS[name as keyof typeof ACTIVITY_LABEL_KEYS];
+  // The name comes from the agent, so only the table's own entries name an
+  // activity; an inherited property is not one.
+  const key = Object.prototype.hasOwnProperty.call(ACTIVITY_LABEL_KEYS, name)
+    ? ACTIVITY_LABEL_KEYS[name as keyof typeof ACTIVITY_LABEL_KEYS]
+    : undefined;
   return key ? t(key) : name;
 };
 
@@ -611,7 +615,11 @@ const ACTION_FIELD_KEYS = {
 } as const satisfies Record<string, TranslationKey>;
 
 const actionField = (key: string) => {
-  const fieldKey = ACTION_FIELD_KEYS[key as keyof typeof ACTION_FIELD_KEYS];
+  // A field name comes from the agent, so it may be any string: only the
+  // table's own keys name a field, never an inherited property.
+  const fieldKey = Object.prototype.hasOwnProperty.call(ACTION_FIELD_KEYS, key)
+    ? ACTION_FIELD_KEYS[key as keyof typeof ACTION_FIELD_KEYS]
+    : undefined;
   return fieldKey ? t(fieldKey) : key;
 };
 
