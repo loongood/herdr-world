@@ -225,5 +225,12 @@
   notices, its reconnect prompts and its stale-reference warnings.
   The default name for an unnamed custom terminal theme follows as well;
   the built-in theme names stay English, since they name external themes.
+  The Board view follows too: its toasts and notices (the bin, the grouping,
+  the tidy, the note sending, the agent starting and the pane moving), its
+  card and note bars (their colours, groups, pins, edits and deletions), the
+  note editor's unsaved drafts (their conflict and storage notices), the
+  tray of detached strings, the pane chooser, the new-tab dialog (its
+  workspace picker, the kinds it starts and the tab name) and the move
+  dialog.
   Remaining surfaces keep English
   until their phase lands.

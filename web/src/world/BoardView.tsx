@@ -26,7 +26,8 @@ import { tabCardKey } from "../../../shared/terminalColor";
 import { bridge } from "../api";
 import { worldLocalStorage } from "../browserStorage";
 import { QuestChip } from "../components/QuestLog";
-import { useT } from "../i18n";
+import { t, useT } from "../i18n";
+import type { TranslationKey } from "../i18n/en";
 import { AppearanceAvatar } from "./AppearanceAvatar";
 import { agentStateWord } from "./agentMarks";
 import {
@@ -297,7 +298,7 @@ async function createTabThroughStore(
   if (!name) return {};
   const tabId = result?.tab?.tab_id;
   if (typeof tabId !== "string")
-    return { namingProblem: "Herdr did not say which tab it created" };
+    return { namingProblem: t("boardView.namingProblem") };
   try {
     await bridge
       .connection(space.connectionId, space.generation)
@@ -421,12 +422,15 @@ function rowsByUrgency(tab: BoardTab): BoardPane[] {
 }
 
 function paneName(pane: BoardPane) {
-  if (!pane.isAgent) return "terminal";
-  return pane.leaf.agentName ?? pane.leaf.agentLabel ?? "agent";
+  if (!pane.isAgent) return t("boardView.terminalState");
+  return (
+    pane.leaf.agentName ?? pane.leaf.agentLabel ?? t("boardView.agentFallback")
+  );
 }
 
 function paneLine(pane: BoardPane, status: WorldAgentStatus) {
-  if (!pane.isAgent) return pane.leaf.terminalTitle ?? "terminal";
+  if (!pane.isAgent)
+    return pane.leaf.terminalTitle ?? t("boardView.terminalState");
   return (
     pane.leaf.taskSummary ?? pane.leaf.terminalTitle ?? statusLabel(status)
   );
@@ -434,12 +438,19 @@ function paneLine(pane: BoardPane, status: WorldAgentStatus) {
 
 function tabSummary(tab: BoardTab) {
   if (tab.shellOnly)
-    return `terminal${tab.panes.length > 1 ? `, ${tab.panes.length} panes` : ""}`;
+    return `${t("boardView.terminalState")}${tab.panes.length > 1 ? `, ${t("boardView.panesCount", { count: tab.panes.length })}` : ""}`;
   const agents = tab.panes.filter((pane) => pane.isAgent).length;
   const shells = tab.panes.length - agents;
   return [
-    `${agents} agent${agents === 1 ? "" : "s"}`,
-    shells ? `${shells} shell${shells === 1 ? "" : "s"}` : "",
+    t(agents === 1 ? "boardView.agentCountOne" : "boardView.agentCountMany", {
+      count: agents,
+    }),
+    shells
+      ? t(
+          shells === 1 ? "boardView.shellCountOne" : "boardView.shellCountMany",
+          { count: shells },
+        )
+      : "",
     statusLabel(tab.status),
   ]
     .filter(Boolean)
@@ -715,7 +726,7 @@ export default function BoardView({
         pane.leaf.actionable,
     );
     if (!agents.length) {
-      setToast({ text: "Only an agent can go in the bin" });
+      setToast({ text: t("boardView.onlyAgentInBin") });
       return;
     }
     for (const pane of agents) void putAgentInBin(pane.leaf, "board", world);
@@ -2309,7 +2320,7 @@ export default function BoardView({
       const to = m.tabByKey.get(target.key);
       if (from && to && from.key !== to.key) {
         if (from.hostKey === to.hostKey) void groupCards(from.key, to.key);
-        else setToast({ text: "Tabs group only within one host" });
+        else setToast({ text: t("boardView.groupWithinHost") });
         return;
       }
     }
@@ -2585,7 +2596,9 @@ export default function BoardView({
       ? model.workspaceByKey.get(workspaceKey)?.label
       : null;
     setToast({
-      text: label ? `Tidied “${label}”` : "Tidied the board",
+      text: label
+        ? t("boardView.tidied", { label })
+        : t("boardView.tidiedBoard"),
       undo: () => {
         // A quick Undo cancels Tidy's camera fit too.
         window.clearTimeout(tidyFit.current);
@@ -2593,7 +2606,7 @@ export default function BoardView({
         travelToLayout(latest.current.model);
         setPinnedKeys(new Set(layout.current.pinned.keys()));
         placeNotes(notesWere);
-        setToast({ text: "Restored" });
+        setToast({ text: t("boardView.restored") });
       },
     });
   };
@@ -2768,7 +2781,7 @@ export default function BoardView({
           (same(string.from, b) && same(string.to, a))),
     );
     if (existing) {
-      setToast({ text: "Those two are already strung together" });
+      setToast({ text: t("boardView.alreadyStrung") });
       return;
     }
     void report(
@@ -2957,7 +2970,10 @@ export default function BoardView({
           continue;
         out.push({
           // Two agents of the same kind would read the same; name the tab.
-          label: `${paneName(pane)} in ${tab.label}`,
+          label: t("boardView.paneInTab", {
+            pane: paneName(pane),
+            tab: tab.label,
+          }),
           connectionId: pane.leaf.connectionId,
           generation: pane.leaf.generation,
           paneId: pane.leaf.nativeId,
@@ -2984,8 +3000,10 @@ export default function BoardView({
       ) {
         const recipient = outcome.recipient;
         setToast({
-          text: outcome.message ?? "Another agent is in that pane.",
-          action: `Send to ${outcome.agent ?? "it"}`,
+          text: outcome.message ?? t("boardView.anotherAgentInPane"),
+          action: t("boardView.sendToAgent", {
+            target: outcome.agent ?? t("boardView.agentIt"),
+          }),
           ms: 12_000,
           undo: () => {
             setToast(null);
@@ -2997,11 +3015,13 @@ export default function BoardView({
       setToast({
         text:
           outcome.status === "sent"
-            ? `Sent the note to ${target.label}`
-            : (outcome.message ?? "The note was not sent."),
+            ? t("boardView.noteSent", { target: target.label })
+            : (outcome.message ?? t("boardView.noteNotSent")),
       });
     } catch (error) {
-      setToast({ text: `The note may not have been sent: ${String(error)}` });
+      setToast({
+        text: t("boardView.noteMayNotHaveBeenSent", { error: String(error) }),
+      });
     }
   };
   /** Ask before moving a tab, unless the user said not to ask again. */
@@ -3051,26 +3071,35 @@ export default function BoardView({
         const outcome = await createTab(space, name || undefined);
         setToast({
           text: outcome?.namingProblem
-            ? `Opened a terminal in ${space.label}, but it could not be named: ${outcome.namingProblem}`
-            : `Opened a terminal in ${space.label}`,
+            ? t("boardView.terminalNamingProblem", {
+                space: space.label,
+                problem: outcome.namingProblem,
+              })
+            : t("boardView.terminalOpened", { space: space.label }),
         });
       } catch (error) {
-        setToast({ text: `The terminal was not opened: ${String(error)}` });
+        setToast({
+          text: t("boardView.terminalNotOpened", { error: String(error) }),
+        });
       }
       return;
     }
     const label = startLabel(kind);
-    setToast({ text: `Starting ${label} in ${space.label}…` });
+    setToast({
+      text: t("boardView.startingIn", { label, space: space.label }),
+    });
     try {
       const outcome = await startAgent(space, kind, name || label, "");
       setToast({
         text:
           outcome.status === "started"
-            ? `Started ${label} in ${space.label}`
-            : (outcome.message ?? "The agent was not started."),
+            ? t("boardView.startedIn", { label, space: space.label })
+            : (outcome.message ?? t("boardView.agentNotStarted")),
       });
     } catch (error) {
-      setToast({ text: `The agent may not have started: ${String(error)}` });
+      setToast({
+        text: t("boardView.agentMayNotHaveStarted", { error: String(error) }),
+      });
     }
   };
   const startFromNote = async (
@@ -3129,11 +3158,13 @@ export default function BoardView({
       setToast({
         text:
           outcome.status === "sent"
-            ? `Started ${kind} in ${space.label} with the note`
-            : (outcome.message ?? "The agent was not started."),
+            ? t("boardView.startedWithNote", { kind, space: space.label })
+            : (outcome.message ?? t("boardView.agentNotStarted")),
       });
     } catch (error) {
-      setToast({ text: `The agent may not have started: ${String(error)}` });
+      setToast({
+        text: t("boardView.agentMayNotHaveStarted", { error: String(error) }),
+      });
     }
   };
   /** A tab card's terminals, the identity relations use. */
@@ -3175,16 +3206,23 @@ export default function BoardView({
     const m = latest.current.model;
     setToast({
       text: problem
-        ? `Not grouped: ${problem}`
-        : `${m.tabByKey.get(fromKey)?.label ?? "Tab"} grouped with ${m.tabByKey.get(toKey)?.label ?? "tab"}`,
+        ? t("boardView.notGrouped", { problem })
+        : t("boardView.groupedWith", {
+            from: m.tabByKey.get(fromKey)?.label ?? t("boardView.tabFallback"),
+            to: m.tabByKey.get(toKey)?.label ?? t("boardView.tabFallbackLower"),
+          }),
     });
   };
   const ungroupCard = async (key: string) => {
     const problem = await ungroupTerminals(tabTerminals(key), boardStore);
     setToast({
       text: problem
-        ? `Still grouped: ${problem}`
-        : `${latest.current.model.tabByKey.get(key)?.label ?? "Tab"} left its group`,
+        ? t("boardView.stillGrouped", { problem })
+        : t("boardView.leftGroup", {
+            tab:
+              latest.current.model.tabByKey.get(key)?.label ??
+              t("boardView.tabFallback"),
+          }),
     });
   };
   const cutString = (id: string) => {
@@ -3309,7 +3347,9 @@ export default function BoardView({
     const tab = model.tabByKey.get(key),
       leaf = tab?.panes[0]?.leaf;
     if (tab && !leaf) {
-      void report(Promise.resolve("Terminal appearance is unavailable"));
+      void report(
+        Promise.resolve(t("boardView.terminalAppearanceUnavailable")),
+      );
       return;
     }
     void report(
@@ -3364,7 +3404,9 @@ export default function BoardView({
   };
   togglePinRef.current = togglePin;
 
-  const toolbar = <WorldViewToolbar viewLabel="Board" {...search.toolbar} />;
+  const toolbar = (
+    <WorldViewToolbar viewLabel={t("views.board")} {...search.toolbar} />
+  );
 
   const ref = useMemo(
     () => createBoardCardRefs(cardEls.current, () => resizes.current),
@@ -3395,7 +3437,7 @@ export default function BoardView({
         style={boardAppearanceStyle(appearance)}
         className={`board${far ? " board-far" : ""}${pulses ? "" : " board-no-pulse"}${culling ? " board-culling" : ""}`}
         data-lens={lenses.view?.lens}
-        aria-label="Board of hosts, workspaces and tabs"
+        aria-label={t("boardView.boardAria")}
         onPointerOver={(event) => lenses.point(event.target)}
         onFocus={(event) => lenses.point(event.target)}
         onPointerDown={onPointerDown}
@@ -3482,7 +3524,7 @@ export default function BoardView({
                   className="board-zone-label"
                   data-host={host.key}
                   data-world-node-anchor={host.id}
-                  title="Drag to move the whole host"
+                  title={t("boardView.dragWholeHost")}
                 >
                   <span className="board-zone-heading">
                     <BoardZoneColor
@@ -3578,9 +3620,18 @@ export default function BoardView({
                       <button
                         type="button"
                         className="board-fold"
-                        aria-label={`${folded ? "Open" : "Fold"} ${space.label}`}
+                        aria-label={t(
+                          folded
+                            ? "boardView.openSpace"
+                            : "boardView.foldSpace",
+                          { space: space.label },
+                        )}
                         onPointerDown={(event) => event.stopPropagation()}
-                        title={folded ? "Show the tabs" : "Fold the tabs away"}
+                        title={t(
+                          folded
+                            ? "boardView.showTabs"
+                            : "boardView.foldTabsAway",
+                        )}
                         onClick={() => toggleFold(space)}
                       >
                         {folded ? (
@@ -3596,8 +3647,10 @@ export default function BoardView({
                         <button
                           type="button"
                           className="board-fold board-add"
-                          aria-label={`New in ${space.label}`}
-                          title="New terminal or agent"
+                          aria-label={t("boardView.newInSpace", {
+                            space: space.label,
+                          })}
+                          title={t("boardView.newTerminalOrAgent")}
                           onPointerDown={(event) => event.stopPropagation()}
                           onClick={() => setAddTo(space.key)}
                         >
@@ -3607,7 +3660,7 @@ export default function BoardView({
                     </div>
                     <span
                       className="board-handle"
-                      title="Drag to string this to a note or card"
+                      title={t("boardView.dragToString")}
                     />
                     <div className="board-counts">{workspaceCounts(space)}</div>
                     <BoardWorkspaceEconomy
@@ -3723,7 +3776,7 @@ export default function BoardView({
                         <span
                           className="board-pane-handle"
                           data-pane={pane.key}
-                          title="Drag pane to another tab; hold first on a phone"
+                          title={t("boardView.dragPaneToTab")}
                         >
                           <GripVertical size={16} aria-hidden="true" />
                         </span>
@@ -3744,7 +3797,7 @@ export default function BoardView({
                               role="button"
                               aria-pressed={selectedId === row.leaf.id}
                               className={`board-pane${row.isAgent ? ` board-s-${row.status}` : " board-pane-shell"}${selectedId === row.leaf.id ? " board-pane-selected" : ""}`}
-                              aria-label={`${paneName(row)}, ${row.isAgent ? statusLabel(row.status) : "terminal"}${rowLens?.label ?? ""}`}
+                              aria-label={`${paneName(row)}, ${row.isAgent ? statusLabel(row.status) : t("boardView.terminalState")}${rowLens?.label ?? ""}`}
                               data-lens-mark={rowLens?.data}
                               style={rowLens?.style}
                             >
@@ -3837,7 +3890,7 @@ export default function BoardView({
                     />
                     <span
                       className="board-handle"
-                      title="Drag to string this to a note or card"
+                      title={t("boardView.dragToString")}
                     />
                   </div>
                 );
@@ -3888,12 +3941,12 @@ export default function BoardView({
                 />
               ) : (
                 <div className="board-note-text">
-                  {note.text || "Empty note"}
+                  {note.text || t("boardView.emptyNote")}
                 </div>
               )}
               <span
                 className="board-handle"
-                title="Drag to string this note to a card"
+                title={t("boardView.dragNoteToCard")}
               />
             </div>
           ))}
@@ -3902,14 +3955,14 @@ export default function BoardView({
           ref={cutRef}
           type="button"
           className="board-cut"
-          aria-label="Delete string"
+          aria-label={t("boardView.deleteStringAria")}
           hidden
           onClick={() => {
             if (picked) cutString(picked);
           }}
         >
           <Trash2 size={14} aria-hidden="true" />
-          Delete
+          {t("boardView.delete")}
         </button>
         {unsaved.length ? (
           <div className="board-banner board-unsaved" role="alert">
@@ -3917,20 +3970,19 @@ export default function BoardView({
               <div key={draft.key} className="board-unsaved-row">
                 <span>
                   {draft.reason === "deleted"
-                    ? "This note was deleted on another device before your edit was saved:"
-                    : "This note changed on another device, so your edit was not saved:"}{" "}
+                    ? t("boardView.noteDeletedElsewhere")
+                    : t("boardView.noteChangedElsewhere")}{" "}
                   <q>{draft.text}</q>
                   {keptDraftStore.isStored(draft.key) ? null : (
                     <small className="board-unsaved-error">
                       {" "}
-                      This browser could not store it, so it is lost if you
-                      reload or close this tab: save it now or copy the text.
+                      {t("boardView.browserCannotStore")}
                     </small>
                   )}
                   {draft.error ? (
                     <small className="board-unsaved-error">
                       {" "}
-                      Not saved yet: {draft.error}
+                      {t("boardView.notSavedYet", { error: draft.error })}
                     </small>
                   ) : null}
                 </span>
@@ -3940,7 +3992,7 @@ export default function BoardView({
                     disabled={keptDraftStore.isSaving(draft.key)}
                     onClick={() => recoverDraft(draft, "over")}
                   >
-                    Keep mine
+                    {t("boardView.keepMine")}
                   </button>
                 ) : null}
                 <button
@@ -3948,14 +4000,14 @@ export default function BoardView({
                   disabled={keptDraftStore.isSaving(draft.key)}
                   onClick={() => recoverDraft(draft, "new")}
                 >
-                  Save as a new note
+                  {t("boardView.saveAsNewNote")}
                 </button>
                 <button
                   type="button"
                   disabled={keptDraftStore.isSaving(draft.key)}
                   onClick={() => keptDraftStore.remove(draft.key)}
                 >
-                  Discard
+                  {t("boardView.discard")}
                 </button>
               </div>
             ))}
@@ -3964,16 +4016,21 @@ export default function BoardView({
         {[...anchorStates.unconfirmed].map(([hostKey, list]) => (
           <div key={hostKey} className="board-banner" role="alert">
             <span>
-              Herdr on {model.hostByKey.get(hostKey)?.label ?? hostKey} has
-              restarted, so {list.length} string{list.length === 1 ? "" : "s"}{" "}
-              can't be confirmed. Nothing is sent to{" "}
-              {list.length === 1 ? "it" : "them"} until you choose.
+              {t(
+                list.length === 1
+                  ? "boardView.herdrRestartedOne"
+                  : "boardView.herdrRestartedMany",
+                {
+                  host: model.hostByKey.get(hostKey)?.label ?? hostKey,
+                  count: list.length,
+                },
+              )}
             </span>
             <button type="button" onClick={() => keepAnchors(hostKey)}>
-              Keep
+              {t("boardView.keep")}
             </button>
             <button type="button" onClick={() => detachAnchors(hostKey)}>
-              Detach
+              {t("boardView.detach")}
             </button>
           </div>
         ))}
@@ -4051,13 +4108,13 @@ export default function BoardView({
           <div
             className="board-chooser board-tray"
             role="dialog"
-            aria-label="Needs a home"
+            aria-label={t("boardView.needsAHome")}
           >
             <div className="board-chooser-head">
-              <strong>Needs a home</strong>
+              <strong>{t("boardView.needsAHome")}</strong>
               <button
                 type="button"
-                aria-label="Close"
+                aria-label={t("common.close")}
                 onClick={() => setTrayOpen(false)}
               >
                 ×
@@ -4065,8 +4122,8 @@ export default function BoardView({
             </div>
             <p className="board-tray-hint">
               {detached.length
-                ? "These strings' targets have closed. Re-attach a note to another card, or discard the string; the notes stay on the board."
-                : "All strings have a home."}
+                ? t("boardView.stringsTargetsClosed")
+                : t("boardView.allStringsHaveHome")}
             </p>
             {detached.map((string) => {
               const noteEnd = [string.from, string.to].find(
@@ -4081,10 +4138,12 @@ export default function BoardView({
                 <div key={string.id} className="board-tray-row">
                   <span className="board-tray-text">
                     {note
-                      ? `“${(note.text || "Empty note").slice(0, 48)}”`
-                      : "A string"}
+                      ? `“${(note.text || t("boardView.emptyNote")).slice(0, 48)}”`
+                      : t("boardView.aString")}
                     {anchorEnd
-                      ? ` was strung to a closed ${anchorEnd.anchor.kind}`
+                      ? t("boardView.wasStrungToClosed", {
+                          kind: anchorKindWord(anchorEnd.anchor.kind),
+                        })
                       : ""}
                   </span>
                   {note ? (
@@ -4099,7 +4158,7 @@ export default function BoardView({
                         setStringFrom({ cardKey: NOTE_PREFIX + note.id });
                         setTrayOpen(false);
                         setToast({
-                          text: "Tap the card or pane to string the note to",
+                          text: t("boardView.tapCardToString"),
                         });
                       }}
                     >
@@ -4116,7 +4175,7 @@ export default function BoardView({
                       )
                     }
                   >
-                    Discard
+                    {t("boardView.discard")}
                   </button>
                 </div>
               );
@@ -4134,7 +4193,9 @@ export default function BoardView({
               }
               color={cardColors[colorKey] ?? null}
               resetLabel={
-                model.tabByKey.has(colorKey) ? "Default colour" : "No colour"
+                model.tabByKey.has(colorKey)
+                  ? t("boardView.defaultColour")
+                  : t("boardView.noColour")
               }
               onColor={(color) => setCardColor(colorKey, color)}
               team={
@@ -4144,7 +4205,7 @@ export default function BoardView({
                       waiting: groupFrom === colorKey,
                       onGroup: () => {
                         setGroupFrom(colorKey);
-                        setToast({ text: "Tap the card to group with" });
+                        setToast({ text: t("boardView.tapCardToGroupWith") });
                       },
                       onUngroup: () => void ungroupCard(colorKey),
                     }
@@ -4173,7 +4234,7 @@ export default function BoardView({
               onString={() => {
                 setStringFrom({ cardKey: NOTE_PREFIX + noteSelected });
                 setToast({
-                  text: "Tap the card or pane to string the note to",
+                  text: t("boardView.tapCardToString"),
                 });
               }}
               onDelete={() =>
@@ -4188,16 +4249,18 @@ export default function BoardView({
           <div
             className="board-chooser"
             role="dialog"
-            aria-label={`Panes in ${model.tabByKey.get(chooser.tabKey)!.label}`}
+            aria-label={t("boardView.panesIn", {
+              tab: model.tabByKey.get(chooser.tabKey)!.label,
+            })}
           >
             <div className="board-chooser-head">
               <strong>
-                {chooser.stringFrom ? "String to which pane in " : ""}
+                {chooser.stringFrom ? t("boardView.stringToWhichPaneIn") : ""}
                 {model.tabByKey.get(chooser.tabKey)!.label}
               </strong>
               <button
                 type="button"
-                aria-label="Close"
+                aria-label={t("common.close")}
                 onClick={() => setChooser(null)}
               >
                 ×
@@ -4234,7 +4297,9 @@ export default function BoardView({
                 )}
                 <span className="board-pane-name">{paneName(row)}</span>
                 <span className="board-pane-state">
-                  {row.isAgent ? statusLabel(row.status) : "terminal"}
+                  {row.isAgent
+                    ? statusLabel(row.status)
+                    : t("boardView.terminalState")}
                 </span>
               </button>
             ))}
@@ -4283,8 +4348,8 @@ export default function BoardView({
           onTidy={runTidy}
           tidyLabel={
             selectedWorkspace()
-              ? "Tidy this workspace's tabs"
-              : "Tidy the board"
+              ? t("boardView.tidyWorkspaceTabs")
+              : t("boardView.tidyBoard")
           }
           pulses={pulses}
           onPulses={togglePulses}
@@ -4323,7 +4388,7 @@ export default function BoardView({
             <span>{toast.text}</span>
             {toast.undo ? (
               <button type="button" onClick={() => toast.undo?.()}>
-                {toast.action ?? "Undo"}
+                {toast.action ?? t("common.undo")}
               </button>
             ) : null}
           </div>
@@ -4332,6 +4397,31 @@ export default function BoardView({
     </>
   );
 }
+
+/** The colour words, for the card and note colour swatches. */
+const COLOUR_WORDS = {
+  red: "boardView.colour.red",
+  orange: "boardView.colour.orange",
+  yellow: "boardView.colour.yellow",
+  green: "boardView.colour.green",
+  teal: "boardView.colour.teal",
+  blue: "boardView.colour.blue",
+  purple: "boardView.colour.purple",
+  pink: "boardView.colour.pink",
+} as const satisfies Record<string, TranslationKey>;
+const colourWord = (choice: string) => {
+  const key = COLOUR_WORDS[choice as keyof typeof COLOUR_WORDS];
+  return key ? t(key) : choice;
+};
+/** The kind word of a string's anchor, in the selected language. */
+const anchorKindWord = (kind: string) =>
+  t(
+    kind === "workspace"
+      ? "boardView.kind.workspace"
+      : kind === "pane"
+        ? "boardView.kind.pane"
+        : "boardView.kind.tab",
+  );
 
 /**
  * A note being edited. The draft and the revision it started from are kept
@@ -4354,7 +4444,7 @@ function NoteEditor({
       contentEditable
       suppressContentEditableWarning
       role="textbox"
-      aria-label="Note text"
+      aria-label={t("boardView.noteTextAria")}
       ref={(el) => {
         if (el && document.activeElement !== el) {
           // Never scroll World's page for the keyboard: on a phone the page
@@ -4418,7 +4508,8 @@ export const __boardDraftsTesting = {
 
 /** A note's first words, as the name of the tab it starts. */
 const noteTabName = (note: BoardNote) =>
-  note.text.trim().split(/\s+/).slice(0, 3).join(" ").slice(0, 40) || "note";
+  note.text.trim().split(/\s+/).slice(0, 3).join(" ").slice(0, 40) ||
+  t("boardView.noteTabName");
 
 /**
  * One dialog for a new tab: from a workspace's + (workspace chosen) or from a
@@ -4472,7 +4563,7 @@ function NewTabDialog({
     };
   }, [spaceConnection, spaceGeneration, spaceWorkspace]);
   const kinds: { kind: string | null; label: string; note?: string }[] = [
-    ...(note ? [] : [{ kind: null, label: "Terminal" }]),
+    ...(note ? [] : [{ kind: null, label: t("boardView.terminalKind") }]),
     ...(profileDocument?.profiles ?? []).map((profile) => ({
       kind: PROFILE_CHOICE + profile.id,
       label: profile.name,
@@ -4485,8 +4576,10 @@ function NewTabDialog({
     })),
   ];
   const title = note
-    ? "Start an agent with this note"
-    : `New tab${space ? ` in ${space.label}` : ""}`;
+    ? t("boardView.startAgentWithNote")
+    : space
+      ? t("boardView.newTabIn", { space: space.label })
+      : t("boardView.newTab");
   return (
     <div
       className="board-chooser board-newtab"
@@ -4495,7 +4588,7 @@ function NewTabDialog({
     >
       <div className="board-chooser-head">
         <strong>{title}</strong>
-        <button type="button" aria-label="Close" onClick={onCancel}>
+        <button type="button" aria-label={t("common.close")} onClick={onCancel}>
           ×
         </button>
       </div>
@@ -4506,13 +4599,13 @@ function NewTabDialog({
         }}
       >
         <label className="board-field">
-          <span>Workspace</span>
+          <span>{t("boardView.workspaceLabel")}</span>
           <select
             value={workspace}
             onChange={(event) => setWorkspace(event.target.value)}
           >
             <option value="" disabled>
-              Choose a workspace
+              {t("boardView.chooseWorkspace")}
             </option>
             {workspaces.map((s) => (
               <option key={s.key} value={s.key}>
@@ -4522,7 +4615,7 @@ function NewTabDialog({
           </select>
         </label>
         <fieldset className="board-field">
-          <legend>Start</legend>
+          <legend>{t("boardView.start")}</legend>
           <div className="board-kinds" role="radiogroup">
             {kinds.map((choice) => (
               <button
@@ -4542,33 +4635,31 @@ function NewTabDialog({
             className="board-link"
             onClick={() => openProfileEditor()}
           >
-            Edit profiles
+            {t("launcher.editProfiles")}
           </button>
         </fieldset>
         <label className="board-field">
-          <span>Tab name (optional)</span>
+          <span>{t("boardView.tabNameOptional")}</span>
           <input
             value={name}
             maxLength={64}
-            placeholder={note ? noteTabName(note) : "Herdr names it"}
+            placeholder={note ? noteTabName(note) : t("boardView.herdrNamesIt")}
             onChange={(event) => setName(event.target.value)}
           />
         </label>
         {note ? (
-          <p className="board-tray-hint">
-            The note is sent once the agent is ready.
-          </p>
+          <p className="board-tray-hint">{t("boardView.noteSentWhenReady")}</p>
         ) : null}
         <div className="board-dialog-actions">
           <button type="button" onClick={onCancel}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             type="submit"
             className="board-primary"
             disabled={!space || kind === undefined}
           >
-            {note ? "Start and send" : "Create"}
+            {note ? t("boardView.startAndSend") : t("boardView.create")}
           </button>
         </div>
       </form>
@@ -4585,12 +4676,27 @@ function countOrder() {
 function workspaceCounts(space: BoardWorkspace) {
   const agents = space.squares.filter((square) => square.isAgent);
   const shells = space.squares.length - agents.length;
-  const parts = [`${agents.length} agent${agents.length === 1 ? "" : "s"}`];
+  const parts = [
+    t(
+      agents.length === 1
+        ? "boardView.agentCountOne"
+        : "boardView.agentCountMany",
+      { count: agents.length },
+    ),
+  ];
   for (const [status, word] of countOrder()) {
     const n = agents.filter((square) => square.status === status).length;
     if (n) parts.push(`${n} ${word}`);
   }
-  if (shells) parts.push(`${shells} terminal${shells === 1 ? "" : "s"}`);
+  if (shells)
+    parts.push(
+      t(
+        shells === 1
+          ? "boardView.terminalCountOne"
+          : "boardView.terminalCountMany",
+        { count: shells },
+      ),
+    );
   return parts.join(" · ");
 }
 const NO_IDS: readonly string[] = [];
@@ -4684,7 +4790,12 @@ const tintStyle = (color: CardColor | undefined) =>
 /** Marks a card pinned in place. */
 function PinBadge() {
   return (
-    <span className="board-pin" role="img" aria-label="Pinned" title="Pinned">
+    <span
+      className="board-pin"
+      role="img"
+      aria-label={t("boardView.pinnedAria")}
+      title={t("boardView.pinnedAria")}
+    >
       <Pin size={12} aria-hidden="true" />
     </span>
   );
@@ -4721,7 +4832,7 @@ function CardBar({
     <div
       className="board-notebar"
       role="toolbar"
-      aria-label={`Colour of ${label}`}
+      aria-label={t("world.colourOf", { label })}
     >
       {CARD_COLORS.map((choice) => (
         <button
@@ -4729,7 +4840,9 @@ function CardBar({
           type="button"
           className="board-swatch board-card-swatch"
           style={tintStyle(choice)}
-          aria-label={`Colour ${choice}`}
+          aria-label={t("boardView.colourChoice", {
+            choice: colourWord(choice),
+          })}
           aria-pressed={color === choice}
           onClick={() => onColor(choice)}
         />
@@ -4747,7 +4860,7 @@ function CardBar({
           aria-pressed={team.waiting}
           onClick={team.grouped ? team.onUngroup : team.onGroup}
         >
-          {team.grouped ? "Ungroup" : "Group…"}
+          {team.grouped ? t("boardView.ungroup") : t("boardView.group")}
         </button>
       ) : null}
       <button
@@ -4755,14 +4868,12 @@ function CardBar({
         className="board-pin-toggle"
         aria-pressed={pinned}
         title={
-          pinned
-            ? "Let it move with auto-layout again"
-            : "Keep it here: auto-layout and grouping leave it"
+          pinned ? t("boardView.letItMoveAgain") : t("boardView.keepItHere")
         }
         onClick={onPin}
       >
         <Pin size={14} aria-hidden="true" />
-        {pinned ? "Unpin" : "Pin"}
+        {pinned ? t("boardView.unpin") : t("boardView.pin")}
       </button>
       {herdr}
     </div>
@@ -4790,13 +4901,19 @@ function NoteBar({
   onStart(): void;
 }) {
   return (
-    <div className="board-notebar" role="toolbar" aria-label="Note">
+    <div
+      className="board-notebar"
+      role="toolbar"
+      aria-label={t("boardView.noteAria")}
+    >
       {NOTE_COLORS.map((color) => (
         <button
           key={color}
           type="button"
           className={`board-swatch board-note-${color}`}
-          aria-label={`Colour ${color}`}
+          aria-label={t("boardView.colourChoice", {
+            choice: colourWord(color),
+          })}
           aria-pressed={note.color === color}
           onClick={() => onColor(color)}
         />
@@ -4809,20 +4926,20 @@ function NoteBar({
           disabled={!note.text.trim()}
           onClick={() => onSend(target)}
         >
-          Send to {target.label}
+          {t("boardView.sendToAgent", { target: target.label })}
         </button>
       ))}
       <button type="button" onClick={onEdit}>
-        Edit
+        {t("boardView.edit")}
       </button>
       <button type="button" onClick={onString}>
-        String to…
+        {t("boardView.stringTo")}
       </button>
       <button type="button" disabled={!note.text.trim()} onClick={onStart}>
-        Start an agent…
+        {t("boardView.startAgent")}
       </button>
       <button type="button" className="board-danger" onClick={onDelete}>
-        Delete
+        {t("boardView.delete")}
       </button>
     </div>
   );
@@ -4846,30 +4963,33 @@ function MoveDialog({
 }) {
   const [noAsk, setNoAsk] = useState(false);
   const what = tab.shellOnly
-    ? "terminal"
+    ? t("boardView.whatTerminal")
     : tab.panes.some((pane) => pane.isAgent)
-      ? "tab and its agents"
-      : "tab";
+      ? t("boardView.whatTabAndAgents")
+      : t("boardView.whatTab");
   return (
     <div
       className="board-chooser board-move"
       role="dialog"
-      aria-label={`Move ${tab.label}`}
+      aria-label={t("boardView.moveTabAria", { tab: tab.label })}
     >
       <div className="board-chooser-head">
         <strong>
-          Move the {what} “{tab.label}” to {space.label}?
+          {t("boardView.moveThe", {
+            what,
+            tab: tab.label,
+            space: space.label,
+          })}
         </strong>
       </div>
       {lastTab ? (
         <p className="board-tray-hint board-warn">
-          It is the last tab in {from?.label ?? "its workspace"}; moving it
-          closes that workspace.
+          {t("boardView.lastTabWarning", {
+            workspace: from?.label ?? t("boardView.itsWorkspace"),
+          })}
         </p>
       ) : (
-        <p className="board-tray-hint">
-          Its panes keep running; their notes and strings move with them.
-        </p>
+        <p className="board-tray-hint">{t("boardView.panesKeepRunning")}</p>
       )}
       {!lastTab ? (
         <label className="board-noask">
@@ -4878,19 +4998,19 @@ function MoveDialog({
             checked={noAsk}
             onChange={(event) => setNoAsk(event.target.checked)}
           />
-          Don't ask again
+          {t("boardView.dontAskAgain")}
         </label>
       ) : null}
       <div className="board-move-actions">
         <button type="button" onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="button"
           className="board-primary-button"
           onClick={() => onMove(noAsk)}
         >
-          {lastTab ? "Move and close the workspace" : "Move"}
+          {lastTab ? t("boardView.moveAndCloseWorkspace") : t("boardView.move")}
         </button>
       </div>
     </div>
