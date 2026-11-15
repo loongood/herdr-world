@@ -1,6 +1,7 @@
 import type { ConnectionClient } from "../api";
 import { connectionHttpPath } from "../connectionHttp";
 import { downloadFileFromUrl } from "../downloadFile";
+import { t } from "../i18n";
 import { store } from "../store";
 import type { Pane } from "../types";
 
@@ -60,18 +61,18 @@ export function agentPromptWarning(
   agent: string | undefined,
   status?: string,
 ): string | null {
-  const name = agent?.trim() || "The agent";
+  const name = agent?.trim() || t("history.promptTheAgent");
   const kind = agentStateKind(status);
   switch (kind) {
     case "idle":
     case "done":
       return null;
     case "working":
-      return `${name} is still working. The message will be typed into its terminal now, and the agent decides whether to queue it or interrupt.`;
+      return t("history.promptWorking", { name });
     case "blocked":
-      return `${name} is waiting on a prompt. The message will be typed into that prompt, not sent as a new turn.`;
+      return t("history.promptBlocked", { name });
     default:
-      return `${name}'s status is unknown. The message will be typed into whatever its terminal is showing.`;
+      return t("history.promptUnknown", { name });
   }
 }
 

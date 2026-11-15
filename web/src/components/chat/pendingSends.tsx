@@ -1,10 +1,10 @@
 import type { ConversationDelivery } from "../AgentChat";
 import { formatUiDateTime } from "../../uiLocale";
+import { t } from "../../i18n";
 import { CommandReceipt } from "./blocks/command";
 
 /** Send receipts hold message text, so World keeps them in memory only. */
-export const RECEIPT_MEMORY_NOTE =
-  "World does not store this: it is gone after World restarts.";
+export const receiptMemoryNote = () => t("chat.receiptMemoryNote");
 
 /**
  * Sends Herdr took that the session's transcript does not show yet. A busy
@@ -29,7 +29,7 @@ export function placedSends(
           at={delivery.sent_at}
           waiting={
             delivery.waiting
-              ? `waiting for ${agent}: it is busy and runs this when it reaches it`
+              ? t("chat.pendingWaitingFor", { agent })
               : undefined
           }
           detail={delivery.detail}
@@ -43,12 +43,16 @@ export function placedSends(
           <div className="agent-history-chat-bubble">
             <p>{delivery.text}</p>
           </div>
-          <div className="agent-history-chat-meta" title={RECEIPT_MEMORY_NOTE}>
+          <div className="agent-history-chat-meta" title={receiptMemoryNote()}>
             {delivery.queued && delivery.state === "pending"
-              ? `Queued · sent to ${agent}`
-              : "Sent, not seen in the transcript"}{" "}
+              ? t("chat.pendingQueuedSentTo", { agent })
+              : t("chat.pendingSentNotSeen")}{" "}
             {delivery.state === "unverified" ? (
-              <span> · Chat can no longer check. {delivery.detail}</span>
+              <span>
+                {t("chat.pendingUnverifiedTail", {
+                  detail: delivery.detail ?? "",
+                })}
+              </span>
             ) : null}
             ·{" "}
             <time dateTime={delivery.sent_at}>
@@ -59,7 +63,9 @@ export function placedSends(
               className="agent-chat-pending-dismiss"
               onClick={() => onDismiss(delivery.id)}
             >
-              {delivery.state === "pending" ? "Stop checking" : "Dismiss"}
+              {delivery.state === "pending"
+                ? t("chat.stopChecking")
+                : t("chat.dismiss")}
             </button>
           </div>
         </article>

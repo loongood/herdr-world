@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useStoreSelector } from "../store";
 import { paneAgentTitle } from "../agentName";
+import { t, useT } from "../i18n";
 import { copyTextWithFeedback } from "../copyText";
 import {
   connectionClientScopeKey,
@@ -72,7 +73,7 @@ import "./AgentHistoryDrawer.css";
 
 function formatRelativeTime(timestamp: string) {
   const time = new Date(timestamp);
-  if (Number.isNaN(time.getTime())) return "Unknown";
+  if (Number.isNaN(time.getTime())) return t("history.unknownTime");
   const seconds = Math.round((time.getTime() - Date.now()) / 1000);
   const absoluteSeconds = Math.abs(seconds);
   if (absoluteSeconds < 60) return formatUiRelativeTime(seconds, "second");
@@ -97,6 +98,7 @@ export function AgentHistoryDrawer({
   onOpenChange: (open: boolean) => void;
 }) {
   const workspaces = useStoreSelector((state) => state.workspaces);
+  const t = useT();
   const connectionClient = useConnectionClient();
   const workspaceLabel =
     workspaces.find((workspace) => workspace.workspace_id === pane.workspace_id)
@@ -500,7 +502,7 @@ export function AgentHistoryDrawer({
     session?.detail ||
     history?.detail ||
     error ||
-    "No readable session transcript was reported for this agent.";
+    t("history.noTranscriptReported");
   const unavailableCommand = session?.command || history?.command;
   const updatedAt = sessionReady
     ? session.updated_at
@@ -514,8 +516,8 @@ export function AgentHistoryDrawer({
         type="button"
         className="agent-history-icon"
         onClick={openSessionPreview}
-        aria-label="Open transcript"
-        title="Open transcript"
+        aria-label={t("history.openTranscript")}
+        title={t("history.openTranscript")}
       >
         <Eye size={14} />
       </button>
@@ -525,8 +527,8 @@ export function AgentHistoryDrawer({
         onClick={() =>
           downloadSession(pane, connectionClient, session.session?.value)
         }
-        aria-label="Export raw session"
-        title="Export raw session"
+        aria-label={t("history.exportSession")}
+        title={t("history.exportSession")}
       >
         <Download size={14} />
       </button>
@@ -537,9 +539,9 @@ export function AgentHistoryDrawer({
     <div className="agent-history-search">
       <input
         type="search"
-        aria-label="Search history messages"
-        placeholder="Search loaded messages"
-        title="Search loaded message text. Tool content is searchable after loading it."
+        aria-label={t("history.searchHistoryAria")}
+        placeholder={t("history.searchHistoryPlaceholder")}
+        title={t("history.searchHistoryTitle")}
         value={query}
         onChange={(event) => changeFilters(filters, event.currentTarget.value)}
       />
@@ -569,7 +571,7 @@ export function AgentHistoryDrawer({
         scrollerRef={contentRef}
         itemsRef={timelineRef}
         orientation={orientation}
-        label="Jump to message"
+        label={t("history.jumpToMessage")}
         className={orientation === "horizontal" ? "agent-history-minimap" : ""}
         onSelect={selectMinimapEntry}
       />
@@ -596,17 +598,17 @@ export function AgentHistoryDrawer({
     loading && messages.length === 0 ? (
       <div className="agent-history-state">
         <span className="terminal-loading-dot" />
-        Loading messages
+        {t("history.loadingMessages")}
       </div>
     ) : visibleMessages.length === 0 ? (
       <div className="agent-history-state">
         {messages.length > 0 ? (
           <>
             {chatView
-              ? "No entries match the search."
+              ? t("history.noMatchSearch")
               : query.trim()
-                ? "No entries match the search and selected message types."
-                : "No entries match the selected message types."}
+                ? t("history.noMatchSearchAndTypes")
+                : t("history.noMatchTypes")}
             <button
               type="button"
               className="secondary-btn"
@@ -617,14 +619,14 @@ export function AgentHistoryDrawer({
               }
             >
               {chatView
-                ? "Clear search"
+                ? t("history.clearSearch")
                 : query.trim()
-                  ? "Reset filters"
-                  : "Show all types"}
+                  ? t("history.resetFilters")
+                  : t("history.showAllTypes")}
             </button>
           </>
         ) : (
-          "No history entries were found in this session."
+          t("history.noEntries")
         )}
       </div>
     ) : null;
@@ -637,7 +639,7 @@ export function AgentHistoryDrawer({
     <div
       className="agent-history-messages"
       role="region"
-      aria-label="History messages"
+      aria-label={t("history.historyMessagesAria")}
     >
       {historySearch}
       {historyEmptyState ?? (
@@ -690,7 +692,7 @@ export function AgentHistoryDrawer({
       className="agent-history-wide"
       ref={wideSplitRef}
       role="region"
-      aria-label="History messages"
+      aria-label={t("history.historyMessagesAria")}
       style={
         {
           "--agent-history-list-width": `${wideListRatio * 100}%`,
@@ -706,12 +708,12 @@ export function AgentHistoryDrawer({
         className="workspace-inspector-split-resizer"
         role="separator"
         tabIndex={0}
-        aria-label="Resize message list"
+        aria-label={t("history.resizeListAria")}
         aria-orientation="vertical"
         aria-valuemin={15}
         aria-valuemax={75}
         aria-valuenow={Math.round(wideListRatio * 100)}
-        title="Drag to resize; double-click to reset"
+        title={t("history.resizeListTitle")}
         onPointerDown={(event) => {
           event.preventDefault();
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -745,7 +747,7 @@ export function AgentHistoryDrawer({
           />
         ) : (
           <div className="agent-history-wide-placeholder">
-            Select a message to read it here.
+            {t("history.readHerePlaceholder")}
           </div>
         )}
       </div>
@@ -758,7 +760,7 @@ export function AgentHistoryDrawer({
         className={`agent-history-drawer ${open ? "is-open" : ""} ${
           embedded ? "is-embedded" : ""
         } ${wide ? "is-wide" : ""}`}
-        aria-label="Agent session"
+        aria-label={t("history.drawerAria")}
         aria-hidden={!open}
         ref={(node) => {
           node?.toggleAttribute("inert", !open);
@@ -769,12 +771,15 @@ export function AgentHistoryDrawer({
             <AgentIcon agent={pane.agent} />
             <div className="agent-history-title">
               <strong>
-                Session
+                {t("history.sessionLabel")}
                 {messages.length > 0 ? (
                   <span
                     className="agent-history-count"
-                    aria-label={`${visibleMessages.length} of ${messages.length} history entries`}
-                    title="Most recent 200 messages with their tool entries"
+                    aria-label={t("history.countAria", {
+                      shown: visibleMessages.length,
+                      total: messages.length,
+                    })}
+                    title={t("history.countTitle")}
                   >
                     {visibleMessages.length === messages.length
                       ? messages.length
@@ -783,7 +788,8 @@ export function AgentHistoryDrawer({
                 ) : null}
               </strong>
               <span title={workspaceLabel}>
-                {workspaceLabel} · {paneAgentTitle(pane) || "Agent"} ·{" "}
+                {workspaceLabel} ·{" "}
+                {paneAgentTitle(pane) || t("history.agentFallback")} ·{" "}
                 {shortId(pane.pane_id)}
               </span>
             </div>
@@ -797,10 +803,12 @@ export function AgentHistoryDrawer({
             <button
               type="button"
               className="agent-history-icon"
-              aria-label="Chat view"
+              aria-label={t("history.chatView")}
               aria-pressed={chatView && !detailsOpen}
               title={
-                chatView && !detailsOpen ? "Show as timeline" : "Show as chat"
+                chatView && !detailsOpen
+                  ? t("history.showAsTimeline")
+                  : t("history.showAsChat")
               }
               onClick={() =>
                 changeView(chatView && !detailsOpen ? "timeline" : "chat")
@@ -812,9 +820,13 @@ export function AgentHistoryDrawer({
             <button
               type="button"
               className="agent-history-icon"
-              aria-label="Session details"
+              aria-label={t("history.detailsAria")}
               aria-pressed={detailsOpen}
-              title={detailsOpen ? "Show history" : "Show session details"}
+              title={
+                detailsOpen
+                  ? t("history.showHistory")
+                  : t("history.showDetails")
+              }
               onClick={() => setDetailsOpen((current) => !current)}
               disabled={!hasSessionData}
             >
@@ -825,8 +837,8 @@ export function AgentHistoryDrawer({
               type="button"
               className={`agent-history-icon ${loading ? "is-loading" : ""}`}
               onClick={refreshAll}
-              aria-label="Refresh session"
-              title="Refresh"
+              aria-label={t("history.refreshSession")}
+              title={t("history.refresh")}
               disabled={loading}
             >
               <RefreshCw size={14} />
@@ -836,8 +848,8 @@ export function AgentHistoryDrawer({
                 type="button"
                 className="agent-history-icon"
                 onClick={() => onOpenChange(false)}
-                aria-label="Close session"
-                title="Close"
+                aria-label={t("history.closeSession")}
+                title={t("history.close")}
               >
                 <X size={14} />
               </button>
@@ -859,7 +871,7 @@ export function AgentHistoryDrawer({
         ) : null}
         {unavailable ? (
           <div className="agent-history-unavailable" role="status">
-            <strong>Session unavailable</strong>
+            <strong>{t("history.unavailableTitle")}</strong>
             <p>{unavailableDetail}</p>
             {unavailableCommand ? (
               <div className="agent-history-command-row">
@@ -868,8 +880,8 @@ export function AgentHistoryDrawer({
                   type="button"
                   className="agent-history-icon"
                   onClick={() => void copyTextWithFeedback(unavailableCommand)}
-                  aria-label="Copy integration command"
-                  title="Copy command"
+                  aria-label={t("history.copyIntegrationAria")}
+                  title={t("history.copyCommandTitle")}
                 >
                   <Copy size={13} />
                 </button>
@@ -881,7 +893,7 @@ export function AgentHistoryDrawer({
               onClick={refreshAll}
             >
               <RefreshCw size={13} />
-              Retry
+              {t("history.retry")}
             </button>
           </div>
         ) : (
@@ -896,7 +908,7 @@ export function AgentHistoryDrawer({
                 <div
                   className="agent-history-messages"
                   role="region"
-                  aria-label="History messages"
+                  aria-label={t("history.historyMessagesAria")}
                 >
                   {historyFilters}
                   {historyMinimap("horizontal")}
@@ -907,20 +919,20 @@ export function AgentHistoryDrawer({
               <div
                 className="agent-history-details"
                 role="region"
-                aria-label="Session details"
+                aria-label={t("history.detailsAria")}
               >
                 {sessionReady ? (
                   <section
                     className="agent-history-overview"
-                    aria-label="Session overview"
+                    aria-label={t("history.overviewAria")}
                   >
                     <div>
                       <strong>{formatCount(session.stats.turns)}</strong>
-                      <span>Turns</span>
+                      <span>{t("history.statTurns")}</span>
                     </div>
                     <div>
                       <strong>{formatTokenTotal(session)}</strong>
-                      <span>Tokens</span>
+                      <span>{t("history.statTokens")}</span>
                     </div>
                     <div>
                       <strong
@@ -930,46 +942,64 @@ export function AgentHistoryDrawer({
                       >
                         {updatedAt ? formatRelativeTime(updatedAt) : "-"}
                       </strong>
-                      <span>Updated</span>
+                      <span>{t("history.statUpdated")}</span>
                     </div>
                     <p>
-                      Input {formatOptionalCompact(usage?.input_tokens)}
+                      {t("history.usageInput", {
+                        count: formatOptionalCompact(usage?.input_tokens) ?? "",
+                      })}
                       <span>·</span>
-                      Cached {formatOptionalCompact(usage?.cached_input_tokens)}
+                      {t("history.usageCached", {
+                        count:
+                          formatOptionalCompact(usage?.cached_input_tokens) ??
+                          "",
+                      })}
                       <span>·</span>
-                      Output {formatOptionalCompact(usage?.output_tokens)}
+                      {t("history.usageOutput", {
+                        count:
+                          formatOptionalCompact(usage?.output_tokens) ?? "",
+                      })}
                     </p>
                   </section>
                 ) : null}
-                <DetailRow label="Workspace" value={workspaceLabel} />
-                <DetailRow label="Agent" value={pane.agent ?? "-"} />
-                <DetailRow label="Pane" value={shortId(pane.pane_id)} />
                 <DetailRow
-                  label="Session ID"
+                  label={t("history.detailWorkspace")}
+                  value={workspaceLabel}
+                />
+                <DetailRow
+                  label={t("history.detailAgent")}
+                  value={pane.agent ?? "-"}
+                />
+                <DetailRow
+                  label={t("history.detailPane")}
+                  value={shortId(pane.pane_id)}
+                />
+                <DetailRow
+                  label={t("history.detailSessionId")}
                   value={session?.session?.value || "-"}
                   copyable={!!session?.session?.value}
                 />
                 <DetailRow
-                  label="Session file"
+                  label={t("history.detailSessionFile")}
                   value={session?.path || history?.path || "-"}
                   copyable={!!(session?.path || history?.path)}
                 />
                 <DetailRow
-                  label="Records"
+                  label={t("history.detailRecords")}
                   value={
                     sessionReady ? formatCount(session.stats.records) : "-"
                   }
                 />
                 <DetailRow
-                  label="File size"
+                  label={t("history.detailFileSize")}
                   value={sessionReady ? formatBytes(session.file?.size) : "-"}
                 />
                 <DetailRow
-                  label="Reasoning"
+                  label={t("history.detailReasoning")}
                   value={formatOptionalCompact(usage?.reasoning_output_tokens)}
                 />
                 <DetailRow
-                  label="Updated"
+                  label={t("history.detailUpdated")}
                   value={updatedAt ? formatUiDateTime(updatedAt) : "-"}
                 />
               </div>

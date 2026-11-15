@@ -44,6 +44,7 @@ import {
   type ToolStep,
 } from "./agentHistoryView";
 import { formatBytes } from "./agentSession";
+import { t, useT } from "../i18n";
 import { MarkdownPreview } from "./markdown";
 import { unwrapPastedContent } from "./pastedContent";
 import {
@@ -52,7 +53,7 @@ import {
   type HistoryDecoration,
 } from "./historyDecoration";
 import { useHistoryCatchUp } from "./useHistoryCatchUp";
-import { RECEIPT_MEMORY_NOTE } from "./chat/pendingSends";
+import { receiptMemoryNote } from "./chat/pendingSends";
 import { chatRows, type ChatRow } from "./chat/chatSenders";
 import "./AgentHistoryChat.css";
 
@@ -93,14 +94,15 @@ const ChatBubble = memo(function ChatBubble({
   speech: ReturnType<typeof useChatSpeech>;
   onOpen: (entry: HistoryEntry) => void;
 }) {
+  const t = useT();
   // A compaction summary is long and written by Claude Code, not the user:
   // one line, with the summary a tap away.
   if (entry.compact_summary)
     return (
       <div className="agent-history-chat-compacted" data-sequence={sequence}>
-        <span>Conversation compacted</span>
+        <span>{t("history.compacted")}</span>
         <button type="button" onClick={() => onOpen(entry)}>
-          Show the summary
+          {t("history.showSummary")}
         </button>
       </div>
     );
@@ -128,7 +130,7 @@ const ChatBubble = memo(function ChatBubble({
             className="agent-history-chat-more"
             onClick={() => onOpen(entry)}
           >
-            View full message
+            {t("history.viewFullMessage")}
           </button>
         ) : null}
       </article>
@@ -139,11 +141,11 @@ const ChatBubble = memo(function ChatBubble({
     playback?.status === "failed"
       ? playback.error
       : playback?.status === "completed"
-        ? "Speech completed"
+        ? t("history.speechCompleted")
         : playback?.status === "stopped"
-          ? "Speech stopped"
+          ? t("history.speechStopped")
           : speaking
-            ? "Speaking"
+            ? t("history.speaking")
             : "";
   return (
     <article
@@ -170,9 +172,9 @@ const ChatBubble = memo(function ChatBubble({
             {fromKind === "relayed" ? (
               <span
                 className="agent-history-chat-relayed"
-                title={`Typed into this terminal starting “${from}:”, the name of a live agent. World shows it as that agent's message; it cannot prove who typed it.`}
+                title={t("history.relayedNote", { from: from ?? "" })}
               >
-                relayed
+                {t("history.relayed")}
               </span>
             ) : null}
           </span>
@@ -194,7 +196,7 @@ const ChatBubble = memo(function ChatBubble({
             className="agent-history-chat-more"
             onClick={() => onOpen(entry)}
           >
-            View full message
+            {t("history.viewFullMessage")}
           </button>
         ) : null}
       </div>
@@ -202,38 +204,46 @@ const ChatBubble = memo(function ChatBubble({
         {entry.queued ? (
           <span
             className="agent-history-chat-queued"
-            title="Waiting in the agent's queue: it reads it when it can"
+            title={t("history.queuedTitle")}
           >
-            Queued
+            {t("history.queued")}
           </span>
         ) : null}
         <time dateTime={entry.sent_at} title={entry.sent_at}>
           {formatUiDateTime(entry.sent_at)}
         </time>
         {shown.pasted ? (
-          <span className="agent-history-chat-pasted">Pasted</span>
+          <span className="agent-history-chat-pasted">
+            {t("history.pasted")}
+          </span>
         ) : null}
         {matched ? (
           <span
             className="agent-history-chat-read"
             title={
               matched === "words"
-                ? `Chat sent the same words just before this appeared; it cannot prove this is that message. ${RECEIPT_MEMORY_NOTE}`
-                : `Inferred: the first message here after Chat sent one, in a form its harness rewrites (a paste or image placeholder, or added words). ${RECEIPT_MEMORY_NOTE}`
+                ? t("history.matchedWordsTitle", {
+                    note: receiptMemoryNote(),
+                  })
+                : t("history.matchedOrderTitle", {
+                    note: receiptMemoryNote(),
+                  })
             }
           >
             <CheckCheck size={13} aria-hidden="true" />
             {matched === "words"
-              ? "Sent from Chat; matched by its words"
-              : "Sent from Chat; matched by order"}
+              ? t("history.matchedWords")
+              : t("history.matchedOrder")}
           </span>
         ) : null}
         <button
           type="button"
           className="agent-history-copy"
           onClick={() => void copyTextWithFeedback(shown.text)}
-          aria-label={`Copy ${label.toLowerCase()} message`}
-          title="Copy"
+          aria-label={t("history.copyMessageAria", {
+            label: label.toLowerCase(),
+          })}
+          title={t("history.copy")}
         >
           <Copy size={12} />
         </button>
@@ -243,15 +253,15 @@ const ChatBubble = memo(function ChatBubble({
             className={`agent-history-copy agent-history-speak${speaking ? " is-speaking" : ""}`}
             disabled={!speech.supported || !entry.text.trim()}
             aria-label={
-              speaking ? "Stop speaking message" : "Speak assistant message"
+              speaking ? t("history.stopSpeakingAria") : t("history.speakAria")
             }
             aria-pressed={speaking}
             title={
               !speech.supported
-                ? "Speech is not supported by this browser"
+                ? t("history.speechUnsupported")
                 : speaking
-                  ? "Stop"
-                  : "Speak"
+                  ? t("chat.stop")
+                  : t("history.speak")
             }
             onClick={() => speech.toggle(entry.id, entry.text)}
           >
@@ -286,13 +296,15 @@ type ToolContentLoader = {
 
 function ToolContentLoad({
   entry,
-  label,
+  kind,
   loader,
 }: {
   entry: HistoryEntry;
-  label: string;
+  /** Whether the payload is a call's arguments or a result's output. */
+  kind: "call" | "result";
   loader: ToolContentLoader;
 }) {
+  const t = useT();
   const loading = loader.loading.has(entry.id);
   return (
     <button
@@ -302,8 +314,10 @@ function ToolContentLoad({
       onClick={() => loader.load(entry)}
     >
       {loading
-        ? "Loading…"
-        : `Load ${label} (${formatBytes(entry.text_bytes)})`}
+        ? t("history.loading")
+        : t(kind === "call" ? "history.loadArguments" : "history.loadOutput", {
+            size: formatBytes(entry.text_bytes) ?? "",
+          })}
     </button>
   );
 }
@@ -315,9 +329,14 @@ function ToolArguments({
   call: HistoryEntry;
   onOpen: (entry: HistoryEntry) => void;
 }) {
+  const t = useT();
   const allFields = toolArgumentFields(call.text);
   if (allFields.length === 0) {
-    return <p className="agent-history-chat-step-empty">No arguments</p>;
+    return (
+      <p className="agent-history-chat-step-empty">
+        {t("history.noArguments")}
+      </p>
+    );
   }
   const { fields, truncated } = previewToolArgumentFields(
     allFields,
@@ -342,7 +361,7 @@ function ToolArguments({
           className="agent-history-chat-more"
           onClick={() => onOpen(call)}
         >
-          View full arguments
+          {t("history.viewFullArguments")}
         </button>
       ) : null}
     </>
@@ -359,27 +378,28 @@ function ToolStepDetail({
   onOpen: (entry: HistoryEntry) => void;
 }) {
   const { call, result } = step;
+  const t = useT();
   const output = result?.text.slice(0, HISTORY_PREVIEW_CHARS) ?? "";
   return (
     <div className="agent-history-chat-step-detail">
       {call ? (
         <section>
-          <h4>Arguments</h4>
+          <h4>{t("history.arguments")}</h4>
           {isToolContentPending(call) ? (
-            <ToolContentLoad entry={call} label="arguments" loader={loader} />
+            <ToolContentLoad entry={call} kind="call" loader={loader} />
           ) : (
             <ToolArguments call={call} onOpen={onOpen} />
           )}
         </section>
       ) : null}
       <section>
-        <h4>{result?.is_error ? "Error" : "Output"}</h4>
+        <h4>{result?.is_error ? t("history.error") : t("history.output")}</h4>
         {!result ? (
           <p className="agent-history-chat-step-empty">
-            No output recorded yet
+            {t("history.noOutputYet")}
           </p>
         ) : isToolContentPending(result) ? (
-          <ToolContentLoad entry={result} label="output" loader={loader} />
+          <ToolContentLoad entry={result} kind="result" loader={loader} />
         ) : output ? (
           <>
             <pre className="agent-history-chat-step-output">{output}</pre>
@@ -389,12 +409,14 @@ function ToolStepDetail({
                 className="agent-history-chat-more"
                 onClick={() => onOpen(result)}
               >
-                View full output
+                {t("history.viewFullOutput")}
               </button>
             ) : null}
           </>
         ) : (
-          <p className="agent-history-chat-step-empty">Empty output</p>
+          <p className="agent-history-chat-step-empty">
+            {t("history.emptyOutput")}
+          </p>
         )}
       </section>
     </div>
@@ -421,13 +443,14 @@ const ToolStepRow = memo(
     onOpen: (entry: HistoryEntry) => void;
   }) {
     const { call, result } = step;
+    const t = useT();
     const decoration = decorate?.({ type: "step", step }, decorationToken);
     const status = toolStepStatus(step, decoration);
     const headline =
       call && !isToolContentPending(call)
         ? toolArgumentHeadline(call.text)
         : call && loader.loading.has(call.id)
-          ? "Loading…"
+          ? t("history.loading")
           : "";
     const sentAt = (call ?? result)?.sent_at;
     return (
@@ -442,20 +465,22 @@ const ToolStepRow = memo(
           onClick={() => onToggle(step.id)}
         >
           {status === "done" ? (
-            <Check size={12} aria-label="Succeeded" />
+            <Check size={12} aria-label={t("history.succeeded")} />
           ) : status === "error" ? (
-            <X size={12} aria-label="Failed" />
+            <X size={12} aria-label={t("history.failed")} />
           ) : status === "interrupted" ? (
-            <CircleSlash size={12} aria-label="Interrupted" />
+            <CircleSlash size={12} aria-label={t("history.interrupted")} />
           ) : (
-            <Wrench size={12} aria-label="No output yet" />
+            <Wrench size={12} aria-label={t("history.noOutputYetIcon")} />
           )}
           <span className="agent-history-chat-step-name">
             {decoration?.label ?? step.name}
           </span>
           <span className="agent-history-chat-step-headline">{headline}</span>
           {status === "interrupted" ? (
-            <span className="agent-history-chat-step-note">Interrupted</span>
+            <span className="agent-history-chat-step-note">
+              {t("history.interrupted")}
+            </span>
           ) : null}
           {decoration?.row}
         </button>
@@ -545,6 +570,7 @@ function ToolBlock({
   // arguments are still waiting in the background queue.
   const queuedRef = useRef(new Set<string>());
   const fetchedRef = useRef(new Set<string>());
+  const t = useT();
   const { load, enqueue } = loader;
   useEffect(() => {
     if (!open) return;
@@ -586,7 +612,10 @@ function ToolBlock({
           ) === "error",
       ).length
     : summary.errors;
-  const callsLabel = `${summary.calls} tool ${summary.calls === 1 ? "call" : "calls"}`;
+  const callsLabel =
+    summary.calls === 1
+      ? t("desk.toolCallsOne", { count: summary.calls })
+      : t("desk.toolCallsMany", { count: summary.calls });
   const toolsLabel = summary.tools
     .map(({ name, count }) => (count > 1 ? `${name} ×${count}` : name))
     .join(", ");
@@ -597,7 +626,7 @@ function ToolBlock({
         className="agent-history-chat-tools-toggle"
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
-        title={open ? "Collapse tool calls" : "Expand tool calls"}
+        title={open ? t("history.collapseTools") : t("history.expandTools")}
         onClick={() => {
           onToggle();
           setOpen((current) => !current);
@@ -614,7 +643,9 @@ function ToolBlock({
           <span className="agent-history-chat-tools-names">{toolsLabel}</span>
           {errors > 0 ? (
             <span className="agent-history-chat-tools-errors">
-              {errors} {errors === 1 ? "error" : "errors"}
+              {t(errors === 1 ? "history.errorsOne" : "history.errorsMany", {
+                count: errors,
+              })}
             </span>
           ) : null}
         </span>
@@ -705,6 +736,7 @@ export function AgentHistoryChat({
   onOpen: (entry: HistoryEntry) => void;
 }) {
   const speech = useChatSpeech(speechActive, speechScopeKey);
+  const t = useT();
   const followRef = useRef(true);
   const rows = useMemo(
     () => (transcript ? chatRows(items, transcript.agents) : null),
@@ -858,8 +890,8 @@ export function AgentHistoryChat({
           className="agent-history-chat-jump"
           aria-label={
             unread > 0
-              ? `${unread} new agent messages; jump to latest`
-              : "Jump to latest"
+              ? t("history.jumpNewAria", { count: unread })
+              : t("history.jumpLatest")
           }
           onClick={() => {
             const list = listRef.current;
@@ -870,7 +902,9 @@ export function AgentHistoryChat({
           }}
         >
           <ArrowDown size={13} aria-hidden="true" />{" "}
-          {unread > 0 ? `${unread} new` : "Jump to latest"}
+          {unread > 0
+            ? t("history.countNew", { count: unread })
+            : t("history.jumpLatest")}
         </button>
       ) : null}
       <div ref={contentRef} className="agent-history-chat-content">
@@ -885,8 +919,8 @@ export function AgentHistoryChat({
             }}
           >
             {olderLoading
-              ? "Loading earlier messages…"
-              : "Load earlier messages"}
+              ? t("history.loadingEarlier")
+              : t("history.loadEarlier")}
           </button>
         ) : null}
         {items.map((item) => [
@@ -942,7 +976,7 @@ function senderProps(row: ChatRow | undefined, agent: string | undefined) {
       sender.kind === "relayed"
         ? sender.name
         : sender.kind === "user"
-          ? "You"
+          ? t("history.labelYou")
           : agent,
     fromKind: sender.kind,
     continued: row.continued,

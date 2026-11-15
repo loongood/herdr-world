@@ -31,6 +31,7 @@ import {
   writeTerminalComposerSelection,
 } from "../terminalComposer";
 import { terminalUploadedPathsText } from "../terminalFileDrop";
+import { useT } from "../i18n";
 import { agentPromptWarning, agentStateKind } from "./agentSession";
 import { useTouchReleaseSubmit } from "./useTouchReleaseSubmit";
 import "./AgentHistoryComposer.css";
@@ -70,6 +71,7 @@ export function AgentHistoryComposer({
 }) {
   useShortcutPreferences();
   const { mobile } = useLayoutPreferences();
+  const t = useT();
   const [text, setText] = useState(() => readTerminalComposerDraft(draftKey));
   const [submissionPending, setSubmissionPending] = useState(() =>
     terminalComposerSubmissionPending(draftKey),
@@ -161,12 +163,14 @@ export function AgentHistoryComposer({
     try {
       for (const file of files) {
         if (file.type && !file.type.startsWith("image/"))
-          throw new Error("Choose an image to attach.");
+          throw new Error(t("history.chooseImage"));
         paths.push(await onUploadImage(file));
       }
     } catch (error) {
       failed = true;
-      onError(error instanceof Error ? error.message : "Image upload failed");
+      onError(
+        error instanceof Error ? error.message : t("history.imageUploadFailed"),
+      );
     } finally {
       try {
         if (paths.length) {
@@ -186,10 +190,7 @@ export function AgentHistoryComposer({
               draftKey,
               terminalUploadedPathsText(paths),
             );
-          if (!active)
-            onError(
-              "Connection or pane changed; image paths retained in the original draft.",
-            );
+          if (!active) onError(t("history.uploadRetained"));
         }
       } finally {
         finishTerminalComposerUpload(draftKey);
@@ -214,9 +215,7 @@ export function AgentHistoryComposer({
         setConfirmation(null),
       );
     } catch (error) {
-      onError(
-        error instanceof Error ? error.message : "Failed to send message",
-      );
+      onError(error instanceof Error ? error.message : t("history.sendFailed"));
     }
   };
 
@@ -235,8 +234,8 @@ export function AgentHistoryComposer({
   });
   const sendShortcut = shortcutLabel("composer.send");
   const sendTitle = enterAddsLine
-    ? `Send to the agent's terminal (${sendShortcut})`
-    : "Send to the agent's terminal (Enter); Shift+Enter for a new line";
+    ? t("history.sendShortcutTitle", { keys: sendShortcut })
+    : t("history.sendEnterTitle");
   const name = agent?.trim();
 
   return (
@@ -252,7 +251,7 @@ export function AgentHistoryComposer({
               onMouseDown={keepTextareaFocus}
               onClick={() => setConfirmation(null)}
             >
-              Cancel
+              {t("history.cancel")}
             </button>
             <button
               type="button"
@@ -260,7 +259,7 @@ export function AgentHistoryComposer({
               onMouseDown={keepTextareaFocus}
               {...touchSubmit.buttonProps(() => void send(true))}
             >
-              Send anyway
+              {t("history.sendAnyway")}
             </button>
           </div>
         </div>
@@ -269,8 +268,8 @@ export function AgentHistoryComposer({
         <button
           type="button"
           className="agent-history-composer-attach"
-          aria-label="Add images"
-          title="Add images"
+          aria-label={t("history.addImages")}
+          title={t("history.addImages")}
           disabled={busy || composing}
           onMouseDown={keepTextareaFocus}
           onClick={() => fileInputRef.current?.click()}
@@ -281,8 +280,14 @@ export function AgentHistoryComposer({
           ref={textareaRef}
           value={text}
           rows={1}
-          aria-label={`Message ${name || "agent"}`}
-          placeholder={name ? `Message ${name}...` : "Message..."}
+          aria-label={t("history.messageAgentAria", {
+            name: name || t("history.agentFallback"),
+          })}
+          placeholder={
+            name
+              ? t("history.messagePlaceholderName", { name })
+              : t("history.messagePlaceholder")
+          }
           enterKeyHint={enterAddsLine ? "enter" : "send"}
           autoComplete="off"
           onChange={(event) => {
@@ -366,7 +371,7 @@ export function AgentHistoryComposer({
         <button
           type="button"
           className="agent-history-composer-send"
-          aria-label="Send message to the agent"
+          aria-label={t("history.sendAria")}
           title={sendTitle}
           disabled={sendDisabled || confirming}
           onMouseDown={keepTextareaFocus}
@@ -374,10 +379,10 @@ export function AgentHistoryComposer({
         >
           <Send size={13} />
           {uploadCount > 0
-            ? "Uploading..."
+            ? t("history.uploading")
             : submissionPending
-              ? "Sending..."
-              : "Send"}
+              ? t("history.sending")
+              : t("history.send")}
         </button>
         <input
           ref={fileInputRef}

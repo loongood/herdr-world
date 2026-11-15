@@ -4,6 +4,7 @@ import type {
   HistoryUpdate,
 } from "../../../server/src/agent/session-history";
 import { historyWindowEntries } from "../../../server/src/agent/session-history-window";
+import { t } from "../i18n";
 export type { HistoryCursor, HistoryEntry, HistoryUpdate };
 
 export type AgentHistory = {
@@ -153,10 +154,15 @@ export function mergeAgentHistory(
 }
 
 export function historyEntryLabel(entry: HistoryEntry) {
-  if (entry.kind === "tool_call")
-    return `Tool call: ${entry.tool_name ?? "tool"}`;
+  const tool = entry.tool_name ?? t("history.toolFallbackName");
+  if (entry.kind === "tool_call") return t("history.labelToolCall", { tool });
   if (entry.kind === "tool_result")
-    return `${entry.is_error ? "Tool error" : "Tool output"}: ${entry.tool_name ?? "tool"}`;
-  if (entry.kind === "error") return "Assistant error";
-  return entry.role === "assistant" ? "Assistant" : "You";
+    return t(
+      entry.is_error ? "history.labelToolError" : "history.labelToolOutput",
+      { tool },
+    );
+  if (entry.kind === "error") return t("history.labelAssistantError");
+  return entry.role === "assistant"
+    ? t("history.labelAssistant")
+    : t("history.labelYou");
 }

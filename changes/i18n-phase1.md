@@ -30,6 +30,11 @@
   Desk follows as well: its modes, attention summary, search, lanes and
   cards (ages, facts, actions), directory, reviewed view, toast and key
   legend, plus the other-hosts summaries, the reveal notes, the desk name
-  plates and their work badges' screen-reader labels.
+  plates and their work badges' screen-reader labels. The agent history
+  follows as well: its timeline labels and filters, message card actions
+  (copy, speak, expand) and tool-call steps, the chat view's bubbles,
+  composer (warnings, image uploads, send receipts and their stop-checking
+  notes), the drawer's header, status notices, details overview and per-field
+  labels, plus the shared prompt warnings.
   Remaining surfaces keep English
   until their phase lands.
