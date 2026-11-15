@@ -5,6 +5,7 @@
  */
 
 import { bridge } from "../../api";
+import { t } from "../../i18n";
 import { deskReorderIndex } from "../../../../shared/tabOrder";
 export { deskReorderIndex };
 import {
@@ -52,15 +53,21 @@ export function townMoveNotice(
   outcome: TownMoveOutcome,
   sourceTab: string,
 ): string {
-  if (outcome.status === "moved") return `${label} moved`;
+  if (outcome.status === "moved")
+    return t("moves.movedNotice", { what: label });
   if (outcome.status === "refused" || outcome.rolled_back)
-    return `${label} not moved: ${outcome.message}`;
+    return t("moves.notMoved", { what: label, reason: outcome.message });
   if (outcome.topology_known === false || !outcome.topology?.length)
-    return `${label} may be split between rooms: ${outcome.message} Check both rooms.`;
+    return t("moves.mayBeSplit", { what: label, reason: outcome.message });
   const away = outcome.topology.filter(
     (pane) => pane.tab_id !== sourceTab,
   ).length;
-  return `${label} was only partly moved: ${away} of ${outcome.topology.length} panes are now outside the original desk. ${outcome.message}`;
+  return t("moves.partlyMoved", {
+    what: label,
+    away,
+    total: outcome.topology.length,
+    reason: outcome.message,
+  });
 }
 
 /** Desks and agents move only within one host and its current runtime. */
@@ -81,7 +88,7 @@ function parseOutcome(result: unknown): TownMoveOutcome {
     return value as TownMoveOutcome;
   return {
     status: "failed",
-    message: "The host did not report the move's result.",
+    message: t("moves.hostNoResult"),
     rolled_back: false,
   };
 }
@@ -97,7 +104,7 @@ export async function requestDeskMove(
     return {
       status: "refused",
       reason: "other_host",
-      message: "Desks move only within one host.",
+      message: t("moves.desksOneHost"),
     };
   const client = bridge.connection(
     desk.tabRef.connectionId,
@@ -134,7 +141,7 @@ export async function requestDeskReorder(
     return {
       status: "refused",
       reason: "other_room",
-      message: "Desks reorder only within one room.",
+      message: t("moves.desksOneRoom"),
     };
   return requestTabReorder(
     desk.tabRef,
@@ -162,7 +169,7 @@ export async function requestRoomOrder(
     return {
       status: "refused",
       reason: "other_host",
-      message: "Rooms stay in their own host's building.",
+      message: t("moves.roomsOwnBuilding"),
     };
   return requestWorkspaceOrder(
     first.workspaceRef,
@@ -184,7 +191,7 @@ export async function requestAgentMove(
     return {
       status: "refused",
       reason: "other_host",
-      message: "Agents move only within one host.",
+      message: t("moves.agentsOneHost"),
     };
   const client = bridge.connection(
     device.paneRef.connectionId,

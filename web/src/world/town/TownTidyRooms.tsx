@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { t } from "../../i18n";
 import type { TownRoomActions } from "./townRoomActions";
 
 /**
@@ -28,8 +29,10 @@ export function TownTidyRooms({
           ? "town-tidy-rooms town-tidy-rooms-named"
           : "world-room-overlay-action town-tidy-rooms"
       }
-      aria-label={`Tidy rooms in ${hostLabel ?? "this building"}`}
-      title="Tidy rooms"
+      aria-label={t("town.rooms.tidyAria", {
+        host: hostLabel ?? t("town.rooms.thisBuilding"),
+      })}
+      title={t("town.rooms.tidy")}
       // The sign floats over the canvas: a press here is not a pan.
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => {
@@ -38,7 +41,7 @@ export function TownTidyRooms({
       }}
     >
       <Sparkles size={14} aria-hidden="true" />
-      {named ? "Tidy rooms" : null}
+      {named ? t("town.rooms.tidy") : null}
     </button>
   );
 }

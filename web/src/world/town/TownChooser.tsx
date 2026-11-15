@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useT } from "../../i18n";
 
 export type TownChooserEntry = {
   key: string;
@@ -23,6 +24,7 @@ export function TownChooser({
   entries: readonly TownChooserEntry[];
   onClose(): void;
 }) {
+  const t = useT();
   const list = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const opener =
@@ -40,7 +42,7 @@ export function TownChooser({
     <div
       className="town-peek town-peek-sheet town-chooser"
       role="dialog"
-      aria-label={`Panes at ${title}`}
+      aria-label={t("town.rooms.panesAria", { title })}
       onKeyDown={(event) => {
         if (event.key !== "Escape") return;
         event.preventDefault();
@@ -56,7 +58,7 @@ export function TownChooser({
         <button
           type="button"
           className="town-peek-close"
-          aria-label="Close panes"
+          aria-label={t("town.rooms.closePanes")}
           onClick={onClose}
         >
           ×

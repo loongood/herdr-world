@@ -5,6 +5,7 @@
  */
 
 import { ConfirmDialog, TextInputDialog } from "../components/ModalDialogs";
+import { t, useT } from "../i18n";
 import { store } from "../store";
 import { townScaleRuntime } from "./town/townScaleRuntime";
 
@@ -26,10 +27,10 @@ export type RoomRenameCloseTarget = {
   workspaceId: string;
 };
 
-const reportFailure = (action: string, cause: unknown) =>
+const reportFailure = (message: string, cause: unknown) =>
   store.notify({
     kind: "error",
-    message: `${action} failed`,
+    message,
     detail: cause instanceof Error ? cause.message : String(cause),
   });
 
@@ -57,7 +58,7 @@ export async function renameRoom(
           value,
         ));
   } catch (cause) {
-    reportFailure("Room rename", cause);
+    reportFailure(t("town.room.renameFailed"), cause);
   }
 }
 
@@ -75,7 +76,7 @@ export async function closeRoom(room: RoomRenameCloseTarget) {
           room.workspaceId,
         ));
   } catch (cause) {
-    reportFailure("Room close", cause);
+    reportFailure(t("town.room.closeFailed"), cause);
   }
 }
 
@@ -91,26 +92,27 @@ export function RoomRenameCloseDialogs({
   onRename(label: string): void;
   onConfirmClose(): void;
 }) {
+  const t = useT();
   return (
     <>
       <TextInputDialog
         open={dialog?.mode === "rename"}
-        title="Rename room"
-        label="Room name"
+        title={t("town.room.renameTitle")}
+        label={t("town.room.name")}
         initialValue={dialog?.mode === "rename" ? dialog.label : ""}
-        submitLabel="Rename"
+        submitLabel={t("town.room.rename")}
         onClose={onClose}
         onSubmit={onRename}
       />
       <ConfirmDialog
         open={dialog?.mode === "close"}
-        title="Close room"
+        title={t("town.room.closeTitle")}
         message={
           dialog?.mode === "close"
-            ? `Close room “${dialog.label}”? Its running terminal sessions will end.`
+            ? t("town.room.closeConfirm", { room: dialog.label })
             : ""
         }
-        confirmLabel="Close room"
+        confirmLabel={t("town.room.close")}
         danger
         onClose={onClose}
         onConfirm={() => {

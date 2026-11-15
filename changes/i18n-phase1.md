@@ -178,5 +178,11 @@
   label, the themed select's empty state, the update toast (the available and
   current versions, the upgrade action and the dismissal), the stale-build
   and chunk-reload notices, and the agent-interest save failure.
+  The town and board move actions follow too: the question card (its asker,
+  the answer field, the answer and dismissal actions), the tidy-rooms sign,
+  the pane chooser and the accessible scene targets, the desk, agent and room
+  moves with their notices and confirmations, the move and team menus, the
+  room rename and close dialogs, and Board's Herdr order controls, pane moves
+  and Mark reviewed.
   Remaining surfaces keep English
   until their phase lands.

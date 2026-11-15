@@ -89,7 +89,10 @@ import {
   useTownRoomActions,
   type TownRoomDialog,
 } from "./town/useTownRoomActions";
-import { townMoveActions, type TownMoveConfirm } from "./town/townMoveActions";
+import {
+  useTownMoveActions,
+  type TownMoveConfirm,
+} from "./town/townMoveActions";
 import type { TownMoveFlow } from "./town/townMoveMenu";
 import { useTownReception } from "./town/useTownReception";
 import { townDeskAgentKey } from "./town/townOpen";
@@ -558,7 +561,7 @@ export default function TownView({
     roomMoves,
     teams,
     dialogs: moveDialogs,
-  } = townMoveActions({
+  } = useTownMoveActions({
     moveFlow,
     setMoveFlow,
     movingKey,

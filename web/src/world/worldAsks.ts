@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { bridge, type BridgeControlMsg, type ConnectionStatus } from "../api";
+import { t } from "../i18n";
 
 /**
  * Questions agents ask the owner with `herdr-world ask` (the service's World
@@ -64,11 +65,11 @@ export function askerName(ask: WorldAsk) {
 export function askDeliveryMessage(ask: WorldAsk) {
   const notification = ask.delivery?.notification;
   return notification?.state === "uncertain"
-    ? "Owner alert delivery is uncertain. World will retry; your question is saved."
+    ? t("town.ask.deliveryUncertain")
     : notification?.state === "refused"
-      ? "Owner alert was not shown. Your question is saved."
+      ? t("town.ask.deliveryRefused")
       : notification?.state === "pending" && notification.reason
-        ? "Owner alert is waiting to retry. Your question is saved."
+        ? t("town.ask.deliveryPending")
         : null;
 }
 

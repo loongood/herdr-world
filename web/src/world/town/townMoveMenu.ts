@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type {
   HerdrOfficeProjection,
   OfficeAgent,
@@ -58,8 +59,11 @@ export function townMoveMenu(
         .filter((other) => other.key !== desk?.key)
         .map((other) => ({
           key: other.key,
-          label: `${other.displayLabel}’s place`,
-          detail: `Desk ${slots.indexOf(other) + 1} in ${home?.displayLabel}`,
+          label: t("town.move.deskPlace", { desk: other.displayLabel }),
+          detail: t("town.move.deskSlot", {
+            number: slots.indexOf(other) + 1,
+            room: home?.displayLabel ?? "",
+          }),
           onChoose: reorder(other.key),
         })),
       // Last means last of the drawn desks: in a room with hidden desks
@@ -68,27 +72,31 @@ export function townMoveMenu(
         ? [
             {
               key: `${flow.deskKey}:last`,
-              label: "Last",
+              label: t("town.move.last"),
               detail: home?.omittedDeskCount
-                ? `Last of the desks shown in ${home.displayLabel}`
-                : `After every desk in ${home?.displayLabel}`,
+                ? t("town.move.lastOfShown", { room: home.displayLabel })
+                : t("town.move.afterEveryDesk", {
+                    room: home?.displayLabel ?? "",
+                  }),
               onChoose: reorder(home?.omittedDeskCount ? lastDrawn.key : null),
             },
           ]
         : []),
     ];
     return {
-      title: `Move ${desk?.displayLabel ?? "desk"}`,
+      title: t("town.move.moveDesk", {
+        desk: desk?.displayLabel ?? t("town.move.deskFallback"),
+      }),
       detail:
         places.length || rooms.length
-          ? "Choose a place in this room or a room on this host"
-          : "No other desk or room on this host",
+          ? t("town.move.choosePlace")
+          : t("town.move.noOtherDeskOrRoom"),
       entries: [
         ...places,
         ...rooms.map((room) => ({
           key: room.key,
           label: room.displayLabel,
-          detail: `${room.observedDeskCount} desks`,
+          detail: t("town.move.deskCount", { count: room.observedDeskCount }),
           onChoose: () => {
             deps.close();
             void deps.runDeskMove(flow.deskKey, room.key);
@@ -112,10 +120,12 @@ export function townMoveMenu(
         )
     : [];
   return {
-    title: `Move ${agent?.displayLabel ?? "agent"}`,
+    title: t("town.move.moveAgent", {
+      agent: agent?.displayLabel ?? t("town.move.agentFallback"),
+    }),
     detail: desks.length
-      ? "Choose a desk on this host"
-      : "No other desk on this host",
+      ? t("town.move.chooseDesk")
+      : t("town.move.noOtherDesk"),
     entries: desks.map((desk) => ({
       key: desk.key,
       label: desk.displayLabel,

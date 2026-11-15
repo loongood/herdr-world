@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { useT } from "../../i18n";
 import type { OfficeAgent, OfficeRosterEntry } from "../herdrOfficeProjection";
 import { askDeliveryMessage, askerName, type WorldAsk } from "../worldAsks";
 import type { TownAsker } from "./townAskers";
@@ -64,6 +65,7 @@ export function TownAsk({
   now: number;
   actions: TownAskActions;
 }) {
+  const t = useT();
   const questionId = useId();
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -71,7 +73,7 @@ export function TownAsk({
   const deliveryMessage = askDeliveryMessage(ask);
   const asker = actions.askers.get(ask.id);
   const name = asker?.name ?? askerName(ask);
-  const who = `${name}${ask.actor.verified ? "" : " (unverified)"}`;
+  const who = `${name}${ask.actor.verified ? "" : t("town.ask.unverified")}`;
   const act = async (close: () => Promise<string | null>) => {
     if (busy) return;
     setBusy(true);
@@ -86,7 +88,7 @@ export function TownAsk({
   return (
     <form
       className="town-ask"
-      aria-label={`Question from ${who}`}
+      aria-label={t("town.ask.aria", { who })}
       onSubmit={(event) => {
         event.preventDefault();
         void send(draft);
@@ -95,7 +97,9 @@ export function TownAsk({
       <small>{townAgo(ask.at, now)}</small>
       <p id={questionId}>
         <b>{name}</b>
-        {ask.actor.verified ? "" : " (unverified)"} asks: {ask.question}
+        {ask.actor.verified
+          ? t("town.ask.asks", { question: ask.question })
+          : t("town.ask.asksUnverified", { question: ask.question })}
       </p>
       {ask.options.length ? (
         <div className="town-ask-options">
@@ -115,32 +119,36 @@ export function TownAsk({
       <div className="town-ask-reply">
         <input
           value={draft}
-          aria-label={`Your answer to ${who}`}
+          aria-label={t("town.ask.answerAria", { who })}
           aria-describedby={questionId}
-          placeholder={ask.options.length ? "Or type an answer" : "Your answer"}
+          placeholder={
+            ask.options.length
+              ? t("town.ask.typeAnswer")
+              : t("town.ask.yourAnswer")
+          }
           onChange={(event) => setDraft(event.target.value)}
         />
         <button type="submit" disabled={busy || !draft.trim()}>
-          Answer
+          {t("town.ask.answer")}
         </button>
       </div>
       <div className="town-ask-actions">
         {asker?.key ? (
           <button
             type="button"
-            aria-label={`Open ${name}`}
+            aria-label={t("town.ask.openAria", { name })}
             onClick={() => actions.open(asker)}
           >
-            Open agent
+            {t("town.ask.openAgent")}
           </button>
         ) : null}
         <button
           type="button"
-          aria-label={`Dismiss the question from ${who} without answering`}
+          aria-label={t("town.ask.dismissAria", { who })}
           disabled={busy}
           onClick={() => void act(() => actions.dismiss(ask.id))}
         >
-          Dismiss
+          {t("common.dismiss")}
         </button>
       </div>
       {error || deliveryMessage ? (

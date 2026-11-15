@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { t, useT } from "../../i18n";
 import {
   herdrOrderNeighbor,
   requestTabStep,
@@ -61,13 +62,9 @@ type Peek = {
 const PEEK_DELAY_MS = 450;
 const PEEK_LEAVE_MS = 320;
 
-const STEP_WORD = { [-1]: "earlier", 1: "later" } as const;
-const FOLLOW =
-  "Town and Spaces follow; Board keeps its cards where you put them.";
-
 /** An agent's name, as Board's cards show it. */
 export const boardAgentName = (pane: BoardPane) =>
-  pane.leaf.agentName ?? pane.leaf.agentLabel ?? "agent";
+  pane.leaf.agentName ?? pane.leaf.agentLabel ?? t("board.agentFallback");
 
 /** The pane a tab's bar acts on: the selected one, else its first agent. */
 export function boardBarPane(
@@ -119,6 +116,7 @@ function BoardMarkReviewed({
   deskStore: WorldDeskStore;
   notify: Notify;
 }) {
+  const t = useT();
   const work = useReviewedWork(deskStore);
   if (!work.toReview(leaf, Date.now())) return null;
   return (
@@ -131,13 +129,13 @@ function BoardMarkReviewed({
             notify(
               saved ? "ok" : "error",
               saved
-                ? `${name}'s work reviewed`
-                : `Could not save the review mark for ${name}. Try again when the connection is ready.`,
+                ? t("board.reviewedWork", { name })
+                : t("board.reviewMarkFailed", { name }),
             ),
           )
       }
     >
-      Mark reviewed
+      {t("board.markReviewed")}
     </button>
   );
 }
@@ -161,6 +159,7 @@ export function useBoardHerdrActions({
   /** The one reviewed record; World's shared Desk store by default. */
   deskStore?: WorldDeskStore;
 }) {
+  const t = useT();
   const [dialog, setDialog] = useState<RoomDialog | null>(null);
   const [moving, setMoving] = useState(false);
   const [peek, setPeek] = useState<Peek | null>(null);
@@ -263,7 +262,10 @@ export function useBoardHerdrActions({
       const problem = await move();
       if (problem) notify("error", problem);
     } catch (cause) {
-      notify("error", `${label} may not have moved: ${String(cause)}`);
+      notify(
+        "error",
+        t("moves.mayNotHaveMoved", { what: label, reason: String(cause) }),
+      );
     } finally {
       setMoving(false);
     }
@@ -276,7 +278,10 @@ export function useBoardHerdrActions({
         step,
       );
       if (outcome.status !== "moved")
-        return `${space.label} not moved: ${outcome.message}`;
+        return t("moves.notMoved", {
+          what: space.label,
+          reason: outcome.message,
+        });
       const host = model.hostByKey.get(space.hostKey);
       const spots = outcome.neighbor
         ? swappedRoomSpots(
@@ -292,10 +297,17 @@ export function useBoardHerdrActions({
           ])
         : null;
       if (conflict)
-        return `${space.label} moved in Herdr, but Town may show the old order: ${conflict}`;
+        return t("board.herdrOldOrder", {
+          what: space.label,
+          reason: conflict,
+        });
       notify(
         "ok",
-        `Moved “${space.label}” ${STEP_WORD[step]} in Herdr. ${FOLLOW}`,
+        t("board.movedInHerdr", {
+          label: space.label,
+          step: step < 0 ? t("board.earlierWord") : t("board.laterWord"),
+          follow: t("board.herdrFollow"),
+        }),
       );
       return null;
     });
@@ -309,10 +321,17 @@ export function useBoardHerdrActions({
         step,
       );
       if (outcome.status !== "moved")
-        return `${tab.label} not moved: ${outcome.message}`;
+        return t("moves.notMoved", {
+          what: tab.label,
+          reason: outcome.message,
+        });
       notify(
         "ok",
-        `Moved “${tab.label}” ${STEP_WORD[step]} in Herdr. ${FOLLOW}`,
+        t("board.movedInHerdr", {
+          label: tab.label,
+          step: step < 0 ? t("board.earlierWord") : t("board.laterWord"),
+          follow: t("board.herdrFollow"),
+        }),
       );
       return null;
     });
@@ -326,23 +345,23 @@ export function useBoardHerdrActions({
     <span
       className="board-herdr"
       role="group"
-      aria-label={`${what} order in Herdr`}
+      aria-label={t("board.herdrOrderAria", { what })}
     >
-      <span
-        className="board-herdr-label"
-        title="Changes Herdr's order, which Town and Spaces show. Dragging a card moves it only on the Board."
-      >
-        Herdr order
+      <span className="board-herdr-label" title={t("board.herdrOrderTitle")}>
+        {t("board.herdrOrder")}
       </span>
       {([-1, 1] as const).map((step) => (
         <button
           key={step}
           type="button"
           disabled={moving || !herdrOrderNeighbor(order, key, step)}
-          title={`Move this ${what} ${STEP_WORD[step]} in Herdr; Town and Spaces follow`}
+          title={t("board.moveInHerdrTitle", {
+            what,
+            step: step < 0 ? t("board.earlierWord") : t("board.laterWord"),
+          })}
           onClick={() => onStep(step)}
         >
-          {step < 0 ? "‹ Earlier" : "Later ›"}
+          {step < 0 ? t("board.earlierAction") : t("board.laterAction")}
         </button>
       ))}
     </span>
@@ -359,7 +378,7 @@ export function useBoardHerdrActions({
         <>
           {can.rename ? (
             <button type="button" onClick={() => openDialog("rename", space)}>
-              Rename…
+              {t("board.renameAction")}
             </button>
           ) : null}
           {can.close ? (
@@ -368,14 +387,14 @@ export function useBoardHerdrActions({
               className="board-danger"
               onClick={() => openDialog("close", space)}
             >
-              Close…
+              {t("board.closeAction")}
             </button>
           ) : null}
           {can.rename && host
             ? orderButtons(
                 host.workspaceKeys,
                 space.key,
-                "room",
+                t("board.whatRoom"),
                 (step) => void stepRoom(space, step),
               )
             : null}
@@ -406,7 +425,7 @@ export function useBoardHerdrActions({
               );
             }}
           >
-            Preview
+            {t("board.preview")}
           </button>
         ) : null}
         {agent ? (
@@ -418,7 +437,7 @@ export function useBoardHerdrActions({
           />
         ) : null}
         {home && tab.actionable && !tab.stale
-          ? orderButtons(home.tabKeys, tab.key, "tab", (step) =>
+          ? orderButtons(home.tabKeys, tab.key, t("board.whatTab"), (step) =>
               stepTab(tab, step),
             )
           : null}

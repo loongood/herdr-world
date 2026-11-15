@@ -1,4 +1,5 @@
 import { bridge } from "../../api";
+import { t } from "../../i18n";
 import type { TownMoveOutcome } from "../town/townMoves";
 import type { BoardPane, BoardTab, BoardWorkspace } from "./boardModel";
 
@@ -21,7 +22,7 @@ export function boardPaneMoveReason({
   sourceWorkspace: from,
   targetWorkspace: to,
 }: BoardPaneMoveRequest): string | null {
-  if (source.key === target.key) return "The pane is already in that tab.";
+  if (source.key === target.key) return t("board.alreadyInTab");
   if (
     !pane.leaf.actionable ||
     pane.leaf.stale ||
@@ -32,20 +33,20 @@ export function boardPaneMoveReason({
     !from.actionable ||
     !to.actionable
   )
-    return "The host is unavailable. Wait for a fresh connection.";
+    return t("board.hostUnavailable");
   if (
     source.workspaceKey !== from.key ||
     target.workspaceKey !== to.key ||
     !source.panes.some((entry) => entry.key === pane.key)
   )
-    return "The pane or tab changed. Try again.";
+    return t("board.paneOrTabChanged");
   if (
     from.connectionId !== to.connectionId ||
     from.generation !== to.generation ||
     pane.leaf.connectionId !== from.connectionId ||
     pane.leaf.generation !== from.generation
   )
-    return "Panes move only within one host and its current runtime.";
+    return t("board.panesOneHost");
   return null;
 }
 
@@ -91,6 +92,6 @@ export async function moveBoardPane(
     status: "failed",
     rolled_back: false,
     topology_known: false,
-    message: "The host did not report the pane's location. Check both tabs.",
+    message: t("board.noPaneLocation"),
   };
 }

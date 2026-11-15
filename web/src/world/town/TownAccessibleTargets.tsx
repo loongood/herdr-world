@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useT } from "../../i18n";
 import { yieldWorldTask } from "../worldObject";
 import type { TownTarget } from "./townTargets";
 
@@ -30,6 +31,7 @@ export function TownTargets({
   /** Keyboard move (key M) for a focused desk or agent target. */
   onMoveTarget(kind: "desk" | "agent", key: string): void;
 }) {
+  const t = useT();
   const identity = useMemo(
     () => targets.map(({ kind, key }) => `${kind}:${key}`).join("|"),
     [targets],
@@ -65,7 +67,7 @@ export function TownTargets({
   return (
     <div
       className="world-semantic-targets-overlay town-targets"
-      aria-label="Office scene targets"
+      aria-label={t("town.rooms.targetsAria")}
       aria-busy={pending > 0}
       onKeyDown={(event) => {
         // M moves the focused desk or agent; the canvas moves by drag.
@@ -83,7 +85,7 @@ export function TownTargets({
     >
       {pending ? (
         <span className="town-visually-hidden" role="status">
-          Rendering {pending} more observed targets
+          {t("town.rooms.renderingTargets", { count: pending })}
         </span>
       ) : null}
       {rendered.map((target) => (

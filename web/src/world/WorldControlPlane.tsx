@@ -2,6 +2,7 @@ import { memo, Suspense, useEffect, useState } from "react";
 import { worldLocalStorage } from "../browserStorage";
 import { useChimeHost, WORLD_SOUNDS_EVENT } from "../chimes/chimeHost";
 import { CreateWorkspaceDialog } from "../components/CreateWorkspaceDialog";
+import { useT } from "../i18n";
 import { ConfirmDialog } from "../components/ModalDialogs";
 import { lazyWithReload } from "../lazyWithReload";
 import { connectionSnapshot, store } from "../store";
@@ -207,6 +208,7 @@ const WorldViewErrorBoundary = lazyWithReload("world-view-boundary", () =>
   })),
 );
 export function WorldControlPlane(props: WorldControlPlaneProps) {
+  const t = useT();
   // Panel windows (not Inspectors) that a view opens with <WorldPanel>.
   const panelRegistry = useWorldPanels();
   const { panels, panelBodyRef } = panelRegistry;
@@ -439,7 +441,7 @@ export function WorldControlPlane(props: WorldControlPlaneProps) {
         open={inspectorClose !== null}
         title={`Close Inspector ${inspectorClose?.target.type ?? "tab"}`}
         message={`Close this ${inspectorClose?.target.type ?? "tab"} on ${inspectorClose?.conversation.hostLabel ?? "the captured host"}?`}
-        confirmLabel="Close"
+        confirmLabel={t("common.close")}
         danger
         onClose={() => setInspectorClose(null)}
         onConfirm={() => {

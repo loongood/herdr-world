@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ConfirmDialog } from "../../components/ModalDialogs";
+import { useT } from "../../i18n";
 import { measuredFixedPositionScale } from "../../fixedPositionScale";
 import { aimAtBin } from "../bin/binDrop";
 import { townMoveNotice } from "../town/townMoves";
@@ -35,6 +36,7 @@ export function useBoardPaneMoves(props: {
   /** The pane was dropped on the bin. */
   bin?(panes: readonly BoardPane[]): void;
 }) {
+  const t = useT();
   const latest = useRef(props);
   latest.current = props;
   const held = useRef<Held | null>(null);
@@ -79,7 +81,7 @@ export function useBoardPaneMoves(props: {
       pane.leaf.agentSessionFingerprint !==
         job.pane.leaf.agentSessionFingerprint
     ) {
-      current.notice("The pane or host changed. Try again.");
+      current.notice(t("board.paneChanged"));
       return;
     }
     const request: BoardPaneMoveRequest = {
@@ -96,7 +98,10 @@ export function useBoardPaneMoves(props: {
     }
     busy.current = true;
     current.notice(
-      `Moving ${pane.leaf.agentName ?? pane.leaf.label} to ${target.label}…`,
+      t("moves.movingTo", {
+        what: pane.leaf.agentName ?? pane.leaf.label,
+        where: target.label,
+      }),
     );
     try {
       const outcome = await (current.move ?? moveBoardPane)(
@@ -121,7 +126,7 @@ export function useBoardPaneMoves(props: {
       }
     } catch (error) {
       latest.current.notice(
-        `The pane's location could not be confirmed: ${String(error)}. Check both tabs.`,
+        t("board.locationUnconfirmed", { reason: String(error) }),
       );
     } finally {
       busy.current = false;
@@ -155,7 +160,7 @@ export function useBoardPaneMoves(props: {
     const pane = source?.panes.find((entry) => entry.key === target.paneKey);
     if (!source || !pane) return true;
     if (busy.current || confirm) {
-      latest.current.notice("Finish the pending pane move first.");
+      latest.current.notice(t("board.pendingPaneMove"));
       return true;
     }
     cancel();
@@ -198,9 +203,9 @@ export function useBoardPaneMoves(props: {
       ? createPortal(
           <ConfirmDialog
             open
-            title="Move the room's last pane?"
-            message="Moving this pane closes its original room. The terminal keeps running in the destination tab."
-            confirmLabel="Move pane and close room"
+            title={t("board.moveLastPaneTitle")}
+            message={t("board.moveLastPaneMessage")}
+            confirmLabel={t("board.movePaneAndCloseRoom")}
             onConfirm={() => void run(confirm, true)}
             onClose={() => setConfirm(null)}
           />,

@@ -5,6 +5,7 @@
  */
 
 import { ConfirmDialog } from "../../components/ModalDialogs";
+import { useT } from "../../i18n";
 import { inheritedColorKey } from "../../../../shared/terminalColor";
 import type { ViewTrace } from "../devtools/flag";
 import { DEVTOOLS } from "../devtools/flag";
@@ -45,7 +46,7 @@ export type TownMoveConfirm = { message: string; run(): void };
  * Town's move state lives in TownView, where its hooks have always been
  * called; these are the actions on it.
  */
-export function townMoveActions({
+export function useTownMoveActions({
   moveFlow,
   setMoveFlow,
   movingKey,
@@ -83,6 +84,7 @@ export function townMoveActions({
   /** Where Town seats a desk that joins a team. */
   joinSeats?: TownJoinSeats;
 }) {
+  const t = useT();
   const deskForKey = (key: string) =>
     office.deskRoster.find(({ desk }) => desk.key === key)?.desk ?? null;
   const reportMove = (
@@ -136,13 +138,23 @@ export function townMoveActions({
     // Herdr closes a room when its last desk leaves; ask first.
     if (!allowCloseRoom && (source?.observedDeskCount ?? 2) <= 1) {
       setMoveConfirm({
-        message: `“${desk.displayLabel}” is the last desk in “${source?.displayLabel}”. Moving it to “${room.displayLabel}” closes that room.`,
+        message: t("moves.lastDeskCloses", {
+          desk: desk.displayLabel,
+          room: source?.displayLabel ?? "",
+          target: room.displayLabel,
+        }),
         run: () => void runDeskMove(deskKey, roomKey, true, then),
       });
       return "returned";
     }
     setMovingKey(desk.key);
-    toast("ok", `Moving ${desk.displayLabel} to ${room.displayLabel}…`);
+    toast(
+      "ok",
+      t("moves.movingTo", {
+        what: desk.displayLabel,
+        where: room.displayLabel,
+      }),
+    );
     try {
       const outcome = await requestDeskMove(
         desk,
@@ -160,7 +172,10 @@ export function townMoveActions({
     } catch (cause) {
       toast(
         "error",
-        `${desk.displayLabel} may not have moved: ${String(cause)}`,
+        t("moves.mayNotHaveMoved", {
+          what: desk.displayLabel,
+          reason: String(cause),
+        }),
       );
       return "uncertain";
     } finally {
@@ -191,7 +206,10 @@ export function townMoveActions({
     } catch (cause) {
       toast(
         "error",
-        `${desk.displayLabel} may not have moved: ${String(cause)}`,
+        t("moves.mayNotHaveMoved", {
+          what: desk.displayLabel,
+          reason: String(cause),
+        }),
       );
       return "uncertain";
     } finally {
@@ -217,13 +235,22 @@ export function townMoveActions({
       (sourceRoom?.observedDeskCount ?? 2) <= 1
     ) {
       setMoveConfirm({
-        message: `${agent.displayLabel} is alone at the last desk in “${sourceRoom?.displayLabel}”. Moving it closes that room.`,
+        message: t("moves.aloneCloses", {
+          agent: agent.displayLabel,
+          room: sourceRoom?.displayLabel ?? "",
+        }),
         run: () => void runAgentMove(agentKey, deskKey, true),
       });
       return "returned";
     }
     setMovingKey(agentKey);
-    toast("ok", `Moving ${agent.displayLabel} to ${target.displayLabel}…`);
+    toast(
+      "ok",
+      t("moves.movingTo", {
+        what: agent.displayLabel,
+        where: target.displayLabel,
+      }),
+    );
     try {
       const outcome = await requestAgentMove(device, target, allowCloseRoom);
       return reportMove(
@@ -234,7 +261,10 @@ export function townMoveActions({
     } catch (cause) {
       toast(
         "error",
-        `${agent.displayLabel} may not have moved: ${String(cause)}`,
+        t("moves.mayNotHaveMoved", {
+          what: agent.displayLabel,
+          reason: String(cause),
+        }),
       );
       return "uncertain";
     } finally {
@@ -260,12 +290,12 @@ export function townMoveActions({
     if (!room || movingKey) return "returned";
     const label = what ?? room.displayLabel;
     if (!canMoveRoom(roomKey)) {
-      toast("error", `${label} not moved: this host cannot change rooms now.`);
+      toast("error", t("moves.notMovedHost", { what: label }));
       return "returned";
     }
     const rooms = placement.order.map(roomForKey);
     if (rooms.some((other) => !other)) {
-      toast("error", `${label} not moved: the building changed.`);
+      toast("error", t("moves.notMovedBuilding", { what: label }));
       return "returned";
     }
     const spots = Object.fromEntries(
@@ -281,7 +311,7 @@ export function townMoveActions({
         spots,
       );
       if (conflict) {
-        toast("error", `${label} not moved: ${conflict}`);
+        toast("error", t("moves.notMoved", { what: label, reason: conflict }));
         return "returned";
       }
       const outcome = await requestRoomOrder(rooms as OfficeRoom[]).catch(
@@ -295,11 +325,14 @@ export function townMoveActions({
       if (outcome.status !== "moved")
         toast(
           "error",
-          `${label} moved, but Spaces may show the old order: ${outcome.message}`,
+          t("moves.movedOldOrder", { what: label, reason: outcome.message }),
         );
       return "moved";
     } catch (cause) {
-      toast("error", `${label} may not have moved: ${String(cause)}`);
+      toast(
+        "error",
+        t("moves.mayNotHaveMoved", { what: label, reason: String(cause) }),
+      );
       return "uncertain";
     } finally {
       setMovingKey(null);
@@ -328,9 +361,9 @@ export function townMoveActions({
       ) : null}
       <ConfirmDialog
         open={moveConfirm !== null}
-        title="Close the room?"
+        title={t("moves.closeRoomTitle")}
         message={moveConfirm?.message ?? ""}
-        confirmLabel="Move and close room"
+        confirmLabel={t("moves.moveAndCloseRoom")}
         danger
         onClose={() => setMoveConfirm(null)}
         onConfirm={() => {
@@ -354,13 +387,14 @@ export function townMoveActions({
         hostLabel: string,
         undo: (() => Promise<TownMoveResult>) | null,
       ) => {
-        if (!undo) toast("ok", `${hostLabel}'s rooms are already tidy`);
+        if (!undo)
+          toast("ok", t("moves.roomsAlreadyTidy", { host: hostLabel }));
         else
-          toast("ok", `Tidied ${hostLabel}'s rooms`, {
-            label: "Undo",
+          toast("ok", t("moves.roomsTidied", { host: hostLabel }), {
+            label: t("common.undo"),
             run: () =>
               void undo().then((result) => {
-                if (result === "moved") toast("ok", "Restored");
+                if (result === "moved") toast("ok", t("moves.restored"));
               }),
           });
       },

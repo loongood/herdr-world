@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type {
   HerdrOfficeProjection,
   OfficeDesk,
@@ -94,16 +95,13 @@ export function townTeamActions(deps: TownTeamDeps) {
     const members = deskTerminals(desk).slice(0, 1);
     const with_ = deskTerminals(target).slice(0, 1);
     if (!members.length || !with_.length) {
-      toast("error", `${desk.displayLabel} was not grouped: no terminals seen`);
+      toast("error", t("town.team.notGrouped", { desk: desk.displayLabel }));
       return "returned";
     }
     // A pinned desk stays put: it joins a team in its own room only.
     const pinned = deskPinned(desk);
     if (pinned && desk.roomKey !== target.roomKey) {
-      toast(
-        "error",
-        `${desk.displayLabel} is pinned: unpin it to join a team in another room`,
-      );
+      toast("error", t("town.team.pinned", { desk: desk.displayLabel }));
       return "returned";
     }
     // Joining brings the desk to the team's room: ask before grouping when
@@ -115,17 +113,33 @@ export function townTeamActions(deps: TownTeamDeps) {
       (source?.observedDeskCount ?? 2) <= 1
     ) {
       deps.confirm(
-        `“${desk.displayLabel}” is the last desk in “${source?.displayLabel}”. Joining “${target.displayLabel}” moves it and closes that room.`,
+        t("town.team.joiningCloses", {
+          desk: desk.displayLabel,
+          room: source?.displayLabel ?? "",
+          target: target.displayLabel,
+        }),
         () => void runGroupDesk(deskKey, targetKey, true),
       );
       return "returned";
     }
     const problem = await io.groupTerminals(members, with_);
     if (problem) {
-      toast("error", `${desk.displayLabel} was not grouped: ${problem}`);
+      toast(
+        "error",
+        t("town.team.notGroupedReason", {
+          desk: desk.displayLabel,
+          reason: problem,
+        }),
+      );
       return "returned";
     }
-    toast("ok", `${desk.displayLabel} joined ${target.displayLabel}`);
+    toast(
+      "ok",
+      t("town.team.joined", {
+        desk: desk.displayLabel,
+        target: target.displayLabel,
+      }),
+    );
     const from = { fromDeskKey: desk.key, fromRoomKey: desk.roomKey };
     // Bring it to the team's room (its tab gets a new ID there), then seat it
     // next to its teammate.
@@ -152,8 +166,11 @@ export function townTeamActions(deps: TownTeamDeps) {
     toast(
       problem ? "error" : "ok",
       problem
-        ? `${desk.displayLabel} is still in its team: ${problem}`
-        : `${desk.displayLabel} left its team`,
+        ? t("town.team.stillInTeam", {
+            desk: desk.displayLabel,
+            reason: problem,
+          })
+        : t("town.team.leftTeam", { desk: desk.displayLabel }),
     );
     return "returned";
   };
@@ -173,16 +190,16 @@ export function townTeamActions(deps: TownTeamDeps) {
     return [
       {
         key: `${desk.key}:group`,
-        label: "Group with…",
-        detail: "Join another desk's team",
+        label: t("town.team.groupWith"),
+        detail: t("town.team.groupWithDetail"),
         onChoose: () => deps.openGroupMenu(desk.key),
       },
       ...(grouped
         ? [
             {
               key: `${desk.key}:ungroup`,
-              label: "Leave the team",
-              detail: "Stay here, outside the team",
+              label: t("town.team.leaveTeam"),
+              detail: t("town.team.leaveTeamDetail"),
               onChoose: () => {
                 deps.closeMenu();
                 void runUngroupDesk(desk.key);
@@ -206,10 +223,12 @@ export function townTeamActions(deps: TownTeamDeps) {
           )
       : [];
     return {
-      title: `Group ${desk?.displayLabel ?? "desk"} with…`,
+      title: t("town.team.groupTitle", {
+        desk: desk?.displayLabel ?? t("town.move.deskFallback"),
+      }),
       detail: mates.length
-        ? "Choose a desk on this host; the desk joins its room"
-        : "No other desk on this host",
+        ? t("town.team.groupDetail")
+        : t("town.move.noOtherDesk"),
       entries: mates.map((other) => ({
         key: other.key,
         label: other.displayLabel,
