@@ -1,4 +1,3 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   Check,
@@ -8,6 +7,8 @@ import {
   ShieldCheck,
   Terminal,
 } from "lucide-react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { useT } from "../i18n";
 import "./HerdrSetupCard.css";
 
 type SetupInfo = {
@@ -24,6 +25,7 @@ export function HerdrSetupCard({
   enabled?: boolean;
   children?: ReactNode;
 }) {
+  const t = useT();
   const titleId = useId();
   const [info, setInfo] = useState<SetupInfo | null>(null);
   const [checking, setChecking] = useState(true);
@@ -77,17 +79,11 @@ export function HerdrSetupCard({
       });
       const result = await response.json();
       if (!response.ok || result?.ok !== true) {
-        throw new Error(
-          result?.error ?? "Herdr setup could not complete. Please try again.",
-        );
+        throw new Error(result?.error ?? t("herdrSetup.failedTryAgain"));
       }
       window.location.reload();
     } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Herdr setup could not complete.",
-      );
+      setError(cause instanceof Error ? cause.message : t("herdrSetup.failed"));
       setBusy(false);
       requestInProgress.current = false;
     }
@@ -102,7 +98,7 @@ export function HerdrSetupCard({
           className="herdr-setup-spinner"
           aria-hidden="true"
         />
-        Checking Herdr connection
+        {t("herdrSetup.checking")}
       </div>
     );
   }
@@ -110,14 +106,16 @@ export function HerdrSetupCard({
 
   const missing = info.state === "missing";
   const title = busy
-    ? "Setting up Herdr"
+    ? t("herdrSetup.titleBusy")
     : confirming
       ? missing
-        ? `Install Herdr ${info.verified_version}?`
-        : "Start Herdr as a service?"
+        ? t("herdrSetup.titleInstallVersion", {
+            version: info.verified_version,
+          })
+        : t("herdrSetup.titleStartService")
       : missing
-        ? "Your workspace starts here"
-        : "Bring your workspace online";
+        ? t("herdrSetup.titleFirst")
+        : t("herdrSetup.titleOnline");
 
   return (
     <section
@@ -136,7 +134,9 @@ export function HerdrSetupCard({
           <Terminal size={24} />
         </span>
         <span className="herdr-setup-eyebrow">
-          {missing ? "FIRST-TIME SETUP" : "HERDR SERVER"}
+          {missing
+            ? t("herdrSetup.eyebrowFirst")
+            : t("herdrSetup.eyebrowServer")}
         </span>
         <span className="herdr-setup-badge">
           {missing ? (
@@ -144,7 +144,11 @@ export function HerdrSetupCard({
           ) : (
             <Server size={13} aria-hidden="true" />
           )}
-          {missing ? `Verified ${info.verified_version}` : "Installed"}
+          {missing
+            ? t("herdrSetup.verifiedVersion", {
+                version: info.verified_version,
+              })
+            : t("herdrSetup.installed")}
         </span>
       </div>
 
@@ -152,12 +156,12 @@ export function HerdrSetupCard({
         <h2 id={titleId}>{title}</h2>
         <p>
           {busy
-            ? "Keep this page open. Herdr World will reconnect when Herdr is ready."
+            ? t("herdrSetup.busyHelp")
             : confirming
-              ? "This changes the machine running Herdr World, not your browser or a remote SSH host."
+              ? t("herdrSetup.confirmHelp")
               : missing
-                ? "Herdr runs your terminals and agents. Set it up once, then manage your workspace from here."
-                : "Herdr is installed but isn't running. Start it in the background to reconnect your terminals and agents."}
+                ? t("herdrSetup.missingHelp")
+                : t("herdrSetup.installedHelp")}
         </p>
       </div>
 
@@ -171,10 +175,10 @@ export function HerdrSetupCard({
           <div>
             <strong>
               {missing
-                ? "Installing and starting the service"
-                : "Starting the service"}
+                ? t("herdrSetup.stepInstalling")
+                : t("herdrSetup.stepStarting")}
             </strong>
-            <span>This may take a few minutes.</span>
+            <span>{t("herdrSetup.stepMayTake")}</span>
           </div>
         </div>
       ) : (
@@ -188,21 +192,23 @@ export function HerdrSetupCard({
             <div>
               <strong>
                 {missing
-                  ? `Herdr ${info.verified_version}`
-                  : "Use your existing installation"}
+                  ? t("herdrSetup.stepVersion", {
+                      version: info.verified_version,
+                    })
+                  : t("herdrSetup.stepExisting")}
               </strong>
               <span>
                 {missing
-                  ? "Verified release with SHA-256 checks"
-                  : "Your Herdr binary stays unchanged"}
+                  ? t("herdrSetup.stepVerified")
+                  : t("herdrSetup.stepUnchanged")}
               </span>
             </div>
           </li>
           <li>
             <Server size={18} aria-hidden="true" />
             <div>
-              <strong>Run as a background service</strong>
-              <span>Starts at login, independently of Herdr World</span>
+              <strong>{t("herdrSetup.stepService")}</strong>
+              <span>{t("herdrSetup.stepServiceDetail")}</span>
             </div>
           </li>
         </ul>
@@ -210,7 +216,7 @@ export function HerdrSetupCard({
 
       {error ? (
         <div className="herdr-setup-error" role="alert">
-          <strong>Setup couldn't finish</strong>
+          <strong>{t("herdrSetup.errorTitle")}</strong>
           <span>{error}</span>
         </div>
       ) : null}
@@ -225,12 +231,12 @@ export function HerdrSetupCard({
               onClick={() => void setup()}
             >
               {busy
-                ? "Setting up..."
+                ? t("herdrSetup.settingUp")
                 : error
-                  ? "Try again"
+                  ? t("herdrSetup.tryAgain")
                   : missing
-                    ? "Install & start"
-                    : "Start service"}
+                    ? t("herdrSetup.installStart")
+                    : t("herdrSetup.startService")}
               {!busy ? <ArrowRight size={16} aria-hidden="true" /> : null}
             </button>
             <button
@@ -239,7 +245,7 @@ export function HerdrSetupCard({
               disabled={busy}
               onClick={cancel}
             >
-              Cancel
+              {t("herdrSetup.cancel")}
             </button>
           </div>
         ) : (
@@ -249,14 +255,16 @@ export function HerdrSetupCard({
             className="herdr-setup-primary"
             onClick={() => setConfirming(true)}
           >
-            {missing ? "Set up Herdr" : "Start Herdr"}
+            {missing
+              ? t("herdrSetup.setupAction")
+              : t("herdrSetup.startAction")}
             <ArrowRight size={16} aria-hidden="true" />
           </button>
         )}
         <p className="herdr-setup-footnote">
           {confirming
-            ? "A user service will be registered on the Herdr World host."
-            : "Review the details before making any changes."}
+            ? t("herdrSetup.footnoteConfirm")
+            : t("herdrSetup.footnoteReview")}
         </p>
       </div>
     </section>

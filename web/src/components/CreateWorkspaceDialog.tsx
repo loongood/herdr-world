@@ -1,21 +1,21 @@
-import { useEffectCallback } from "../useEffectCallback";
-import {
-  useCreationProgress,
-  creationFailureMessage,
-} from "../creationRequests";
-import { useContext, useEffect, useRef, useState } from "react";
-import { luckyWorkspaceName } from "../luckyName";
-import {
-  OperationalContext,
-  store,
-  connectionSnapshot,
-  endpointCreationReason,
-  useStoreSelector,
-} from "../store";
-import { useId, useMemo } from "react";
 import { Folder } from "lucide-react";
+import { useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { WorkspacePathInfo } from "../../../shared/workspacePath";
 import { bridge, type ConnectionClient } from "../api";
+import {
+  creationFailureMessage,
+  useCreationProgress,
+} from "../creationRequests";
+import { useT } from "../i18n";
+import { luckyWorkspaceName } from "../luckyName";
+import {
+  connectionSnapshot,
+  endpointCreationReason,
+  OperationalContext,
+  store,
+  useStoreSelector,
+} from "../store";
+import { useEffectCallback } from "../useEffectCallback";
 import { CloseButton } from "./CloseButton";
 import { focusDialogElement } from "./dialogFocus";
 import { useSuggestedName } from "./useSuggestedName";
@@ -38,6 +38,7 @@ export function CreateWorkspaceDialog({
   };
   onClose: () => void;
 }) {
+  const t = useT();
   useCreationProgress();
   const inherited = useContext(OperationalContext);
   const snapshot = useStoreSelector((state) => state);
@@ -58,7 +59,7 @@ export function CreateWorkspaceDialog({
         connection.generation === destination.runtimeGeneration,
     );
   const createReason = !current
-    ? "Choose a current destination host."
+    ? t("createWorkspace.noDestination")
     : endpointCreationReason(
         connectionSnapshot(snapshot, destination!.connectionId),
         "workspace.create",
@@ -219,19 +220,19 @@ export function CreateWorkspaceDialog({
         className="modal compact-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Create workspace"
+        aria-label={t("createWorkspace.titleAria")}
         onSubmit={submit}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="modal-head">
-          <h2>Create Workspace</h2>
+          <h2>{t("createWorkspace.title")}</h2>
           <CloseButton onClick={onClose} />
         </div>
 
         <label className="form-field">
-          <span>Destination host</span>
+          <span>{t("createWorkspace.destination")}</span>
           <select
-            aria-label="Destination host"
+            aria-label={t("createWorkspace.destination")}
             disabled={submitting}
             value={destination?.connectionId ?? ""}
             onChange={(event) => {
@@ -249,7 +250,7 @@ export function CreateWorkspaceDialog({
             }}
           >
             <option value="" disabled>
-              Choose a host
+              {t("createWorkspace.chooseHost")}
             </option>
             {ready.map((connection) => (
               <option key={connection.id} value={connection.id}>
@@ -260,18 +261,18 @@ export function CreateWorkspaceDialog({
         </label>
 
         <label className="form-field">
-          <span>Name</span>
+          <span>{t("createWorkspace.nameLabel")}</span>
           <input
             ref={labelRef}
             value={label}
             disabled={submitting}
             onChange={(e) => setLabel(e.currentTarget.value)}
-            placeholder="Optional"
+            placeholder={t("createWorkspace.namePlaceholder")}
           />
         </label>
 
         <label className="form-field">
-          <span>Working directory</span>
+          <span>{t("createWorkspace.cwdLabel")}</span>
           <input
             ref={cwdRef}
             value={cwd}
@@ -279,7 +280,7 @@ export function CreateWorkspaceDialog({
               setCwd(e.currentTarget.value);
               setCreateError("");
             }}
-            placeholder="Optional, e.g. ~/Developer/project"
+            placeholder={t("createWorkspace.cwdPlaceholder")}
             spellCheck={false}
             autoComplete="off"
             disabled={submitting}
@@ -289,27 +290,25 @@ export function CreateWorkspaceDialog({
         </label>
         <div id={pathHintId} className="workspace-path-hint" aria-live="polite">
           {checking ? (
-            <p role="status">Checking directory...</p>
+            <p role="status">{t("createWorkspace.checking")}</p>
           ) : pathError ? (
             <p className="modal-error" role="alert">
               {pathError}
             </p>
           ) : checked?.info ? (
             <p>
-              Directory: <code>{checked.info.path}</code>
+              {t("createWorkspace.directoryLine")}{" "}
+              <code>{checked.info.path}</code>
             </p>
           ) : (
-            <p>
-              Use an absolute path or ~/ on the connected host. Leave blank to
-              use the default directory.
-            </p>
+            <p>{t("createWorkspace.cwdHelp")}</p>
           )}
         </div>
         {checked?.info?.directories.length ? (
           <div
             className="workspace-path-directories"
             role="list"
-            aria-label="Directory suggestions"
+            aria-label={t("createWorkspace.suggestionsAria")}
           >
             {checked.info.directories.map((directory) => (
               <div key={directory} role="listitem">
@@ -348,7 +347,7 @@ export function CreateWorkspaceDialog({
         {createReason ? <p role="status">{createReason}</p> : null}
         <div className="modal-actions">
           <button type="button" className="ghost" onClick={onClose}>
-            Cancel
+            {t("createWorkspace.cancel")}
           </button>
           <button
             type="submit"
@@ -361,7 +360,9 @@ export function CreateWorkspaceDialog({
             }
             title={createReason ?? undefined}
           >
-            {submitting ? "Creating…" : "Create"}
+            {submitting
+              ? t("createWorkspace.creating")
+              : t("createWorkspace.create")}
           </button>
         </div>
       </form>

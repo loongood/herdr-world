@@ -1,13 +1,12 @@
 import { Crown, Volume2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import {
+  type ChimeSettings,
   DEFAULT_CHIMES,
   MOTIFS,
-  MOTIF_LABELS,
-  TIMBRES,
-  TIMBRE_LABELS,
-  type ChimeSettings,
   type Motif,
+  TIMBRE_LABELS,
+  TIMBRES,
   type Timbre,
 } from "../../../shared/chimes";
 import {
@@ -17,14 +16,15 @@ import {
 } from "../chimes/chimeCenter";
 import { previewChime } from "../chimes/player";
 import { CloseButton } from "../components/CloseButton";
+import { useT } from "../i18n";
 import { useLayer } from "../layerStack";
 import {
   profileFor,
   saveChimes,
   setTownMaster,
-  useAgentProfiles,
   type TerminalKey,
   type TerminalTarget,
+  useAgentProfiles,
 } from "./agentProfiles";
 import type { WorldLeafObject, WorldObject } from "./worldObject";
 import "./agentProfiles.css";
@@ -55,6 +55,7 @@ export function SoundsDialog({
   world: WorldObject;
   onClose(): void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   useLayer(true, () => onClose(), { element: () => ref.current });
   const { document } = useAgentProfiles();
@@ -100,6 +101,14 @@ export function SoundsDialog({
   };
   const test = (motif: Motif, timbre: Timbre = chimes.timbres.crew) =>
     void previewChime(timbre, motif, device.volume);
+  const motifLabel = (motif: Motif) =>
+    t(
+      motif === "needs_you"
+        ? "sounds.motifNeedsYou"
+        : motif === "for_you"
+          ? "sounds.motifForYou"
+          : "sounds.motifFinished",
+    );
 
   return (
     <div className="modal-backdrop">
@@ -108,15 +117,15 @@ export function SoundsDialog({
         className="modal sounds-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="Sounds"
+        aria-label={t("sounds.title")}
       >
         <div className="modal-head">
-          <h2>Sounds</h2>
-          <CloseButton onClick={onClose} label="Close sounds" />
+          <h2>{t("sounds.title")}</h2>
+          <CloseButton onClick={onClose} label={t("sounds.closeAria")} />
         </div>
 
-        <section aria-label="This device">
-          <h3>This device</h3>
+        <section aria-label={t("sounds.deviceSection")}>
+          <h3>{t("sounds.deviceSection")}</h3>
           <label className="profile-check">
             <input
               type="checkbox"
@@ -125,10 +134,10 @@ export function SoundsDialog({
                 updateDevice({ ...device, on: event.target.checked })
               }
             />
-            Play chimes on this device
+            {t("sounds.playHere")}
           </label>
           <label className="agent-field">
-            <span>Volume</span>
+            <span>{t("sounds.volume")}</span>
             <input
               type="range"
               min={0}
@@ -143,17 +152,15 @@ export function SoundsDialog({
           <div className="sounds-row">
             {MOTIFS.map((motif) => (
               <button key={motif} type="button" onClick={() => test(motif)}>
-                <Volume2 size={13} aria-hidden="true" /> {MOTIF_LABELS[motif]}
+                <Volume2 size={13} aria-hidden="true" /> {motifLabel(motif)}
               </button>
             ))}
           </div>
-          <p className="agent-launcher-note">
-            Only this browser. Turn it off on the devices that shouldn't chime.
-          </p>
+          <p className="agent-launcher-note">{t("sounds.deviceNote")}</p>
         </section>
 
-        <section aria-label="Chimes">
-          <h3>Chimes, on all your devices</h3>
+        <section aria-label={t("sounds.chimesSection")}>
+          <h3>{t("sounds.chimesSection")}</h3>
           {(["town_master", "crew"] as const).map((klass) => {
             const other =
               klass === "crew"
@@ -161,7 +168,9 @@ export function SoundsDialog({
                 : chimes.timbres.crew;
             return (
               <label key={klass} className="agent-field">
-                <span>{klass === "crew" ? "Crew" : "Town master"}</span>
+                <span>
+                  {klass === "crew" ? t("sounds.crew") : t("sounds.townMaster")}
+                </span>
                 <span className="profile-chime">
                   <select
                     value={chimes.timbres[klass]}
@@ -185,20 +194,17 @@ export function SoundsDialog({
                   </select>
                   <button
                     type="button"
-                    title="Play its needs-you chime"
+                    title={t("sounds.previewTitle")}
                     onClick={() => test("needs_you", chimes.timbres[klass])}
                   >
-                    <Volume2 size={13} aria-hidden="true" /> Preview
+                    <Volume2 size={13} aria-hidden="true" />{" "}
+                    {t("sounds.preview")}
                   </button>
                 </span>
               </label>
             );
           })}
-          <p className="agent-launcher-note">
-            The Town master&apos;s chime is its own; the crew and profiles
-            can&apos;t use it. A profile can give its agents their own chime
-            (Agent profiles → Look &amp; sound).
-          </p>
+          <p className="agent-launcher-note">{t("sounds.chimesNote")}</p>
           {MOTIFS.map((motif) => (
             <label key={motif} className="profile-check">
               <input
@@ -211,41 +217,49 @@ export function SoundsDialog({
                   })
                 }
               />
-              {MOTIF_LABELS[motif]}
+              {motifLabel(motif)}
             </label>
           ))}
         </section>
 
-        <section aria-label="Town master">
-          <h3>Town master</h3>
+        <section aria-label={t("sounds.townMaster")}>
+          <h3>{t("sounds.townMaster")}</h3>
           {holder ? (
             <p className="sounds-row">
               <Crown size={14} aria-hidden="true" />
               {holderLeaf
-                ? `${leafName(holderLeaf)} (${holderLeaf.spaceLabel}) is the Town master.`
-                : "The Town master's terminal isn't open now."}
+                ? t("sounds.holderIs", {
+                    name: leafName(holderLeaf),
+                    space: holderLeaf.spaceLabel,
+                  })
+                : t("sounds.holderClosed")}
               <button
                 type="button"
                 onClick={() => void write(() => setTownMaster(null))}
               >
-                Clear
+                {t("sounds.clear")}
               </button>
             </p>
           ) : (
-            <p>No Town master.</p>
+            <p>{t("sounds.none")}</p>
           )}
           {suggested.map((leaf) => (
             <p key={leaf.id} className="sounds-row">
-              Make {leafName(leaf)} ({leaf.spaceLabel}) Town master?
+              {t("sounds.suggest", {
+                name: leafName(leaf),
+                space: leaf.spaceLabel,
+              })}
               <button type="button" onClick={() => assign(leaf)}>
-                <Crown size={13} aria-hidden="true" /> Make Town master
+                <Crown size={13} aria-hidden="true" /> {t("sounds.make")}
               </button>
             </p>
           ))}
           {moving ? (
             <p className="sounds-row agent-launcher-login-row">
-              Move the Town master from {holderLeaf ? leafName(holderLeaf) : ""}{" "}
-              to {leafName(moving)}?
+              {t("sounds.moveFrom", {
+                from: holderLeaf ? leafName(holderLeaf) : "",
+                to: leafName(moving),
+              })}
               <button
                 type="button"
                 onClick={() => {
@@ -254,20 +268,20 @@ export function SoundsDialog({
                   void write(() => setTownMaster(keyOf(leaf), true));
                 }}
               >
-                Move
+                {t("sounds.move")}
               </button>
               <button type="button" onClick={() => setMoving(null)}>
-                Cancel
+                {t("sounds.cancel")}
               </button>
             </p>
           ) : null}
           <div className="sounds-row">
             <select
-              aria-label="Agent to make Town master"
+              aria-label={t("sounds.chooserAria")}
               value={chosen}
               onChange={(event) => setChosen(event.target.value)}
             >
-              <option value="">Choose an agent…</option>
+              <option value="">{t("sounds.chooseAgent")}</option>
               {agents
                 .filter((leaf) => !sameKey(holder, leaf))
                 .map((leaf) => (
@@ -287,26 +301,26 @@ export function SoundsDialog({
                 setChosen("");
               }}
             >
-              <Crown size={13} aria-hidden="true" /> Make Town master
+              <Crown size={13} aria-hidden="true" /> {t("sounds.make")}
             </button>
           </div>
-          <p className="agent-launcher-note">
-            Only you assign it. It names a terminal, so it ends when Herdr
-            restarts.
-          </p>
+          <p className="agent-launcher-note">{t("sounds.masterNote")}</p>
         </section>
 
         <section aria-label="Notes">
           <p className="agent-launcher-note">
-            An agent sends you a &ldquo;for you&rdquo; with{" "}
-            <code>herdr notification show &lt;title&gt;</code> and no{" "}
-            <code>--sound</code>; Herdr doesn&apos;t say which agent sent it, so
-            it reads &ldquo;sender unknown&rdquo;.
+            {t("sounds.notesForYouPrefix")}
+            <code>herdr notification show &lt;title&gt;</code>
+            {t("sounds.notesForYouMid")}
+            <code>--sound</code>
+            {t("sounds.notesForYouSuffix")}
           </p>
           <p className="agent-launcher-note">
-            Herdr&apos;s own terminal client plays its own sound too; turn it
-            off with <code>[ui.sound] enabled = false</code> in Herdr&apos;s{" "}
-            <code>config.toml</code>.
+            {t("sounds.notesHerdrPrefix")}
+            <code>[ui.sound] enabled = false</code>
+            {t("sounds.notesHerdrMid")}
+            <code>config.toml</code>
+            {t("sounds.notesHerdrSuffix")}
           </p>
         </section>
         {error ? (

@@ -139,5 +139,15 @@
   slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
+  The world settings surfaces follow too: the sources dialog (switches,
+  GitHub merge windows and Jira fields), the sounds dialog (preview,
+  volume, the motif names and the Town-master section), the office
+  observability dialog, the Herdr setup card in all five states, the
+  create-workspace dialog, the bin (tray, chip, bus and closing copy and
+  its outcome words, with the shared bin labels localized through the
+  store), the profile editor (all five tabs, the look labels and the
+  chime field) and the harness readiness notes shared with the launcher.
+  Chime timbre names stay English: they are instrument names, not
+  World's own copy.
   Remaining surfaces keep English
   until their phase lands.

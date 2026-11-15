@@ -1,13 +1,14 @@
 import { Trash2, X } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useLayer } from "../../layerStack";
-import { setBinDock } from "./binDock";
-import { store } from "../../store";
-import { tabPinsFor } from "../../tabPins";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { BinView } from "../../../../shared/bin";
 import { tabCardKey } from "../../../../shared/terminalColor";
+import { t, useT } from "../../i18n";
+import { useLayer } from "../../layerStack";
+import { store } from "../../store";
+import { tabPinsFor } from "../../tabPins";
 import { sharedBoardStore } from "../board/boardDocument";
 import type { WorldLeafObject, WorldObject } from "../worldObject";
+import { setBinDock } from "./binDock";
 import { binAddRequest, binBusLabel, binCloseLabel } from "./binStore";
 import { useWorldBin, worldBinStore } from "./useWorldBin";
 import { WORLD_BIN_OPEN_EVENT } from "./worldBinEvents";
@@ -29,7 +30,7 @@ export async function putInBin(
   if (error)
     store.notify({
       kind: "error",
-      message: `${leaf.label} was not put in the bin`,
+      message: t("bin.addFailed", { label: leaf.label }),
       detail: error,
     });
   return !error;
@@ -54,12 +55,14 @@ export function putAgentInBin(
   return putInBin(leaf, view, Boolean(pins[key]));
 }
 
-const OUTCOME: Record<string, string> = {
-  closed: "Closed",
-  gone: "Not closed",
-  refused: "Not closed",
-  uncertain: "May have closed",
-};
+const outcomeWord = (result: string) =>
+  t(
+    result === "closed"
+      ? "bin.outcomeClosed"
+      : result === "uncertain"
+        ? "bin.outcomeUncertain"
+        : "bin.outcomeNotClosed",
+  );
 
 /** A clock that ticks each second while `running`. */
 function useSecondClock(running: boolean) {
@@ -91,6 +94,7 @@ export function WorldBin({
   bus?: boolean;
   dock?: ReactNode;
 }) {
+  const t = useT();
   const bin = useWorldBin();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,12 +135,16 @@ export function WorldBin({
         aria-expanded={open}
         aria-label={
           !held
-            ? "Bin, empty"
+            ? t("bin.chipEmpty")
             : town
-              ? `Bin, ${held} ${held === 1 ? "agent" : "agents"}, ${bus}`
-              : `Bin, cleaning up ${held} ${held === 1 ? "agent" : "agents"}, ${bus}`
+              ? held === 1
+                ? t("bin.chipAgentsOne", { count: held, bus })
+                : t("bin.chipAgentsMany", { count: held, bus })
+              : held === 1
+                ? t("bin.chipCleaningOne", { count: held, bus })
+                : t("bin.chipCleaningMany", { count: held, bus })
         }
-        title="Drag an agent here to put it in the bin"
+        title={t("bin.chipTitle")}
         onClick={() => setOpen((value) => !value)}
       >
         <Trash2 size={15} aria-hidden="true" />
@@ -147,7 +155,7 @@ export function WorldBin({
           </>
         ) : (
           <>
-            Cleaning up <b>{held}</b>
+            {t("bin.cleaningUp")} <b>{held}</b>
           </>
         )}
       </button>
@@ -167,10 +175,10 @@ export function WorldBin({
           ref={tray}
           className="world-bin-tray"
           role="dialog"
-          aria-label="Bin"
+          aria-label={t("bin.trayAria")}
         >
           <header>
-            <strong>Bin</strong>
+            <strong>{t("bin.trayTitle")}</strong>
             <span>{bus}</span>
             {bin.bus.stopped ? (
               <button
@@ -178,12 +186,12 @@ export function WorldBin({
                 className="world-bin-go"
                 onClick={() => act(() => worldBinStore().goBus())}
               >
-                {town ? "Let the bus go" : "Go on"}
+                {town ? t("bin.letBusGo") : t("bin.goOn")}
               </button>
             ) : null}
             <button
               type="button"
-              aria-label="Close the bin"
+              aria-label={t("bin.closeAria")}
               onClick={() => setOpen(false)}
             >
               <X size={16} />
@@ -198,18 +206,18 @@ export function WorldBin({
                     <small>
                       {town
                         ? entry.riding
-                          ? "On the bus; closes when it leaves"
-                          : "Waiting for the bus"
+                          ? t("bin.onBus")
+                          : t("bin.waitingBus")
                         : entry.riding
-                          ? "Closing soon"
-                          : "Waiting to close"}
+                          ? t("bin.closingSoon")
+                          : t("bin.waitingClose")}
                     </small>
                   </span>
                   <button
                     type="button"
                     onClick={() => act(() => worldBinStore().restore(entry.id))}
                   >
-                    Put back
+                    {t("bin.putBack")}
                   </button>
                   <button
                     type="button"
@@ -218,7 +226,7 @@ export function WorldBin({
                       act(() => worldBinStore().closeNow([entry.id]))
                     }
                   >
-                    Close now
+                    {t("bin.closeNow")}
                   </button>
                 </li>
               ))}
@@ -226,16 +234,14 @@ export function WorldBin({
                 <li key={entry.id} data-bin-entry={entry.id}>
                   <span>
                     <b>{entry.label}</b>
-                    <small>Closing…</small>
+                    <small>{t("bin.closing")}</small>
                   </span>
                 </li>
               ))}
             </ul>
           ) : (
             <p className="world-bin-empty">
-              {town
-                ? "The bin is empty. Drag an agent onto the bin or a bus stop, or use its window's ⋯ menu."
-                : "The bin is empty. Drag an agent onto the bin, or use its window's ⋯ menu."}
+              {town ? t("bin.emptyTown") : t("bin.emptyOther")}
             </p>
           )}
           {error ? (
@@ -244,13 +250,13 @@ export function WorldBin({
             </p>
           ) : null}
           {bin.outcomes.length ? (
-            <ol className="world-bin-outcomes" aria-label="Recent">
+            <ol className="world-bin-outcomes" aria-label={t("bin.recentAria")}>
               {bin.outcomes
                 .slice(-3)
                 .reverse()
                 .map((outcome) => (
                   <li key={outcome.id} data-result={outcome.result}>
-                    <b>{outcome.label}</b> {OUTCOME[outcome.result]}
+                    <b>{outcome.label}</b> {outcomeWord(outcome.result)}
                     {outcome.result !== "closed" && outcome.detail
                       ? `: ${outcome.detail}`
                       : ""}

@@ -2,40 +2,41 @@ import { Copy, Dices, Play, Plus, Save, Trash2, Volume2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ACCESSORIES,
-  HAIRS,
+  type AgentLook,
+  type AgentProfile,
+  agentNameFor,
   HAIR_STYLES,
+  HAIRS,
   HARNESS_CHOICES,
+  launchCommandPreview,
+  launchPlan,
   OUTFITS,
   PANTS,
   SHIRTS,
   SKINS,
   STARTER_PROFILES,
   TOOL_CHOICES,
-  agentNameFor,
-  launchCommandPreview,
-  launchPlan,
-  type AgentLook,
-  type AgentProfile,
 } from "../../../shared/agentProfile";
 import {
   DEFAULT_CHIMES,
-  TIMBRES,
   TIMBRE_LABELS,
+  TIMBRES,
   type Timbre,
 } from "../../../shared/chimes";
 import { chimeDevice } from "../chimes/chimeCenter";
 import { previewChime } from "../chimes/player";
-import { ColorSwatches } from "../components/ColorSwatch";
 import { CloseButton } from "../components/CloseButton";
+import { ColorSwatches } from "../components/ColorSwatch";
+import { useT } from "../i18n";
 import { useLayer } from "../layerStack";
 import {
   deleteProfile,
   harnessLabel,
+  type LauncherCatalog,
   launcherCatalog,
   readinessNote,
   saveProfile,
   useAgentProfiles,
-  type LauncherCatalog,
 } from "./agentProfiles";
 import { ProfileSprite } from "./ProfileSprite";
 import { TERMINAL_COLOR_PALETTE } from "./terminalColor";
@@ -43,30 +44,56 @@ import type { WorldObject } from "./worldObject";
 import "./agentProfiles.css";
 
 type Tab = "who" | "brain" | "skills" | "brief" | "look";
-const TABS: [Tab, string][] = [
-  ["who", "Who"],
-  ["brain", "Brain"],
-  ["skills", "Skills & tools"],
-  ["brief", "Brief"],
-  ["look", "Look & sound"],
-];
-const LABELS: Record<string, string> = {
-  short: "Short",
-  long: "Long",
-  bun: "Bun",
-  cap: "Cap",
-  shaved: "Shaved",
-  shirt: "Shirt",
-  hoodie: "Hoodie",
-  coat: "Lab coat",
-  dress: "Dress",
-  captain: "Captain",
-  none: "None",
-  glasses: "Glasses",
-  headset: "Headset",
-  scarf: "Scarf",
-  badge: "Badge",
-  pencil: "Pencil",
+const TABS: Tab[] = ["who", "brain", "skills", "brief", "look"];
+const TAB_LABEL_KEYS: Record<
+  Tab,
+  | "profileEditor.tabWho"
+  | "profileEditor.tabBrain"
+  | "profileEditor.tabSkills"
+  | "profileEditor.tabBrief"
+  | "profileEditor.tabLook"
+> = {
+  who: "profileEditor.tabWho",
+  brain: "profileEditor.tabBrain",
+  skills: "profileEditor.tabSkills",
+  brief: "profileEditor.tabBrief",
+  look: "profileEditor.tabLook",
+};
+const LOOK_LABEL_KEYS: Record<
+  string,
+  | "profileEditor.lookShort"
+  | "profileEditor.lookLong"
+  | "profileEditor.lookBun"
+  | "profileEditor.lookCap"
+  | "profileEditor.lookShaved"
+  | "profileEditor.lookShirt"
+  | "profileEditor.lookHoodie"
+  | "profileEditor.lookCoat"
+  | "profileEditor.lookDress"
+  | "profileEditor.lookCaptain"
+  | "profileEditor.lookNone"
+  | "profileEditor.lookGlasses"
+  | "profileEditor.lookHeadset"
+  | "profileEditor.lookScarf"
+  | "profileEditor.lookBadge"
+  | "profileEditor.lookPencil"
+> = {
+  short: "profileEditor.lookShort",
+  long: "profileEditor.lookLong",
+  bun: "profileEditor.lookBun",
+  cap: "profileEditor.lookCap",
+  shaved: "profileEditor.lookShaved",
+  shirt: "profileEditor.lookShirt",
+  hoodie: "profileEditor.lookHoodie",
+  coat: "profileEditor.lookCoat",
+  dress: "profileEditor.lookDress",
+  captain: "profileEditor.lookCaptain",
+  none: "profileEditor.lookNone",
+  glasses: "profileEditor.lookGlasses",
+  headset: "profileEditor.lookHeadset",
+  scarf: "profileEditor.lookScarf",
+  badge: "profileEditor.lookBadge",
+  pencil: "profileEditor.lookPencil",
 };
 const pick = <T,>(values: readonly T[]) =>
   values[Math.floor(Math.random() * values.length)]!;
@@ -93,6 +120,7 @@ export function ProfileEditor({
   onLaunch(profileId: string): void;
   onClose(): void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   useLayer(true, () => onClose(), { element: () => ref.current });
   const { document, error: loadError } = useAgentProfiles();
@@ -164,7 +192,7 @@ export function ProfileEditor({
       await saveProfile(profile);
       setSelectedId(profile.id);
       setDraft(structuredClone(profile));
-      setMessage("Saved.");
+      setMessage(t("profileEditor.saved"));
       return true;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -205,17 +233,20 @@ export function ProfileEditor({
         className="modal profile-editor"
         role="dialog"
         aria-modal="true"
-        aria-label="Agent profiles"
+        aria-label={t("profileEditor.titleAria")}
       >
         <div className="modal-head">
-          <h2>Agent profiles</h2>
-          <CloseButton onClick={onClose} label="Close agent profiles" />
+          <h2>{t("profileEditor.title")}</h2>
+          <CloseButton onClick={onClose} label={t("profileEditor.closeAria")} />
         </div>
         {loadError && !document ? (
           <p className="agent-launcher-error">{loadError}</p>
         ) : null}
         <div className="profile-editor-grid">
-          <aside className="profile-roster" aria-label="Profiles">
+          <aside
+            className="profile-roster"
+            aria-label={t("profileEditor.profilesAria")}
+          >
             {profiles.map((profile) => (
               <button
                 key={profile.id}
@@ -233,7 +264,9 @@ export function ProfileEditor({
                 <span>
                   <b>
                     {profile.name}
-                    {profile.starter ? <i> starter</i> : null}
+                    {profile.starter ? (
+                      <i> {t("profileEditor.starter")}</i>
+                    ) : null}
                   </b>
                   <small>{harnessLabel(profile.harness)}</small>
                 </span>
@@ -244,23 +277,32 @@ export function ProfileEditor({
               className="profile-roster-new"
               onClick={() => create(STARTER_PROFILES[1]!, "New agent")}
             >
-              <Plus size={14} aria-hidden="true" /> New profile
+              <Plus size={14} aria-hidden="true" />{" "}
+              {t("profileEditor.newProfile")}
             </button>
           </aside>
           {draft ? (
-            <section className="profile-form" aria-label="Profile">
+            <section
+              className="profile-form"
+              aria-label={t("profileEditor.profileAria")}
+            >
               <div className="profile-form-head">
-                <b>{draft.name || "Unnamed"}</b>
+                <b>{draft.name || t("profileEditor.unnamed")}</b>
                 <button
                   type="button"
                   onClick={() => create(draft, `${draft.name} copy`)}
                 >
-                  <Copy size={13} aria-hidden="true" /> Duplicate
+                  <Copy size={13} aria-hidden="true" />{" "}
+                  {t("profileEditor.duplicate")}
                 </button>
                 <button
                   type="button"
                   onClick={async () => {
-                    if (!window.confirm(`Delete the profile ${draft.name}?`))
+                    if (
+                      !window.confirm(
+                        t("profileEditor.deleteConfirm", { name: draft.name }),
+                      )
+                    )
                       return;
                     try {
                       await deleteProfile(draft.id);
@@ -273,7 +315,8 @@ export function ProfileEditor({
                     }
                   }}
                 >
-                  <Trash2 size={13} aria-hidden="true" /> Delete
+                  <Trash2 size={13} aria-hidden="true" />{" "}
+                  {t("profileEditor.delete")}
                 </button>
                 <button
                   type="button"
@@ -283,11 +326,12 @@ export function ProfileEditor({
                     if (!dirty || (await persist(draft))) onLaunch(draft.id);
                   }}
                 >
-                  <Play size={13} aria-hidden="true" /> New agent
+                  <Play size={13} aria-hidden="true" />{" "}
+                  {t("profileEditor.launchNew")}
                 </button>
               </div>
               <div className="profile-tabs" role="tablist">
-                {TABS.map(([id, label]) => (
+                {TABS.map((id) => (
                   <button
                     key={id}
                     type="button"
@@ -295,33 +339,34 @@ export function ProfileEditor({
                     aria-selected={tab === id}
                     onClick={() => setTab(id)}
                   >
-                    {label}
+                    {t(TAB_LABEL_KEYS[id])}
                   </button>
                 ))}
               </div>
               {tab === "who" ? (
                 <div className="profile-pane">
                   <label className="agent-field">
-                    <span>Name</span>
+                    <span>{t("profileEditor.nameLabel")}</span>
                     <input
                       value={draft.name}
                       maxLength={32}
                       onChange={(event) => update({ name: event.target.value })}
                     />
                     <small>
-                      Herdr knows it as <code>{agentNameFor(draft.name)}</code>;
-                      a number is added if that name is taken.
+                      {t("profileEditor.nameHelpPrefix")}
+                      <code>{agentNameFor(draft.name)}</code>
+                      {t("profileEditor.nameHelpSuffix")}
                     </small>
                   </label>
                   <label className="agent-field">
-                    <span>Home room</span>
+                    <span>{t("profileEditor.homeRoom")}</span>
                     <select
                       value={draft.home_room}
                       onChange={(event) =>
                         update({ home_room: event.target.value })
                       }
                     >
-                      <option value="">Any room</option>
+                      <option value="">{t("profileEditor.anyRoom")}</option>
                       {[...new Set([draft.home_room, ...rooms])]
                         .filter(Boolean)
                         .map((label) => (
@@ -330,21 +375,19 @@ export function ProfileEditor({
                           </option>
                         ))}
                     </select>
-                    <small>New agents start here unless you pick a room.</small>
+                    <small>{t("profileEditor.homeRoomHelp")}</small>
                   </label>
                   <label className="agent-field">
-                    <span>Role or persona</span>
+                    <span>{t("profileEditor.roleLabel")}</span>
                     <textarea
                       rows={5}
                       value={draft.role}
                       onChange={(event) => update({ role: event.target.value })}
                     />
-                    <small>
-                      How it works, not today's task; that is the brief.
-                    </small>
+                    <small>{t("profileEditor.roleHelp")}</small>
                   </label>
                   <div className="agent-field">
-                    <span>Colour</span>
+                    <span>{t("profileEditor.colour")}</span>
                     <ColorSwatches
                       palette={TERMINAL_COLOR_PALETTE}
                       current={{
@@ -354,9 +397,9 @@ export function ProfileEditor({
                       onColor={(id) =>
                         update({ color: id as AgentProfile["color"] })
                       }
-                      label="Profile colour"
+                      label={t("profileEditor.colourAria")}
                     />
-                    <small>Its tab, desk and card colour.</small>
+                    <small>{t("profileEditor.colourHelp")}</small>
                   </div>
                   <label className="profile-check">
                     <input
@@ -366,20 +409,17 @@ export function ProfileEditor({
                         update({ town_master: event.target.checked })
                       }
                     />
-                    Offer its agents the Town master role
+                    {t("profileEditor.townMasterCheck")}
                   </label>
                   <small className="agent-launcher-note">
-                    Settings → Sounds then suggests making an agent launched
-                    from it the Town master; only you assign the role.
+                    {t("profileEditor.townMasterNote")}
                   </small>
                 </div>
               ) : null}
               {tab === "brain" ? (
                 <div className="profile-pane">
                   <p className="agent-launcher-note">
-                    Harnesses are the ones this host's Herdr supports.
-                    Credentials stay with each harness; a profile never stores
-                    one.
+                    {t("profileEditor.brainNote")}
                   </p>
                   {(() => {
                     const option = (kind: string) => {
@@ -417,8 +457,9 @@ export function ProfileEditor({
                         {absent.length ? (
                           <details>
                             <summary>
-                              {absent.length} more that Herdr supports but this
-                              host does not have
+                              {t("profileEditor.absentMore", {
+                                count: absent.length,
+                              })}
                             </summary>
                             {absent.map(option)}
                           </details>
@@ -427,11 +468,11 @@ export function ProfileEditor({
                     );
                   })()}
                   <label className="agent-field">
-                    <span>Model</span>
+                    <span>{t("profileEditor.model")}</span>
                     <input
                       list="profile-models"
                       value={draft.model}
-                      placeholder="The harness's default"
+                      placeholder={t("profileEditor.harnessDefault")}
                       onChange={(event) =>
                         update({ model: event.target.value.trim() })
                       }
@@ -444,14 +485,16 @@ export function ProfileEditor({
                   </label>
                   {choices?.efforts.length ? (
                     <label className="agent-field">
-                      <span>Reasoning effort</span>
+                      <span>{t("profileEditor.effort")}</span>
                       <select
                         value={draft.effort}
                         onChange={(event) =>
                           update({ effort: event.target.value })
                         }
                       >
-                        <option value="">The harness's default</option>
+                        <option value="">
+                          {t("profileEditor.harnessDefault")}
+                        </option>
                         {choices.efforts.map((effort) => (
                           <option key={effort}>{effort}</option>
                         ))}
@@ -460,9 +503,14 @@ export function ProfileEditor({
                   ) : null}
                   {choices ? (
                     <div className="agent-field">
-                      <span>Permission mode</span>
+                      <span>{t("profileEditor.permission")}</span>
                       <div className="profile-radio" role="radiogroup">
-                        {[["", "The harness's default"] as [string, string]]
+                        {[
+                          ["", t("profileEditor.harnessDefault")] as [
+                            string,
+                            string,
+                          ],
+                        ]
                           .concat(choices.permissions)
                           .map(([mode, help]) => (
                             <label key={mode || "default"}>
@@ -473,7 +521,7 @@ export function ProfileEditor({
                                 onChange={() => update({ permission: mode })}
                               />
                               <span>
-                                <b>{mode || "default"}</b>
+                                <b>{mode || t("profileEditor.modeDefault")}</b>
                                 <small>{help}</small>
                               </span>
                             </label>
@@ -482,9 +530,7 @@ export function ProfileEditor({
                     </div>
                   ) : (
                     <p className="agent-launcher-note">
-                      World has no option mapping for this harness yet: it
-                      starts with its own settings and gets the role in its
-                      first prompt.
+                      {t("profileEditor.noMapping")}
                     </p>
                   )}
                 </div>
@@ -492,10 +538,11 @@ export function ProfileEditor({
               {tab === "skills" ? (
                 <div className="profile-pane">
                   <div className="agent-field">
-                    <span>Skills</span>
+                    <span>{t("profileEditor.skills")}</span>
                     <small>
-                      Skill folders (<code>SKILL.md</code>) found in the room's
-                      repository and the host's harness folders.
+                      {t("profileEditor.skillsHelpPrefix")}
+                      <code>SKILL.md</code>
+                      {t("profileEditor.skillsHelpSuffix")}
                     </small>
                     <div className="profile-chips">
                       {skills.length ? (
@@ -512,17 +559,13 @@ export function ProfileEditor({
                           </button>
                         ))
                       ) : (
-                        <small>No skill folders found on this host.</small>
+                        <small>{t("profileEditor.noSkills")}</small>
                       )}
                     </div>
                   </div>
                   <div className="agent-field">
-                    <span>Tools</span>
-                    <small>
-                      None chosen means the harness's own set. Claude Code
-                      allows only these; Codex reads Edit or Write as write
-                      access to the workspace, otherwise read-only.
-                    </small>
+                    <span>{t("profileEditor.tools")}</span>
+                    <small>{t("profileEditor.toolsHelp")}</small>
                     <div className="profile-chips">
                       {[...new Set([...TOOL_CHOICES, ...draft.tools])].map(
                         (tool) => (
@@ -545,7 +588,7 @@ export function ProfileEditor({
               {tab === "brief" ? (
                 <div className="profile-pane">
                   <label className="agent-field">
-                    <span>Starting brief</span>
+                    <span>{t("profileEditor.briefLabel")}</span>
                     <textarea
                       rows={10}
                       value={draft.brief}
@@ -554,7 +597,7 @@ export function ProfileEditor({
                       }
                     />
                     <small>
-                      Filled at launch: <code>{"{{name}}"}</code>{" "}
+                      {t("profileEditor.briefFilled")} <code>{"{{name}}"}</code>{" "}
                       <code>{"{{task}}"}</code> <code>{"{{room}}"}</code>{" "}
                       <code>{"{{spawned_by}}"}</code>
                     </small>
@@ -567,50 +610,50 @@ export function ProfileEditor({
                         update({ send_brief: event.target.checked })
                       }
                     />
-                    Send the brief as the first prompt once the agent is ready
+                    {t("profileEditor.sendBrief")}
                   </label>
                 </div>
               ) : null}
               {tab === "look" ? (
                 <div className="profile-pane">
                   <LookSwatches
-                    label="Skin"
+                    label={t("profileEditor.skin")}
                     values={SKINS}
                     current={draft.look.skin}
                     onPick={(skin) => updateLook({ skin })}
                   />
                   <LookOptions
-                    label="Hair"
+                    label={t("profileEditor.hair")}
                     values={HAIR_STYLES}
                     current={draft.look.hair_style}
                     onPick={(hair_style) => updateLook({ hair_style })}
                   />
                   <LookSwatches
-                    label="Hair colour"
+                    label={t("profileEditor.hairColour")}
                     values={HAIRS}
                     current={draft.look.hair}
                     onPick={(hair) => updateLook({ hair })}
                   />
                   <LookOptions
-                    label="Outfit"
+                    label={t("profileEditor.outfit")}
                     values={OUTFITS}
                     current={draft.look.outfit}
                     onPick={(outfit) => updateLook({ outfit })}
                   />
                   <LookSwatches
-                    label="Shirt or dress"
+                    label={t("profileEditor.shirtOrDress")}
                     values={SHIRTS}
                     current={draft.look.shirt}
                     onPick={(shirt) => updateLook({ shirt })}
                   />
                   <LookSwatches
-                    label="Trousers"
+                    label={t("profileEditor.trousers")}
                     values={PANTS}
                     current={draft.look.pants}
                     onPick={(pants) => updateLook({ pants })}
                   />
                   <LookOptions
-                    label="Accessory"
+                    label={t("profileEditor.accessory")}
                     values={ACCESSORIES}
                     current={draft.look.accessory}
                     onPick={(accessory) => updateLook({ accessory })}
@@ -635,7 +678,8 @@ export function ProfileEditor({
                       })
                     }
                   >
-                    <Dices size={13} aria-hidden="true" /> Surprise me
+                    <Dices size={13} aria-hidden="true" />{" "}
+                    {t("profileEditor.surprise")}
                   </button>
                 </div>
               ) : null}
@@ -645,7 +689,7 @@ export function ProfileEditor({
                 ) : message && !dirty ? (
                   <span>{message}</span>
                 ) : dirty ? (
-                  <span>Unsaved changes</span>
+                  <span>{t("profileEditor.unsaved")}</span>
                 ) : null}
                 <button
                   type="button"
@@ -653,19 +697,23 @@ export function ProfileEditor({
                   disabled={!dirty || saving}
                   onClick={() => void persist(draft)}
                 >
-                  <Save size={13} aria-hidden="true" /> Save
+                  <Save size={13} aria-hidden="true" />{" "}
+                  {t("profileEditor.save")}
                 </button>
               </div>
             </section>
           ) : null}
           {draft ? (
             <div className="profile-side">
-              <section className="profile-preview" aria-label="Preview">
+              <section
+                className="profile-preview"
+                aria-label={t("profileEditor.previewAria")}
+              >
                 <ProfileSprite
                   look={draft.look}
                   scale={6}
                   animate
-                  label={`${draft.name} in Town`}
+                  label={t("profileEditor.inTown", { name: draft.name })}
                 />
                 <span
                   className="profile-tag"
@@ -679,15 +727,20 @@ export function ProfileEditor({
                   {agentNameFor(draft.name)}
                 </span>
               </section>
-              <section className="profile-launch" aria-label="What launch runs">
+              <section
+                className="profile-launch"
+                aria-label={t("profileEditor.launchSectionAria")}
+              >
                 <div className="agent-launcher-section-head">
-                  <h3>What a launch runs</h3>
+                  <h3>{t("profileEditor.launchSectionTitle")}</h3>
                   <button
                     type="button"
                     aria-pressed={showWorld}
                     onClick={() => setShowWorld((v) => !v)}
                   >
-                    {showWorld ? "Harness" : "World profile"}
+                    {showWorld
+                      ? t("profileEditor.showHarness")
+                      : t("profileEditor.showWorldProfile")}
                   </button>
                 </div>
                 <pre>
@@ -745,20 +798,24 @@ function LookOptions<T extends string>({
   current: T;
   onPick(value: T): void;
 }) {
+  const t = useT();
   return (
     <div className="agent-field">
       <span>{label}</span>
       <div className="profile-chips" role="group" aria-label={label}>
-        {values.map((value) => (
-          <button
-            key={value}
-            type="button"
-            aria-pressed={current === value}
-            onClick={() => onPick(value)}
-          >
-            {LABELS[value] ?? value}
-          </button>
-        ))}
+        {values.map((value) => {
+          const key = LOOK_LABEL_KEYS[value];
+          return (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={current === value}
+              onClick={() => onPick(value)}
+            >
+              {key ? t(key) : value}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -779,18 +836,21 @@ function ChimeField({
   crew: Timbre;
   onPick(chime: Timbre | null): void;
 }) {
+  const t = useT();
   return (
     <div className="agent-field">
-      <span>Chime</span>
+      <span>{t("profileEditor.chime")}</span>
       <div className="profile-chime">
         <select
-          aria-label="Chime"
+          aria-label={t("profileEditor.chimeAria")}
           value={current ?? ""}
           onChange={(event) =>
             onPick((event.target.value || null) as Timbre | null)
           }
         >
-          <option value="">Class default ({TIMBRE_LABELS[crew]})</option>
+          <option value="">
+            {t("profileEditor.classDefault", { timbre: TIMBRE_LABELS[crew] })}
+          </option>
           {TIMBRES.filter((timbre) => timbre !== master).map((timbre) => (
             <option key={timbre} value={timbre}>
               {TIMBRE_LABELS[timbre]}
@@ -799,7 +859,7 @@ function ChimeField({
         </select>
         <button
           type="button"
-          title="Play its needs-you chime"
+          title={t("profileEditor.playNeedsYou")}
           onClick={() =>
             void previewChime(
               current ?? crew,
@@ -808,12 +868,13 @@ function ChimeField({
             )
           }
         >
-          <Volume2 size={13} aria-hidden="true" /> Preview
+          <Volume2 size={13} aria-hidden="true" /> {t("profileEditor.preview")}
         </button>
       </div>
       <small>
-        Agents launched from this profile chime with it. The Town master always
-        sounds as {TIMBRE_LABELS[master]}.
+        {t("profileEditor.chimeNotePrefix")}
+        {TIMBRE_LABELS[master]}
+        {t("profileEditor.chimeNoteSuffix")}
       </small>
     </div>
   );

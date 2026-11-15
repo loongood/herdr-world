@@ -2,8 +2,9 @@ import { CircleCheck, CircleOff, RefreshCw, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { WorldSourceStatus } from "../../../shared/worldSources";
 import { CloseButton } from "../components/CloseButton";
-import { ThemedSelect } from "../components/ThemedSelect";
 import { focusDialogElement } from "../components/dialogFocus";
+import { ThemedSelect } from "../components/ThemedSelect";
+import { useT } from "../i18n";
 import { useLayer } from "../layerStack";
 import {
   updateWorldSource,
@@ -24,6 +25,7 @@ const mergedWindows = (current: number) =>
  * its own fields. Jira's API token is write-only; the service keeps it.
  */
 export function SourcesDialog({ onClose }: { onClose(): void }) {
+  const t = useT();
   const snapshot = useWorldSources();
   const dialogRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -69,7 +71,7 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
       setError(
         cause instanceof Error && cause.message
           ? cause.message
-          : "Could not save source settings",
+          : t("sources.saveFailed"),
       );
     } finally {
       setBusy(null);
@@ -80,7 +82,7 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
     void run(
       source.id,
       () => updateWorldSource(source.id, { enabled: !source.enabled }),
-      `${source.label} ${source.enabled ? "switched off" : "switched on"}.`,
+      `${source.label} ${t(source.enabled ? "sources.switchedOff" : "sources.switchedOn")}.`,
     );
 
   return (
@@ -91,22 +93,19 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
         className="modal compact-modal world-sources-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="Sources"
+        aria-label={t("sources.title")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-head">
-          <h2>Sources</h2>
-          <CloseButton onClick={onClose} label="Close sources" />
+          <h2>{t("sources.title")}</h2>
+          <CloseButton onClick={onClose} label={t("sources.closeAria")} />
         </div>
-        <p className="world-observability-help">
-          World shows your pull requests and tickets beside your agents: on
-          Board's Work lens and as badges on Town desks. The World service makes
-          the requests with your sign-ins; the browser never contacts GitHub or
-          Jira.
-        </p>
+        <p className="world-observability-help">{t("sources.help")}</p>
 
         {snapshot.sources.length ? null : (
-          <p className="world-observability-field-help">Loading sources…</p>
+          <p className="world-observability-field-help">
+            {t("sources.loading")}
+          </p>
         )}
         {snapshot.sources.map((source) => (
           <section
@@ -120,7 +119,7 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
                 type="button"
                 role="switch"
                 aria-checked={source.enabled}
-                aria-label={`${source.label} source`}
+                aria-label={t("sources.sourceAria", { label: source.label })}
                 className="world-source-switch"
                 disabled={busy !== null}
                 onClick={() => toggle(source)}
@@ -153,22 +152,21 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
             source.config.kind === "github" ? (
               <>
                 <p className="world-observability-field-help">
-                  Uses the GitHub CLI signed in as the user that runs World:
-                  pull requests you opened, were asked to review or are
-                  assigned, every one you opened that was merged in the window
-                  below, and issues assigned to you. Each agent's desk shows the
-                  pull request for its branch.
+                  {t("sources.githubHelp")}
                 </p>
                 <label className="form-field">
-                  <span>Merged pull requests</span>
+                  <span>{t("sources.mergedWindow")}</span>
                   <ThemedSelect
-                    aria-label="Merged pull requests"
+                    aria-label={t("sources.mergedWindow")}
                     value={String(source.config.mergedDays)}
                     disabled={busy !== null}
                     options={mergedWindows(source.config.mergedDays).map(
                       (days) => ({
                         value: String(days),
-                        label: days === 1 ? "Last day" : `Last ${days} days`,
+                        label:
+                          days === 1
+                            ? t("sources.lastDay")
+                            : t("sources.lastDays", { count: days }),
                       }),
                     )}
                     onChange={(value) => {
@@ -176,7 +174,7 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
                       void run(
                         "github",
                         () => updateWorldSource("github", { mergedDays }),
-                        "GitHub settings saved.",
+                        t("sources.githubSaved"),
                       );
                     }}
                   />
@@ -199,12 +197,12 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
                       });
                       setJira((value) => ({ ...value, token: "" }));
                     },
-                    "Jira settings saved.",
+                    t("sources.jiraSaved"),
                   );
                 }}
               >
                 <label className="form-field">
-                  <span>Site</span>
+                  <span>{t("sources.site")}</span>
                   <input
                     value={jira.site}
                     placeholder="example.atlassian.net"
@@ -217,7 +215,7 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
                   />
                 </label>
                 <label className="form-field">
-                  <span>Account email</span>
+                  <span>{t("sources.email")}</span>
                   <input
                     type="email"
                     value={jira.email}
@@ -230,14 +228,14 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
                   />
                 </label>
                 <label className="form-field">
-                  <span>API token</span>
+                  <span>{t("sources.token")}</span>
                   <input
                     type="password"
                     value={jira.token}
                     placeholder={
                       source.config.kind === "jira" && source.config.tokenSet
-                        ? "Saved; type to replace"
-                        : "From id.atlassian.com, Security, API tokens"
+                        ? t("sources.tokenSetPlaceholder")
+                        : t("sources.tokenPlaceholder")
                     }
                     autoComplete="new-password"
                     onChange={(event) => {
@@ -247,7 +245,7 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
                   />
                 </label>
                 <label className="form-field">
-                  <span>Filter (JQL)</span>
+                  <span>{t("sources.jql")}</span>
                   <textarea
                     rows={3}
                     value={jira.jql}
@@ -259,9 +257,7 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
                   />
                 </label>
                 <p className="world-observability-field-help">
-                  Leave the filter empty for tickets assigned to you or that you
-                  watch. The token is kept in World's private storage on the
-                  service and is never shown again.
+                  {t("sources.jiraHelp")}
                 </p>
                 <div className="modal-actions world-observability-actions">
                   <button
@@ -275,14 +271,16 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
                       void run(
                         "jira",
                         () => updateWorldSource("jira", { token: null }),
-                        "Jira API token removed.",
+                        t("sources.tokenRemoved"),
                       )
                     }
                   >
-                    Remove token
+                    {t("sources.removeToken")}
                   </button>
                   <button type="submit" disabled={busy !== null}>
-                    {busy === "jira" ? "Saving…" : "Save Jira"}
+                    {busy === "jira"
+                      ? t("sources.saving")
+                      : t("sources.saveJira")}
                   </button>
                 </div>
               </form>
@@ -305,11 +303,11 @@ export function SourcesDialog({ onClose }: { onClose(): void }) {
               void run(
                 "refresh",
                 () => worldSourcesStore.refresh(true),
-                "Sources refreshed.",
+                t("sources.refreshed"),
               )
             }
           >
-            <RefreshCw size={14} aria-hidden="true" /> Refresh now
+            <RefreshCw size={14} aria-hidden="true" /> {t("sources.refresh")}
           </button>
         </div>
       </div>

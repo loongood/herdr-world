@@ -1,18 +1,21 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { bridge } from "../api";
 import {
-  HARNESS_CHOICES,
   type AgentLook,
   type AgentProfile,
+  HARNESS_CHOICES,
 } from "../../../shared/agentProfile";
 import {
-  parseHarnessReadiness,
   type HarnessReadiness,
+  parseHarnessReadiness,
 } from "../../../shared/harnessReadiness";
+import { bridge } from "../api";
+import { t } from "../i18n";
+
 export type { HarnessReadiness } from "../../../shared/harnessReadiness";
+
 import type { ChimeSettings } from "../../../shared/chimes";
-import type { TownLook } from "./town/townSprites";
 import type { AgentStartFrom } from "./agentStarts";
+import type { TownLook } from "./town/townSprites";
 
 /**
  * The browser's view of the service's agent profiles, the launcher's calls
@@ -357,7 +360,7 @@ export function readinessNote(
   if (!catalog.kinds.includes(kind))
     return {
       blocked: true,
-      text: "Not supported by this host's Herdr",
+      text: t("readiness.notSupported"),
       login: false,
     };
   const ready = catalog.readiness.find((r) => r.kind === kind);
@@ -366,25 +369,33 @@ export function readinessNote(
       blocked: false,
       text:
         ready?.probe.state === "unsupported"
-          ? "Readiness is not checked on Windows"
+          ? t("readiness.probeUnsupported")
           : ready?.probe.reason === "timeout"
-            ? "Readiness unknown (check timed out) — Check again"
+            ? t("readiness.probeTimeout")
             : ready?.probe.reason === "probe-failed"
-              ? "Readiness unknown (check failed) — Check again"
-              : "Readiness unknown — Check again",
+              ? t("readiness.probeFailed")
+              : t("readiness.probeUnknown"),
       login: false,
     };
   if (ready.installed === false)
-    return { blocked: true, text: "Not installed on this host", login: false };
+    return {
+      blocked: true,
+      text: t("readiness.notInstalled"),
+      login: false,
+    };
   if (ready.logged_in === false)
-    return { blocked: false, text: "Logged out", login: ready.can_log_in };
+    return {
+      blocked: false,
+      text: t("readiness.loggedOut"),
+      login: ready.can_log_in,
+    };
   if (ready.logged_in === null)
     return {
       blocked: false,
       text:
         ready.probe.reason === "auth-unsupported"
-          ? "Installed; login check not supported"
-          : "Login status unknown — Check again",
+          ? t("readiness.authUnsupported")
+          : t("readiness.loginUnknown"),
       login: false,
     };
   return null;

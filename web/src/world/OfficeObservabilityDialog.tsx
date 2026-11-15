@@ -2,10 +2,11 @@ import { Activity, CircleOff, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { CloseButton } from "../components/CloseButton";
 import { focusDialogElement } from "../components/dialogFocus";
+import { t, useT } from "../i18n";
 import {
   fetchOfficeObservabilityConfiguration,
-  updateOfficeObservabilityConfiguration,
   type OfficeObservabilityConfiguration,
+  updateOfficeObservabilityConfiguration,
 } from "./officeObservability";
 
 export function OfficeObservabilityDialog({
@@ -15,6 +16,7 @@ export function OfficeObservabilityDialog({
   onClose(): void;
   onSaved(): void;
 }) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const onCloseRef = useRef(onClose);
   const [endpoint, setEndpoint] = useState("");
@@ -43,7 +45,7 @@ export function OfficeObservabilityDialog({
       })
       .catch((cause: unknown) => {
         if (!disposed)
-          setError(errorText(cause, "Could not load metrics settings"));
+          setError(errorText(cause, t("observability.loadFailed")));
       })
       .finally(() => {
         if (!disposed) setLoading(false);
@@ -65,12 +67,12 @@ export function OfficeObservabilityDialog({
       setEndpoint(next.endpoint ?? "");
       setMessage(
         next.configured
-          ? "Prometheus provider saved."
-          : "Prometheus provider disabled.",
+          ? t("observability.savedMessage")
+          : t("observability.disabledMessage"),
       );
       onSaved();
     } catch (cause) {
-      setError(errorText(cause, "Could not save metrics settings"));
+      setError(errorText(cause, t("observability.saveFailed")));
     } finally {
       setBusy(false);
     }
@@ -84,7 +86,7 @@ export function OfficeObservabilityDialog({
         className="modal compact-modal world-observability-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="Cost metrics settings"
+        aria-label={t("observability.titleAria")}
         onSubmit={(event) => {
           event.preventDefault();
           void update(endpoint.trim() || null);
@@ -92,18 +94,14 @@ export function OfficeObservabilityDialog({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-head">
-          <h2>Cost metrics</h2>
-          <CloseButton onClick={onClose} label="Close cost metrics settings" />
+          <h2>{t("observability.title")}</h2>
+          <CloseButton onClick={onClose} label={t("observability.closeAria")} />
         </div>
 
-        <p className="world-observability-help">
-          Optionally connect Prometheus to show cost on the Town board. The
-          World service performs bounded queries; the browser never contacts
-          Prometheus, and Town, Board and terminals work without it.
-        </p>
+        <p className="world-observability-help">{t("observability.help")}</p>
 
         <label className="form-field">
-          <span>Prometheus URL</span>
+          <span>{t("observability.urlLabel")}</span>
           <input
             ref={inputRef}
             type="url"
@@ -116,8 +114,7 @@ export function OfficeObservabilityDialog({
           />
         </label>
         <p className="world-observability-field-help">
-          HTTP or HTTPS base URL only. Embedded credentials, query strings and
-          fragments are rejected.
+          {t("observability.urlHelp")}
         </p>
 
         <div
@@ -136,14 +133,17 @@ export function OfficeObservabilityDialog({
         </div>
         {configuration?.source === "environment" ? (
           <p className="world-observability-field-help">
-            This URL came from the World environment. Saving or disabling it
-            creates an explicit local setting.
+            {t("observability.envNote")}
           </p>
         ) : null}
         {configuration?.lastSuccessAt ? (
           <p className="world-observability-field-help">
-            Last successful observation:{" "}
-            {formatObservedAt(configuration.lastSuccessAt)}
+            {t("observability.lastSuccess", {
+              time: formatObservedAt(
+                configuration.lastSuccessAt,
+                t("observability.unknownTime"),
+              ),
+            })}
           </p>
         ) : null}
 
@@ -163,10 +163,10 @@ export function OfficeObservabilityDialog({
             }
             onClick={() => void update(null)}
           >
-            Disable
+            {t("observability.disable")}
           </button>
           <button type="submit" disabled={loading || busy}>
-            {busy ? "Saving…" : "Save"}
+            {busy ? t("observability.saving") : t("observability.save")}
           </button>
         </div>
       </form>
@@ -178,24 +178,20 @@ function configurationStatus(
   configuration: OfficeObservabilityConfiguration | null,
   loading: boolean,
 ) {
-  if (loading) return "Loading provider configuration…";
-  if (!configuration?.configured) {
-    return "Not configured; Economy shows no provider data.";
-  }
-  if (configuration.health === "available") {
-    return "Connected; Economy is using authoritative provider data.";
-  }
-  if (configuration.health === "degraded") {
-    return "Configured, but the latest Prometheus queries failed.";
-  }
-  return "Configured; waiting for the first provider observation.";
+  if (loading) return t("observability.statusLoading");
+  if (!configuration?.configured) return t("observability.statusNotConfigured");
+  if (configuration.health === "available")
+    return t("observability.statusAvailable");
+  if (configuration.health === "degraded")
+    return t("observability.statusDegraded");
+  return t("observability.statusWaiting");
 }
 
-function formatObservedAt(value: number) {
+function formatObservedAt(value: number, fallback: string) {
   try {
     return new Date(value).toLocaleString();
   } catch {
-    return "unknown";
+    return fallback;
   }
 }
 

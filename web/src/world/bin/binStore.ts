@@ -1,12 +1,13 @@
-import type { BridgeControlMsg, ConnectionStatus } from "../../api";
 import {
-  EMPTY_BIN,
   type BinEntry,
   type BinOutcome,
   type BinState,
   type BinTarget,
   type BinView,
+  EMPTY_BIN,
 } from "../../../../shared/bin";
+import type { BridgeControlMsg, ConnectionStatus } from "../../api";
+import { t } from "../../i18n";
 import type { WorldLeafObject } from "../worldObject";
 
 /** The service's bin as this page last read it. */
@@ -132,10 +133,12 @@ export const binClockLabel = (ms: number) => {
 
 /** Town's words for the bin's clock: its bus. */
 export function binBusLabel(bin: WorldBin, now: number) {
-  if (!bin.verified) return "bin unavailable";
+  if (!bin.verified) return t("bin.busUnavailable");
   const { elapsed, next } = binBusClock(bin, now);
-  if (elapsed !== null && bin.bus.stopped) return "bus stopped";
-  return elapsed !== null ? "bus on its way" : `bus in ${binClockLabel(next)}`;
+  if (elapsed !== null && bin.bus.stopped) return t("bin.busStopped");
+  return elapsed !== null
+    ? t("bin.busOnWay")
+    : t("bin.busIn", { time: binClockLabel(next) });
 }
 
 /**
@@ -145,12 +148,12 @@ export function binBusLabel(bin: WorldBin, now: number) {
  * wait for the next one.
  */
 export function binCloseLabel(bin: WorldBin, now: number) {
-  if (!bin.verified) return "bin unavailable";
+  if (!bin.verified) return t("bin.busUnavailable");
   const { elapsed, next } = binBusClock(bin, now);
   const leaving = elapsed !== null && bin.entries.some((entry) => entry.riding);
-  if (leaving && bin.bus.stopped) return "paused";
+  if (leaving && bin.bus.stopped) return t("bin.paused");
   const closes = leaving ? bin.bus.trip_ms - elapsed : next + bin.bus.trip_ms;
-  return `closes in ${binClockLabel(closes)}`;
+  return t("bin.closesIn", { time: binClockLabel(closes) });
 }
 
 export type BinAddRequest = BinTarget & {
