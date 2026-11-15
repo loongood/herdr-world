@@ -12,6 +12,7 @@ import {
   Search,
 } from "lucide-react";
 import type { ConnectionClient } from "../api";
+import { useT } from "../i18n";
 import type { FileExplorerEntry, FileExplorerList } from "../types";
 import { createFileSearchMatcher } from "../fileSearch";
 import { parentFilesystemPath } from "../filesystemPaths";
@@ -41,6 +42,7 @@ export function FilesystemBrowser({
   onMenu: (entry: FileExplorerEntry, x: number, y: number) => void;
   onExit: () => void;
 }) {
+  const t = useT();
   const [directory, setDirectory] = useState(initialPath);
   const [pathInput, setPathInput] = useState(initialPath);
   const [search, setSearch] = useState("");
@@ -64,9 +66,7 @@ export function FilesystemBrowser({
       .then((result: FileExplorerList & { scope?: string }) => {
         if (cancelled || !client.isCurrent()) return;
         if (result.scope !== "filesystem") {
-          throw new Error(
-            "Filesystem browsing requires an updated Studio bridge.",
-          );
+          throw new Error(t("files.fsRequiresBridge"));
         }
         setList(result);
         // Do not replace a directory the user started typing while loading.
@@ -132,26 +132,26 @@ export function FilesystemBrowser({
         <button
           type="button"
           className="ghost file-action"
-          title="Parent directory"
-          aria-label="Parent directory"
+          title={t("files.parentDirectory")}
+          aria-label={t("files.parentDirectory")}
           disabled={!currentPath || parent === currentPath.replace(/\\/g, "/")}
           onClick={() => navigate(parent)}
         >
           <ArrowUp size={15} />
         </button>
         <input
-          aria-label="Directory path"
+          aria-label={t("files.directoryPathAria")}
           title={currentPath}
           value={pathInput}
-          placeholder="Absolute directory on the connected host"
+          placeholder={t("files.directoryPlaceholder")}
           spellCheck={false}
           onChange={(event) => setPathInput(event.currentTarget.value)}
         />
         <button
           type="submit"
           className="ghost file-action"
-          title="Go to directory"
-          aria-label="Go to directory"
+          title={t("files.goToDirectory")}
+          aria-label={t("files.goToDirectory")}
           disabled={!pathInput.trim()}
         >
           <ArrowRight size={15} />
@@ -163,17 +163,17 @@ export function FilesystemBrowser({
           <input
             value={search}
             onChange={(event) => setSearch(event.currentTarget.value)}
-            placeholder="Search loaded files"
-            aria-label="Search loaded files"
+            placeholder={t("files.searchLoaded")}
+            aria-label={t("files.searchLoaded")}
             maxLength={512}
-            title="Search loaded names or paths. Globs: r*md, ?.txt, **/*.md, *.{md,txt}"
+            title={t("files.searchLoadedTitle")}
           />
         </label>
         <button
           type="button"
           className="file-hidden-toggle"
           aria-pressed={showHidden}
-          title="Show hidden files"
+          title={t("files.showHidden")}
           onClick={() => onShowHiddenChange(!showHidden)}
         >
           {showHidden ? <Eye size={15} /> : <EyeOff size={15} />}
@@ -183,8 +183,8 @@ export function FilesystemBrowser({
           <button
             type="button"
             className="file-toolbar-icon"
-            title="Refresh"
-            aria-label="Refresh files"
+            title={t("files.refresh")}
+            aria-label={t("files.refreshFiles")}
             onClick={() => setRefresh((value) => value + 1)}
           >
             <RefreshCw size={15} className={loading ? "is-spinning" : ""} />
@@ -204,7 +204,7 @@ export function FilesystemBrowser({
       <div
         className="file-tree"
         role="list"
-        aria-label="Filesystem entries"
+        aria-label={t("files.fsEntriesAria")}
         aria-busy={loading}
       >
         {loading ? (
@@ -214,7 +214,7 @@ export function FilesystemBrowser({
         ) : null}
         {!loading && !error && !entries.length ? (
           <div className="file-row file-row-muted">
-            {search ? "No loaded files match." : "Empty"}
+            {search ? t("files.noLoadedMatch") : t("files.empty")}
           </div>
         ) : null}
         {entries.map((entry) => (
@@ -282,8 +282,8 @@ export function FilesystemBrowser({
             <button
               type="button"
               className="ghost file-action"
-              aria-label={`Actions for ${entry.name}`}
-              title={`Actions for ${entry.name}`}
+              aria-label={t("files.actionsFor", { name: entry.name })}
+              title={t("files.actionsFor", { name: entry.name })}
               onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 onMenu(entry, rect.right, rect.bottom);

@@ -91,7 +91,13 @@
   badges, path labels, lifecycle and type words, test/edit/default/
   connect/reconnect/disconnect/remove actions with their notices and the
   remove confirmation), and the switcher menu with its selection notices.
-  The built-in slash-command catalog
+  The file explorer follows too: its entry menu (new folder, download,
+  copy path, reveal-on-host words and delete), search controls, hidden
+  files and filesystem-browse toggles, the workspace tree (loading, empty
+  and drop states), the new-folder and delete confirmations, and its
+  upload/download/move/delete notices, plus the read-only filesystem
+  browser (path bar, loaded-file search, entry actions) and the shared
+  reveal helper. The built-in slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
   Remaining surfaces keep English

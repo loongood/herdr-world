@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { bridge, type ConnectionClient, type ConnectionSummary } from "./api";
 import type { ShortcutPlatform } from "./shortcutBindings";
 import { store, useStoreSelector } from "./store";
@@ -33,13 +34,17 @@ export function revealMenuLabel(
   platform?: ShortcutPlatform,
 ) {
   if (!platform) {
-    return directory ? "Open folder on host" : "Reveal on host";
+    return directory ? t("files.folderOnHost") : t("files.revealOnHost");
   }
   if (platform === "linux") {
-    return directory ? "Open folder" : "Open containing folder";
+    return directory
+      ? t("files.folderLinux")
+      : t("files.containingFolderLinux");
   }
-  const fileManager = platform === "mac" ? "Finder" : "File Explorer";
-  return directory ? `Open in ${fileManager}` : `Reveal in ${fileManager}`;
+  const fileManager = platform === "mac" ? "Finder" : t("files.managerWindows");
+  return directory
+    ? t("files.openInManager", { manager: fileManager })
+    : t("files.revealInManager", { manager: fileManager });
 }
 
 /** Files open their containing folder; directories open themselves. */
@@ -63,7 +68,7 @@ export async function revealInFileManager(
     if (!client.isCurrent()) return;
     store.notify({
       kind: "error",
-      message: "Failed to open folder",
+      message: t("files.revealFailed"),
       detail: (error as Error).message,
     });
   }

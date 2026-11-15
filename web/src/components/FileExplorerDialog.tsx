@@ -1,3 +1,4 @@
+import { t, useT } from "../i18n";
 import { useLayer } from "../layerStack";
 import { useEffectCallback } from "../useEffectCallback";
 import { UncertainRequestError } from "../api";
@@ -126,7 +127,7 @@ export function FileExplorerDialog({
         className="modal file-explorer-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="File Explorer"
+        aria-label={t("files.explorerTitle")}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <FileExplorerContent
@@ -171,7 +172,7 @@ export function FileExplorerPanel({
   if (!open) return null;
 
   return (
-    <aside className="file-explorer-side" aria-label="File Explorer">
+    <aside className="file-explorer-side" aria-label={t("files.explorerTitle")}>
       <FileExplorerContent
         open={open}
         workspaceId={workspaceId}
@@ -221,6 +222,7 @@ function FileExplorerEntryMenu({
   onCreateDirectory?: (directory: string) => void;
   onRefresh: () => void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -280,17 +282,19 @@ function FileExplorerEntryMenu({
         ...(isDirectory && onCreateDirectory
           ? [
               {
-                label: "New folder",
+                label: t("files.newFolder"),
                 action: () => onCreateDirectory(entry.path),
               },
             ]
           : []),
         {
-          label: isDirectory ? "Download directory" : "Download file",
+          label: isDirectory
+            ? t("files.downloadDirectory")
+            : t("files.downloadFile"),
           action: () => onDownload(entry),
         },
         {
-          label: "Copy absolute path",
+          label: t("files.copyAbsolutePath"),
           action: () => onCopy(entry),
         },
         ...(onReveal
@@ -304,7 +308,9 @@ function FileExplorerEntryMenu({
         ...(onDelete
           ? [
               {
-                label: isDirectory ? "Delete directory" : "Delete file",
+                label: isDirectory
+                  ? t("files.deleteDirectory")
+                  : t("files.deleteFile"),
                 danger: true,
                 action: () => onDelete(entry),
               },
@@ -313,9 +319,14 @@ function FileExplorerEntryMenu({
       ]
     : [
         ...(onCreateDirectory
-          ? [{ label: "New folder", action: () => onCreateDirectory("") }]
+          ? [
+              {
+                label: t("files.newFolder"),
+                action: () => onCreateDirectory(""),
+              },
+            ]
           : []),
-        { label: "Refresh files", action: onRefresh },
+        { label: t("files.refreshFiles"), action: onRefresh },
       ];
   const menuMargin = 8;
   const menuWidth = ENTRY_MENU_WIDTH;
@@ -402,6 +413,7 @@ function FileExplorerContent({
     : focusedWorkspace;
   const cacheWorkspaceId = workspace?.workspace_id;
   const cacheResourceKey = resourceKey ?? cacheWorkspaceId;
+  const t = useT();
   const showHiddenStorageKey = connectionStorageKey(
     connectionClient.connectionId,
     `${FILE_SHOW_HIDDEN_PREFIX}${cacheResourceKey ?? "focused"}`,
@@ -1136,7 +1148,7 @@ function FileExplorerContent({
       if (!connectionClient.isCurrent()) return;
       store.notify({
         kind: "success",
-        message: "Path copied",
+        message: t("files.pathCopied"),
         detail: value,
         autoDismissMs: 5000,
       });
@@ -1144,7 +1156,7 @@ function FileExplorerContent({
       if (!connectionClient.isCurrent()) return;
       store.notify({
         kind: "error",
-        message: "Failed to copy path",
+        message: t("files.pathCopyFailed"),
         detail: (e as Error).message,
       });
     }
@@ -1178,7 +1190,7 @@ function FileExplorerContent({
         if (result === "shared" || !connectionClient.isCurrent()) return;
         store.notify({
           kind: "info",
-          message: "Download started",
+          message: t("files.downloadStarted"),
           detail: entry.path,
           autoDismissMs: 5000,
         });
@@ -1186,7 +1198,7 @@ function FileExplorerContent({
       .catch((error: unknown) => {
         store.notify({
           kind: "error",
-          message: "Download failed",
+          message: t("files.downloadFailed"),
           detail: error instanceof Error ? error.message : String(error),
         });
       });
@@ -1293,7 +1305,9 @@ function FileExplorerContent({
       store.notify({
         kind: "success",
         message:
-          entry.type === "directory" ? "Directory deleted" : "File deleted",
+          entry.type === "directory"
+            ? t("files.directoryDeleted")
+            : t("files.fileDeleted"),
         detail: entry.path,
         autoDismissMs: 5000,
       });
@@ -1301,8 +1315,11 @@ function FileExplorerContent({
       if (e instanceof UncertainRequestError) {
         store.notify({
           kind: "error",
-          message: "Delete outcome is uncertain",
-          detail: `A file change on ${hostLabel} may have completed. ${e.message}`,
+          message: t("files.deleteUncertain"),
+          detail: t("files.uncertainDetail", {
+            host: hostLabel,
+            detail: e.message,
+          }),
         });
         if (!runtimeContextIsCurrent(requestContext)) return;
         clearDeletedPreview(entry);
@@ -1320,7 +1337,7 @@ function FileExplorerContent({
       if (!runtimeContextIsCurrent(requestContext)) return;
       store.notify({
         kind: "error",
-        message: "Delete failed",
+        message: t("files.deleteFailed"),
         detail: (e as Error).message,
       });
     } finally {
@@ -1378,7 +1395,7 @@ function FileExplorerContent({
       setSearchRevision((value) => value + 1);
       store.notify({
         kind: "success",
-        message: "Folder created",
+        message: t("files.folderCreated"),
         detail: name,
         autoDismissMs: 5000,
       });
@@ -1386,7 +1403,7 @@ function FileExplorerContent({
       if (runtimeContextIsCurrent(requestContext))
         store.notify({
           kind: "error",
-          message: "Create folder failed",
+          message: t("files.folderCreateFailed"),
           detail: (error as Error).message,
         });
     } finally {
@@ -1470,7 +1487,7 @@ function FileExplorerContent({
       );
       store.notify({
         kind: failed ? "error" : "success",
-        message: failed ? "Some files could not be moved" : "Files moved",
+        message: failed ? t("files.movePartialFailed") : t("files.filesMoved"),
         detail: `${moved.length} of ${entries.length} moved${failed ? `: ${String(failed.reason?.message ?? failed.reason)}` : ""}`,
         autoDismissMs: failed ? undefined : 5000,
       });
@@ -1533,7 +1550,8 @@ function FileExplorerContent({
       const uploaded = results.length;
       store.notify({
         kind: "success",
-        message: uploaded === 1 ? "File uploaded" : "Files uploaded",
+        message:
+          uploaded === 1 ? t("files.fileUploaded") : t("files.filesUploaded"),
         detail:
           uploaded === 1
             ? uploadFiles[0]?.name
@@ -1544,8 +1562,11 @@ function FileExplorerContent({
       if (e instanceof UncertainRequestError) {
         store.notify({
           kind: "error",
-          message: "Upload outcome is uncertain",
-          detail: `A file change on ${hostLabel} may have completed. ${e.message}`,
+          message: t("files.uploadUncertain"),
+          detail: t("files.uncertainDetail", {
+            host: hostLabel,
+            detail: e.message,
+          }),
         });
         if (!runtimeContextIsCurrent(requestContext)) return;
         await loadDirectory(directory, true);
@@ -1561,7 +1582,7 @@ function FileExplorerContent({
       if (!runtimeContextIsCurrent(requestContext)) return;
       store.notify({
         kind: "error",
-        message: "Upload failed",
+        message: t("files.uploadFailed"),
         detail: (e as Error).message,
       });
     } finally {
@@ -1950,7 +1971,9 @@ function FileExplorerContent({
                 ?.focus({ preventScroll: true });
               if (isDirectory) toggleDirectory(entry.path);
             }}
-            aria-label={isExpanded ? "Collapse folder" : "Expand folder"}
+            aria-label={
+              isExpanded ? t("files.collapseFolder") : t("files.expandFolder")
+            }
           >
             {isDirectory ? (
               isExpanded ? (
@@ -2006,8 +2029,8 @@ function FileExplorerContent({
               type="button"
               className="ghost file-action"
               tabIndex={-1}
-              title="File actions"
-              aria-label="File actions"
+              title={t("files.fileActions")}
+              aria-label={t("files.fileActions")}
               aria-haspopup="menu"
               onClick={(e) => {
                 e.stopPropagation();
@@ -2045,7 +2068,9 @@ function FileExplorerContent({
           }}
         >
           <span className="file-loading-spinner" />
-          <span className="file-loading-text">Loading directory</span>
+          <span className="file-loading-text">
+            {t("files.loadingDirectory")}
+          </span>
         </div>
       );
     }
@@ -2058,7 +2083,7 @@ function FileExplorerContent({
             paddingLeft: FILE_TREE_BASE_INDENT + depth * FILE_TREE_INDENT,
           }}
         >
-          Empty
+          {t("files.empty")}
         </div>
       );
     }
@@ -2068,7 +2093,7 @@ function FileExplorerContent({
   };
 
   const renderInitialLoading = () => (
-    <div className="file-skeleton-list" aria-label="Loading files">
+    <div className="file-skeleton-list" aria-label={t("files.loadingFiles")}>
       {Array.from({ length: 5 }, (_, index) => (
         <div className="file-skeleton-row" key={index}>
           <span className="file-skeleton-icon" />
@@ -2086,7 +2111,7 @@ function FileExplorerContent({
       {showCloseButton ? (
         <>
           <div className="modal-head">
-            <h2>File Explorer</h2>
+            <h2>{t("files.explorerTitle")}</h2>
             <CloseButton onClick={onClose} />
           </div>
           {workspace ? (
@@ -2094,7 +2119,7 @@ function FileExplorerContent({
               <span>{workspaceName(workspace)}</span>
               <code>
                 {rootInfo?.root ??
-                  (initialWorkspacePath(workspace) || "Loading path...")}
+                  (initialWorkspacePath(workspace) || t("files.loadingPath"))}
               </code>
             </div>
           ) : null}
@@ -2102,7 +2127,7 @@ function FileExplorerContent({
       ) : null}
 
       {!workspace ? (
-        <p className="modal-error">No workspace is focused.</p>
+        <p className="modal-error">{t("files.noFocusedWorkspace")}</p>
       ) : null}
 
       <div className="file-explorer-content">
@@ -2151,21 +2176,21 @@ function FileExplorerContent({
                     onChange={(e) =>
                       updateCache({ search: e.currentTarget.value })
                     }
-                    placeholder="Search checkout"
-                    aria-label="Search checkout"
+                    placeholder={t("files.searchCheckout")}
+                    aria-label={t("files.searchCheckout")}
                     maxLength={512}
                   />
                 </label>
                 <div className="file-explorer-controls">
                   <ThemedSelect
                     className="file-search-mode"
-                    aria-label="Search type"
-                    title="Loaded searches include only expanded directories and support globs"
+                    aria-label={t("files.searchTypeAria")}
+                    title={t("files.searchScopeHint")}
                     value={searchMode}
                     options={[
-                      { value: "files", label: "Files" },
-                      { value: "content", label: "Content" },
-                      { value: "loaded", label: "Loaded" },
+                      { value: "files", label: t("files.scopeFiles") },
+                      { value: "content", label: t("files.scopeContent") },
+                      { value: "loaded", label: t("files.scopeLoaded") },
                     ]}
                     onChange={(value) =>
                       setSearchMode(value as "files" | "content" | "loaded")
@@ -2174,9 +2199,9 @@ function FileExplorerContent({
                   <button
                     type="button"
                     className="file-hidden-toggle file-toolbar-icon"
-                    aria-label="Show hidden files"
+                    aria-label={t("files.showHidden")}
                     aria-pressed={showHidden}
-                    title="Show hidden files"
+                    title={t("files.showHidden")}
                     onClick={() => {
                       writeExplorerCache(
                         connectionClient,
@@ -2194,8 +2219,8 @@ function FileExplorerContent({
                     <button
                       type="button"
                       className="file-toolbar-icon"
-                      aria-label="New folder"
-                      title="New folder in workspace root"
+                      aria-label={t("files.newFolder")}
+                      title={t("files.newFolderRootTitle")}
                       disabled={!workspace}
                       onClick={() => setNewFolderDirectory("")}
                     >
@@ -2204,8 +2229,8 @@ function FileExplorerContent({
                     <button
                       type="button"
                       className="file-toolbar-icon"
-                      aria-label="Browse filesystem"
-                      title="Browse filesystem: allow navigation outside this workspace"
+                      aria-label={t("files.browseFilesystem")}
+                      title={t("files.browseFilesystemTitle")}
                       disabled={!workspace}
                       onClick={() => {
                         setEntryMenu(null);
@@ -2218,8 +2243,8 @@ function FileExplorerContent({
                     <button
                       type="button"
                       className="file-toolbar-icon"
-                      aria-label="Refresh files"
-                      title="Refresh"
+                      aria-label={t("files.refreshFiles")}
+                      title={t("files.refresh")}
                       disabled={!workspace}
                       onClick={refreshFiles}
                     >
@@ -2236,7 +2261,7 @@ function FileExplorerContent({
               {selectedPaths.size > 1 || moving ? (
                 <div className="file-upload-status" role="status">
                   {moving
-                    ? "Moving files..."
+                    ? t("files.movingFiles")
                     : `${selectedPaths.size} files selected`}
                 </div>
               ) : null}
@@ -2250,7 +2275,7 @@ function FileExplorerContent({
                 ref={fileTreeRef}
                 className={`file-tree ${dropTargetPath === "" ? "is-drop-target" : ""}`}
                 role={query && searchMode !== "loaded" ? undefined : "tree"}
-                aria-label="Workspace files"
+                aria-label={t("files.treeAria")}
                 aria-multiselectable={
                   query && searchMode !== "loaded" ? undefined : true
                 }
@@ -2281,8 +2306,8 @@ function FileExplorerContent({
                   <div className="file-upload-status">
                     <Upload size={14} />
                     {draggedEntries.current
-                      ? "Drop files to move to workspace root"
-                      : "Drop files to upload to workspace root"}
+                      ? t("files.dropMoveRoot")
+                      : t("files.dropUploadRoot")}
                   </div>
                 ) : null}
                 {query && searchMode === "loaded" ? (
@@ -2422,10 +2447,10 @@ function FileExplorerContent({
       />
       <TextInputDialog
         open={newFolderDirectory !== null}
-        title="New folder"
-        label="Folder name"
-        placeholder="New folder"
-        submitLabel="Create"
+        title={t("files.newFolder")}
+        label={t("files.folderNameLabel")}
+        placeholder={t("files.newFolder")}
+        submitLabel={t("commands.createAction")}
         submitting={creatingDirectory}
         onClose={() => setNewFolderDirectory(null)}
         onSubmit={(name) => void createDirectory(name)}
@@ -2434,15 +2459,21 @@ function FileExplorerContent({
         open={!!pendingDeleteEntry}
         title={
           pendingDeleteEntry?.type === "directory"
-            ? "Delete Directory"
-            : "Delete File"
+            ? t("files.deleteDirectoryTitle")
+            : t("files.deleteFileTitle")
         }
         message={
           pendingDeleteEntry
-            ? `Delete ${pendingDeleteEntry.type === "directory" ? "directory" : "file"} "${pendingDeleteEntry.path}"? This cannot be undone.`
-            : "Delete this item?"
+            ? t("files.deleteNamed", {
+                type:
+                  pendingDeleteEntry.type === "directory"
+                    ? t("files.deleteDirectoryWord")
+                    : t("files.deleteFileWord"),
+                path: pendingDeleteEntry.path,
+              })
+            : t("files.deleteThis")
         }
-        confirmLabel="Delete"
+        confirmLabel={t("files.deleteAction")}
         danger
         onClose={() => setPendingDeleteEntry(null)}
         onConfirm={() => {
