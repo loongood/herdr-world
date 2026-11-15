@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SquareTerminal } from "lucide-react";
 import type { OfficeAgent } from "../herdrOfficeProjection";
+import { t } from "../../i18n";
 import { agentStateWord } from "../agentMarks";
 import { AgentLatestMessage } from "../AgentHoverCard";
 import type { TownChoice, TownConversation } from "./townChat";
@@ -16,7 +17,7 @@ import {
 
 export function townStatusText(agent: OfficeAgent) {
   return agent.stale
-    ? "Offline · last known state"
+    ? t("marks.offlineNote")
     : (agent.stateLabels[agent.semanticStatus] ??
         agentStateWord(agent.semanticStatus));
 }

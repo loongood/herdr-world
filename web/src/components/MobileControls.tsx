@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { paneAgentName } from "../agentName";
 import { ChevronDown, EllipsisVertical, Pin, SquareStack } from "lucide-react";
 import { useStoreSelector } from "../store";
+import { useT } from "../i18n";
 import type { Pane, Tab } from "../types";
 import { agentStateKind, type AgentStateKind } from "./agentSession";
 import { agentStateWord } from "../world/agentMarks";
@@ -227,15 +228,13 @@ export function useVisibleTerminalWorkspaceId() {
   return useStoreValue(terminalStore)?.workspaceId ?? null;
 }
 
-const STATUS_LABEL: Record<AgentStateKind, string> = {
-  working: agentStateWord("working"),
-  blocked: agentStateWord("blocked"),
-  idle: agentStateWord("idle"),
-  done: agentStateWord("done"),
-  unknown: "",
-};
+/** The state's word, or none for an unknown one. */
+const statusLabel = (kind: AgentStateKind) =>
+  kind === "unknown" ? "" : agentStateWord(kind);
 
 export function MobileTerminalAppBar() {
+  // Subscribe to the locale so the status word follows a language change.
+  useT();
   const controls = useStoreValue(controlsStore);
   const onScreen = useStoreValue(terminalStore);
   // The workspace list covers the terminal it was opened from; keep that
@@ -301,12 +300,12 @@ export function MobileTerminalAppBar() {
           <span className="mobile-terminal-name">
             {terminal.place || terminal.agent}
           </span>
-          {STATUS_LABEL[terminal.status] ? (
+          {statusLabel(terminal.status) ? (
             <span
               className="mobile-terminal-status"
               data-status={terminal.status}
             >
-              {STATUS_LABEL[terminal.status]}
+              {statusLabel(terminal.status)}
             </span>
           ) : null}
           <ChevronDown

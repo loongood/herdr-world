@@ -1,7 +1,11 @@
 /**
  * One set of agent marks for every view (Town, Board, Desk, Chat and the
- * phone): each state has one glyph, one colour (agentMarks.css) and one word.
+ * phone): each state has one glyph, one colour (agentMarks.css) and one word
+ * (the i18n `marks` dictionary).
  */
+import { t } from "../i18n";
+import type { TranslationKey } from "../i18n/en";
+
 export type AgentMarkKind =
   | "working"
   | "needs"
@@ -12,19 +16,30 @@ export type AgentMarkKind =
   | "no-signal"
   | "offline";
 
-export const AGENT_MARKS: Record<
-  AgentMarkKind,
-  { glyph: string; word: string; means: string }
-> = {
-  working: { glyph: "•", word: "Working", means: "Running a turn" },
-  needs: { glyph: "!", word: "Needs you", means: "Blocked on its question" },
-  asks: { glyph: "?", word: "Asks you", means: "Asked you a question" },
-  done: { glyph: "✓", word: "Done", means: "Finished, not reviewed yet" },
-  reviewed: { glyph: "–", word: "Reviewed", means: "You reviewed its work" },
-  idle: { glyph: "–", word: "Idle", means: "Nothing to do" },
-  "no-signal": { glyph: "~", word: "No signal", means: "No status yet" },
-  offline: { glyph: "×", word: "Offline", means: "Its host is unreachable" },
+export const AGENT_MARKS: Record<AgentMarkKind, string> = {
+  working: "•",
+  needs: "!",
+  asks: "?",
+  done: "✓",
+  reviewed: "–",
+  idle: "–",
+  "no-signal": "~",
+  offline: "×",
 };
+
+const MARK_WORD_KEYS = {
+  working: "marks.working",
+  needs: "marks.needs",
+  asks: "marks.asks",
+  done: "marks.done",
+  reviewed: "marks.reviewed",
+  idle: "marks.idle",
+  "no-signal": "marks.noSignal",
+  offline: "marks.offline",
+} as const satisfies Record<AgentMarkKind, TranslationKey>;
+
+/** The state's one word, in the selected language. */
+export const agentMarkWord = (kind: AgentMarkKind) => t(MARK_WORD_KEYS[kind]);
 
 /**
  * The mark for an agent's Herdr status ("working", "blocked", "done",
@@ -60,5 +75,5 @@ export function agentStateWord(
   status: string | null | undefined,
   options?: Parameters<typeof agentMarkKind>[1],
 ) {
-  return AGENT_MARKS[agentMarkKind(status, options)].word;
+  return agentMarkWord(agentMarkKind(status, options));
 }

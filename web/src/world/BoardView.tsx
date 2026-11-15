@@ -5,6 +5,7 @@ import { visibleAppearanceColors, saveAppearance } from "./appearance";
 import { tabCardKey } from "../../../shared/terminalColor";
 import { useWorldAsks } from "./worldAsks";
 import { agentStateWord } from "./agentMarks";
+import { useT } from "../i18n";
 import { needsYouLeafKey, openNeedsYou } from "./needsYou";
 import { asksForWorld } from "./worldAskTargets";
 import { WorldAskMark } from "./WorldAskMark";
@@ -186,12 +187,8 @@ import {
  * comes to rest within about a second. See openspec/changes/board-view.
  */
 
-const STATUS_LABEL = Object.fromEntries(
-  (["blocked", "working", "done", "idle", "unknown"] as const).map((status) => [
-    status,
-    agentStateWord(status),
-  ]),
-) as Record<WorldAgentStatus, string>;
+/** The state's word for a board row or tab, in the selected language. */
+const statusLabel = (status: WorldAgentStatus) => agentStateWord(status);
 const OVERVIEW_IN = 0.44;
 const OVERVIEW_OUT = 0.5;
 const MIN_ZOOM = 0.12;
@@ -431,7 +428,7 @@ function paneName(pane: BoardPane) {
 function paneLine(pane: BoardPane, status: WorldAgentStatus) {
   if (!pane.isAgent) return pane.leaf.terminalTitle ?? "terminal";
   return (
-    pane.leaf.taskSummary ?? pane.leaf.terminalTitle ?? STATUS_LABEL[status]
+    pane.leaf.taskSummary ?? pane.leaf.terminalTitle ?? statusLabel(status)
   );
 }
 
@@ -443,7 +440,7 @@ function tabSummary(tab: BoardTab) {
   return [
     `${agents} agent${agents === 1 ? "" : "s"}`,
     shells ? `${shells} shell${shells === 1 ? "" : "s"}` : "",
-    STATUS_LABEL[tab.status],
+    statusLabel(tab.status),
   ]
     .filter(Boolean)
     .join(", ");
@@ -541,6 +538,8 @@ export default function BoardView({
   const quests = useAgentQuests(shownWorld.leaves);
   const asks = useWorldAsks();
   const asking = useMemo(() => asksForWorld(asks, world), [asks, world]);
+  // Subscribe to the locale so state words follow a language change.
+  useT();
   // Town's facts (#787): its counts, finishes and reviews, by host and agent.
   const facts = useBoardFacts(shownWorld);
   const hostFacts = useMemo(
@@ -3745,7 +3744,7 @@ export default function BoardView({
                               role="button"
                               aria-pressed={selectedId === row.leaf.id}
                               className={`board-pane${row.isAgent ? ` board-s-${row.status}` : " board-pane-shell"}${selectedId === row.leaf.id ? " board-pane-selected" : ""}`}
-                              aria-label={`${paneName(row)}, ${row.isAgent ? STATUS_LABEL[row.status] : "terminal"}${rowLens?.label ?? ""}`}
+                              aria-label={`${paneName(row)}, ${row.isAgent ? statusLabel(row.status) : "terminal"}${rowLens?.label ?? ""}`}
                               data-lens-mark={rowLens?.data}
                               style={rowLens?.style}
                             >
@@ -3776,7 +3775,7 @@ export default function BoardView({
                                   presented={facts.presented.get(row.leaf.id)}
                                   steps={steps}
                                   className="board-pane-state"
-                                  fallback={STATUS_LABEL[row.status]}
+                                  fallback={statusLabel(row.status)}
                                 />
                               ) : (
                                 <span className="board-pane-state">
@@ -3802,7 +3801,7 @@ export default function BoardView({
                         {tab.shellOnly ? "$ " : ""}
                         {pane
                           ? paneLine(pane, tab.status)
-                          : STATUS_LABEL[tab.status]}
+                          : statusLabel(tab.status)}
                         {pane?.isAgent ? (
                           <BoardAgentNowLine
                             leaf={pane.leaf}
@@ -4235,7 +4234,7 @@ export default function BoardView({
                 )}
                 <span className="board-pane-name">{paneName(row)}</span>
                 <span className="board-pane-state">
-                  {row.isAgent ? STATUS_LABEL[row.status] : "terminal"}
+                  {row.isAgent ? statusLabel(row.status) : "terminal"}
                 </span>
               </button>
             ))}
@@ -4578,14 +4577,16 @@ function NewTabDialog({
 }
 
 /** A workspace's agents by state word, and its terminals: "3 agents · 1 working · 2 idle". */
-const COUNT_ORDER = (
-  ["blocked", "working", "done", "idle", "unknown"] as const
-).map((status) => [status, STATUS_LABEL[status].toLowerCase()] as const);
+function countOrder() {
+  return (["blocked", "working", "done", "idle", "unknown"] as const).map(
+    (status) => [status, statusLabel(status).toLowerCase()] as const,
+  );
+}
 function workspaceCounts(space: BoardWorkspace) {
   const agents = space.squares.filter((square) => square.isAgent);
   const shells = space.squares.length - agents.length;
   const parts = [`${agents.length} agent${agents.length === 1 ? "" : "s"}`];
-  for (const [status, word] of COUNT_ORDER) {
+  for (const [status, word] of countOrder()) {
     const n = agents.filter((square) => square.status === status).length;
     if (n) parts.push(`${n} ${word}`);
   }

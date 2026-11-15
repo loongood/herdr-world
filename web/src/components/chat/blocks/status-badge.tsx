@@ -1,14 +1,17 @@
-import { STATUS_WORDS } from "./now";
+import { statusWord } from "./now";
 import { Check } from "lucide-react";
+import { useT } from "../../../i18n";
 import "./status-badge.css";
 export function ChatStatusBadge({
   status,
-  label = STATUS_WORDS[status] ?? status,
+  label = statusWord(status),
 }: {
   status: string;
   /** Words for a state with its own detail, such as out of fuel. */
   label?: string;
 }) {
+  // Subscribe to the locale so the word follows a language change.
+  useT();
   return (
     <span
       className={`agent-chat-state-circle is-${status.toLowerCase()}`}

@@ -6,7 +6,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../components/ui/popover";
-import { AGENT_MARKS } from "../agentMarks";
+import { useT } from "../../i18n";
+import { agentMarkWord } from "../agentMarks";
 import {
   TOWN_RECEPTION_AGENT_MARK as MARK,
   TOWN_RECEPTION_MARKS,
@@ -22,7 +23,7 @@ import {
   useTownReceptionFilter,
 } from "./townReceptionSetting";
 
-const word = (mark: TownReceptionMark) => AGENT_MARKS[MARK[mark]].word;
+const word = (mark: TownReceptionMark) => agentMarkWord(MARK[mark]);
 
 /**
  * Reception's sign: the marks it takes, the others greyed. Pressing it opens
@@ -37,6 +38,7 @@ export function TownReceptionSign({
   connectionId: string;
   hostLabel: string;
 }) {
+  const t = useT();
   const filter = useTownReceptionFilter();
   const [open, setOpen] = useState(false);
   const [all, setAll] = useState(false);
@@ -63,10 +65,13 @@ export function TownReceptionSign({
           type="button"
           className="town-reception-sign"
           aria-haspopup="dialog"
-          aria-label={`${hostLabel} reception takes ${
-            taken.length ? taken.map(word).join(", ") : "nobody"
-          }. Filter`}
-          title="Choose who waits at reception"
+          aria-label={t("reception.signAria", {
+            host: hostLabel,
+            words: taken.length
+              ? taken.map(word).join(", ")
+              : t("reception.nobody"),
+          })}
+          title={t("reception.signTitle")}
         >
           {TOWN_RECEPTION_MARKS.map((mark) => (
             <span
@@ -85,7 +90,7 @@ export function TownReceptionSign({
         collisionPadding={8}
         aria-labelledby={`${id}-title`}
       >
-        <strong id={`${id}-title`}>Reception takes</strong>
+        <strong id={`${id}-title`}>{t("reception.takes")}</strong>
         {TOWN_RECEPTION_MARKS.map((mark) => (
           <label key={mark} className="town-reception-filter-row">
             <input
@@ -107,7 +112,7 @@ export function TownReceptionSign({
           </label>
         ))}
         <p className="town-reception-filter-note">
-          Others stay at their desks with their mark.
+          {t("reception.othersNote")}
         </p>
         <label className="town-reception-filter-row">
           <input
@@ -119,7 +124,7 @@ export function TownReceptionSign({
               if (checked) save(withTownReceptionAll(takes));
             }}
           />
-          <span>Apply to all buildings</span>
+          <span>{t("reception.applyAll")}</span>
         </label>
         <button
           type="button"
@@ -128,7 +133,7 @@ export function TownReceptionSign({
             save(withTownReceptionReset(filter, connectionId, all))
           }
         >
-          Reset to default
+          {t("reception.reset")}
         </button>
         {error ? (
           <p className="town-reception-filter-error" role="alert">
@@ -151,6 +156,7 @@ export function TownReceptionHeldTag({
   counts: ReadonlyMap<TownReceptionMark, number>;
   onFind: ((anchor: { x: number; y: number }) => void) | null;
 }) {
+  const t = useT();
   const marks = TOWN_RECEPTION_MARKS.filter((mark) => counts.get(mark));
   if (!marks.length) return null;
   const spoken = marks
@@ -158,14 +164,14 @@ export function TownReceptionHeldTag({
     .join(", ");
   return (
     <div className="town-reception-held" data-reception-held="true">
-      <span aria-label={`${spoken} at their desks`}>
+      <span aria-label={t("reception.atDesksAria", { spoken })}>
         {marks.map((mark) => (
           <span key={mark} className="town-reception-held-mark">
             <AgentMark kind={MARK[mark]} />
             {counts.get(mark)}
           </span>
         ))}{" "}
-        at desks
+        {t("reception.atDesks")}
       </span>
       {onFind ? (
         <>
@@ -173,13 +179,13 @@ export function TownReceptionHeldTag({
           <button
             type="button"
             className="town-reception-find"
-            aria-label={`Find the ${spoken} at their desks`}
+            aria-label={t("reception.findAria", { spoken })}
             onClick={(event) => {
               const box = event.currentTarget.getBoundingClientRect();
               onFind({ x: box.left + box.width / 2, y: box.bottom });
             }}
           >
-            find
+            {t("reception.find")}
           </button>
         </>
       ) : null}

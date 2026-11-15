@@ -19,7 +19,7 @@ import type {
 } from "../components/CommandCombobox";
 import { AgentMark } from "../components/AgentMark";
 import { t } from "../i18n";
-import { AGENT_MARKS, agentMarkKind } from "./agentMarks";
+import { agentMarkKind, agentMarkWord } from "./agentMarks";
 import type { WorldObject } from "./worldObject";
 import { worldSearchResults, type WorldSearchResult } from "./worldSearch";
 import { WORLD_VIEW_DESTINATIONS, worldViewLabel } from "./WorldMobileNav";
@@ -70,7 +70,7 @@ function findAction(
     title: result.label,
     detail: [
       KIND_WORDS[result.kind],
-      mark ? AGENT_MARKS[mark].word : null,
+      mark ? agentMarkWord(mark) : null,
       result.stale && !mark ? "stale" : null,
       result.place.join(" › ") || null,
       excerpt ?? null,

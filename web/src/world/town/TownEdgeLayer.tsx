@@ -72,7 +72,7 @@ export function TownEdgeArrows({
           >
             <span className="town-edge-arrow-tip" aria-hidden="true" />
             <span className="town-edge-arrow-mark" aria-hidden="true">
-              {AGENT_MARKS[KIND[arrow.mark]].glyph}
+              {AGENT_MARKS[KIND[arrow.mark]]}
             </span>
             {arrow.count > 1 ? (
               <b className="town-edge-arrow-count" aria-hidden="true">

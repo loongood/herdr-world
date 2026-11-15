@@ -18,6 +18,11 @@
   message it sends. The chat interaction cards follow too: the question,
   menu, trust and step cards with their buttons, notes and screen-reader
   labels, sent-answer receipts, the composer's extra controls, and the
-  mission-log quest chip and log with their status and source words.
+  mission-log quest chip and log with their status and source words. The
+  shared agent state words (Working, Needs you, Asks you and the rest) now
+  follow the language everywhere they appear — every mark title, Board rows
+  and summaries, Town edges and peeks, reception's sign and filter, the
+  mobile app bar and Chat's status badge — through one marks dictionary;
+  the words' unused `means` descriptions were removed.
   Remaining surfaces keep English
   until their phase lands.

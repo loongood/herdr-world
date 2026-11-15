@@ -561,6 +561,30 @@ export const en = {
     logAria: "Quest",
     progressAria: "{done} of {total} objectives done",
   },
+  marks: {
+    working: "Working",
+    needs: "Needs you",
+    asks: "Asks you",
+    done: "Done",
+    reviewed: "Reviewed",
+    idle: "Idle",
+    noSignal: "No signal",
+    offline: "Offline",
+    offlineNote: "Offline · last known state",
+  },
+  reception: {
+    takes: "Reception takes",
+    signAria: "{host} reception takes {words}. Filter",
+    nobody: "nobody",
+    signTitle: "Choose who waits at reception",
+    othersNote: "Others stay at their desks with their mark.",
+    applyAll: "Apply to all buildings",
+    reset: "Reset to default",
+    atDesks: "at desks",
+    atDesksAria: "{spoken} at their desks",
+    find: "find",
+    findAria: "Find the {spoken} at their desks",
+  },
 } as const;
 
 // The translation contract: the English key structure with every leaf

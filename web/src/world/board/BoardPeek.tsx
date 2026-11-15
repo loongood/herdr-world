@@ -9,6 +9,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AgentLatestMessage } from "../AgentHoverCard";
+import { useT } from "../../i18n";
 import { agentStateWord } from "../agentMarks";
 import { sharedDeskStore, type WorldDeskStore } from "../deskStateStore";
 import { useShownReport } from "../shownReport";
@@ -54,6 +55,8 @@ export function BoardPeek({
   onHold(hold: boolean): void;
 }) {
   const { leaf, name, where, canReply, anchor } = target;
+  // Subscribe to the locale so state words follow a language change.
+  const t = useT();
   const status = leaf.stale ? "unknown" : leaf.status;
   const blocked = status === "blocked";
   // Finished work waiting for review, as Town and Needs you count it: done,
@@ -137,7 +140,7 @@ export function BoardPeek({
           <b>{name}</b>
           <small>
             {leaf.stale
-              ? "Offline · last known state"
+              ? t("marks.offlineNote")
               : agentStateWord(done ? "done" : status)}
             {" · "}
             {where}

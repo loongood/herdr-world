@@ -1,8 +1,10 @@
 import {
   AGENT_MARKS,
   agentMarkKind,
+  agentMarkWord,
   type AgentMarkKind,
 } from "../world/agentMarks";
+import { useT } from "../i18n";
 import "./AgentMark.css";
 
 /** An agent's state as its one glyph and colour; the word is its title. */
@@ -14,16 +16,18 @@ export function AgentMark({
   /** Read instead of the word, such as the question an agent asks. */
   label?: string;
 }) {
-  const mark = AGENT_MARKS[kind];
+  // Subscribe to the locale so the title follows a language change.
+  useT();
+  const word = agentMarkWord(kind);
   return (
     <span
       className="agent-mark"
       data-mark={kind}
-      title={label ?? mark.word}
-      aria-label={label ?? mark.word}
+      title={label ?? word}
+      aria-label={label ?? word}
       role="img"
     >
-      {mark.glyph}
+      {AGENT_MARKS[kind]}
     </span>
   );
 }
@@ -34,11 +38,13 @@ export function AgentState(props: {
   asking?: boolean;
   reviewed?: boolean;
 }) {
+  // Subscribe to the locale so the word follows a language change.
+  useT();
   const kind = agentMarkKind(props.status, props);
   return (
     <>
       <AgentMark kind={kind} />
-      {AGENT_MARKS[kind].word}
+      {agentMarkWord(kind)}
     </>
   );
 }

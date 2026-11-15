@@ -1,4 +1,5 @@
-import { agentStateWord } from "../../../world/agentMarks";
+import { t } from "../../../i18n";
+import type { TranslationKey } from "../../../i18n/en";
 
 /** Harnesses where Esc interrupts the current turn without quitting. */
 export const STOPS_WITH_ESCAPE = new Set(["claude", "codex", "pi"]);
@@ -20,9 +21,13 @@ export const titleTask = (title: string | null | undefined) =>
     .trim() || null;
 
 /** Chat's state words: the shared marks' words (agentMarks.ts). */
-export const STATUS_WORDS: Record<string, string> = Object.fromEntries(
-  ["working", "blocked", "done", "idle"].map((status) => [
-    status,
-    agentStateWord(status),
-  ]),
-);
+const STATUS_KEYS: Record<string, TranslationKey> = {
+  working: "marks.working",
+  blocked: "marks.needs",
+  done: "marks.done",
+  idle: "marks.idle",
+};
+
+/** The word for a chat status, or the status itself when it has none. */
+export const statusWord = (status: string) =>
+  STATUS_KEYS[status] ? t(STATUS_KEYS[status]) : status;
