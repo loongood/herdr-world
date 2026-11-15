@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { paneAgentName } from "../agentName";
 import { ChevronDown, EllipsisVertical, Pin, SquareStack } from "lucide-react";
 import { useStoreSelector } from "../store";
-import { useT } from "../i18n";
+import { t, useT } from "../i18n";
 import type { Pane, Tab } from "../types";
 import { agentStateKind, type AgentStateKind } from "./agentSession";
 import { agentStateWord } from "../world/agentMarks";
@@ -78,7 +78,7 @@ function tabName(tab?: Tab) {
   if (!tab) return "";
   return tab.label && tab.label !== String(tab.number)
     ? tab.label
-    : `Tab ${tab.number}`;
+    : t("shell.tabName", { number: tab.number });
 }
 
 const controlsStore = createStore<MobileControls>();
@@ -191,7 +191,7 @@ export function MobileTerminalIdentity({
       paneId: pane!.pane_id,
       terminalId: pane!.terminal_id,
       workspaceId,
-      agent: agent || "Terminal",
+      agent: agent || t("shell.terminalFallback"),
       place,
       status,
       tab,
@@ -246,8 +246,10 @@ export function MobileTerminalAppBar() {
   if (!controls) return null;
   const description =
     [
-      controls.tabCount > 0 ? `${controls.tabCount} open` : "",
-      controls.attention ? "an agent needs you" : "",
+      controls.tabCount > 0
+        ? t("shell.tabsOpenCount", { count: controls.tabCount })
+        : "",
+      controls.attention ? t("shell.tabAttention") : "",
     ]
       .filter(Boolean)
       .join(", ") || undefined;
@@ -293,7 +295,14 @@ export function MobileTerminalAppBar() {
         <button
           type="button"
           className="mobile-terminal-title"
-          aria-label={`Switch workspace. Current: ${terminal.agent}${terminal.place ? ` in ${terminal.place}` : ""}`}
+          aria-label={
+            terminal.place
+              ? t("shell.switchWorkspaceInAria", {
+                  agent: terminal.agent,
+                  place: terminal.place,
+                })
+              : t("shell.switchWorkspaceAria", { agent: terminal.agent })
+          }
           aria-expanded={controls.workspacesOpen}
           onClick={controls.toggleWorkspaces}
         >
@@ -318,7 +327,7 @@ export function MobileTerminalAppBar() {
       <button
         type="button"
         className="mobile-tabs-button"
-        aria-label="Show tabs"
+        aria-label={t("shell.showTabs")}
         aria-description={description}
         aria-pressed={controls.tabsOpen}
         disabled={controls.tabsDisabled}
@@ -338,7 +347,7 @@ export function MobileTerminalAppBar() {
       <button
         type="button"
         className="mobile-more-button"
-        aria-label="More options"
+        aria-label={t("shell.moreOptions")}
         aria-haspopup="menu"
         aria-expanded={controls.moreOpen}
         onClick={controls.toggleMore}

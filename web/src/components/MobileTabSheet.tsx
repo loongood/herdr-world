@@ -12,6 +12,8 @@ import { AgentStatusIcon } from "./AgentStatusIcon";
 import { summarizeTabAgents } from "./agentSession";
 import { CloseButton } from "./CloseButton";
 import { focusDialogElement } from "./dialogFocus";
+import { useT } from "../i18n";
+import { agentStateWord } from "../world/agentMarks";
 import { requestCloseTab, tabName } from "./TabBar";
 import { orderTabsForDisplay, setTabPinned, useTabPins } from "../tabPins";
 import "./MobileTabSheet.css";
@@ -37,6 +39,7 @@ export function MobileTabSheet({
   onSelectTab?: (tabId: string) => void | Promise<unknown>;
 }) {
   const store = useOperationalStore();
+  const t = useT();
   const s = useStoreSelector(
     (state) => ({
       activeConnectionId: state.activeConnectionId,
@@ -82,7 +85,7 @@ export function MobileTabSheet({
   );
   const tabs = focusedWs
     ? orderTabsForDisplay(
-        s.tabs.filter((t) => t.workspace_id === focusedWs.workspace_id),
+        s.tabs.filter((item) => item.workspace_id === focusedWs.workspace_id),
         pinnedTabIds,
       )
     : [];
@@ -133,30 +136,30 @@ export function MobileTabSheet({
         className="mobile-tab-sheet"
         role="dialog"
         aria-modal="true"
-        aria-label="Tabs"
+        aria-label={t("shell.tabsTitle")}
         data-window-count={windows.length}
         aria-busy={transitionPending}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="mobile-tab-sheet-head">
-          <h3>Tabs</h3>
+          <h3>{t("shell.tabsTitle")}</h3>
           <CloseButton
-            label="Close tab switcher"
+            label={t("shell.closeTabSwitcher")}
             disabled={transitionPending}
             onClick={closeIfIdle}
           />
         </div>
         <div className="mobile-tab-sheet-list" role="list">
-          {tabs.map((t) => {
-            const name = tabName(t);
-            const windowEntry = windowForTab(t.tab_id);
-            const agentSummary = summarizeTabAgents(s.panes, t.tab_id);
+          {tabs.map((tab) => {
+            const name = tabName(tab);
+            const windowEntry = windowForTab(tab.tab_id);
+            const agentSummary = summarizeTabAgents(s.panes, tab.tab_id);
             return (
               <div
-                key={t.tab_id}
+                key={tab.tab_id}
                 role="listitem"
-                className={`mobile-tab-sheet-row ${(windowEntry?.active ?? t.focused) ? "is-active" : ""}`}
+                className={`mobile-tab-sheet-row ${(windowEntry?.active ?? tab.focused) ? "is-active" : ""}`}
               >
                 <button
                   type="button"
@@ -167,8 +170,8 @@ export function MobileTabSheet({
                       windowEntry?.onSelect();
                       return Promise.resolve(
                         onSelectTab
-                          ? onSelectTab(t.tab_id)
-                          : store.focusTab(t.tab_id),
+                          ? onSelectTab(tab.tab_id)
+                          : store.focusTab(tab.tab_id),
                       );
                     })
                   }
@@ -176,7 +179,10 @@ export function MobileTabSheet({
                   {agentSummary ? (
                     <span
                       className="tabbar-agent-marker"
-                      aria-label={`${agentSummary.primaryAgent}, status ${agentSummary.status}`}
+                      aria-label={t("shell.agentStatusAria", {
+                        agent: agentSummary.primaryAgent,
+                        status: agentStateWord(agentSummary.status),
+                      })}
                     >
                       <AgentStatusIcon
                         agent={agentSummary.primaryAgent}
@@ -190,17 +196,19 @@ export function MobileTabSheet({
                     </span>
                   ) : null}
                   <span className="mobile-tab-sheet-name">{name}</span>
-                  {windowEntry?.minimized ? <small>Minimized</small> : null}
+                  {windowEntry?.minimized ? (
+                    <small>{t("shell.minimized")}</small>
+                  ) : null}
                 </button>
-                {pinnedTabIds.has(t.tab_id) ? (
+                {pinnedTabIds.has(tab.tab_id) ? (
                   <button
                     type="button"
                     className="mobile-tab-sheet-close is-pinned"
-                    aria-label={`Unpin ${name}`}
-                    title={`Unpin ${name}`}
+                    aria-label={t("shell.unpinTab", { name })}
+                    title={t("shell.unpinTab", { name })}
                     disabled={transitionPending}
                     onClick={() =>
-                      setTabPinned(s.activeConnectionId, t.tab_id, false)
+                      setTabPinned(s.activeConnectionId, tab.tab_id, false)
                     }
                   >
                     <Pin size={14} />
@@ -209,11 +217,11 @@ export function MobileTabSheet({
                   <button
                     type="button"
                     className="mobile-tab-sheet-close"
-                    aria-label={`Close ${name}`}
-                    title={`Close ${name}`}
+                    aria-label={t("shell.closeTabNamed", { name })}
+                    title={t("shell.closeTabNamed", { name })}
                     disabled={transitionPending}
                     onClick={() =>
-                      requestCloseTab(t.tab_id, {
+                      requestCloseTab(tab.tab_id, {
                         connectionId: store.get().activeConnectionId,
                         runtimeGeneration:
                           store.get().serverRuntimeGeneration ?? -1,
@@ -227,7 +235,9 @@ export function MobileTabSheet({
             );
           })}
           {otherWindows.length ? (
-            <div className="mobile-tab-sheet-section">Other open windows</div>
+            <div className="mobile-tab-sheet-section">
+              {t("shell.otherWindows")}
+            </div>
           ) : null}
           {otherWindows.map((entry) => (
             <div
@@ -246,7 +256,7 @@ export function MobileTabSheet({
                 }}
               >
                 <span className="mobile-tab-sheet-name">{entry.label}</span>
-                {entry.minimized ? <small>Minimized</small> : null}
+                {entry.minimized ? <small>{t("shell.minimized")}</small> : null}
               </button>
             </div>
           ))}
@@ -264,7 +274,7 @@ export function MobileTabSheet({
             }
           >
             <Plus size={15} />
-            <span>{createReason ?? "New Tab"}</span>
+            <span>{createReason ?? t("shell.newTab")}</span>
           </button>
         ) : null}
       </div>

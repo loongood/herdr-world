@@ -58,8 +58,13 @@
   connection states). The review annotations follow too: the panel (cards,
   locations, delivery targets and the clear confirmation), the composer
   popover and the shared line-label helpers that also feed the compiled
-  feedback message. The built-in slash-command catalog keeps
-  its English descriptions: they document external CLIs, not World's own
-  copy.
+  feedback message. The mobile shell follows as well: the bottom bar and
+  app bar (tab counts, the attention summary, workspace switching), the tab
+  sheet (titles, minimized and pinned rows, close and unpin labels, new
+  tab), the layout preferences dialog (display mode, breakpoint, sidebar
+  order and URL-override note), the recent-panes and pane-search overlay,
+  and the agent status words it shows. The built-in slash-command catalog
+  keeps its English descriptions: they document external CLIs, not World's
+  own copy.
   Remaining surfaces keep English
   until their phase lands.

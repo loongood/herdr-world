@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useT } from "../i18n";
 import { CloseButton } from "./CloseButton";
 import { ThemedSelect } from "./ThemedSelect";
 import { focusDialogElement } from "./dialogFocus";
@@ -38,6 +39,7 @@ export function MobileLayoutDialog({
       window.removeEventListener("keydown", onKey, { capture: true });
   }, [open, onClose]);
   const { preferences, mobile, urlOverride } = useLayoutPreferences();
+  const t = useT();
   if (!open) return null;
   return (
     <div
@@ -52,7 +54,7 @@ export function MobileLayoutDialog({
         className="modal mobile-layout-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Layout Preferences"
+        aria-label={t("shell.layoutPreferences")}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
@@ -79,21 +81,24 @@ export function MobileLayoutDialog({
       >
         <div className="modal-head">
           <div>
-            <h2>Layout Preferences</h2>
-            <p>Choose display mode, mobile breakpoint, and sidebar order.</p>
+            <h2>{t("shell.layoutPreferences")}</h2>
+            <p>{t("shell.layoutPreferencesHint")}</p>
           </div>
-          <CloseButton label="Close Layout Preferences" onClick={onClose} />
+          <CloseButton
+            label={t("shell.closeLayoutPreferences")}
+            onClick={onClose}
+          />
         </div>
         <div className="layout-preferences">
           <label>
-            <span>Display mode</span>
+            <span>{t("shell.displayMode")}</span>
             <ThemedSelect
-              aria-label="Display mode"
+              aria-label={t("shell.displayMode")}
               value={urlOverride ?? preferences.mode}
               options={[
-                { value: "auto", label: "Automatic" },
-                { value: "mobile", label: "Mobile" },
-                { value: "desktop", label: "Desktop" },
+                { value: "auto", label: t("shell.displayAuto") },
+                { value: "mobile", label: t("shell.displayMobile") },
+                { value: "desktop", label: t("shell.displayDesktop") },
               ]}
               onChange={(mode) =>
                 updateLayoutPreferences({ mode: mode as LayoutMode })
@@ -101,12 +106,16 @@ export function MobileLayoutDialog({
             />
           </label>
           <p className="muted">
-            Using {mobile ? "mobile" : "desktop"} layout
-            {urlOverride ? " (URL override)" : ""}. Bookmark with ?layout=mobile
-            or ?layout=desktop to force a layout.
+            {mobile
+              ? t("shell.usingMobileLayout")
+              : t("shell.usingDesktopLayout")}
+            {urlOverride
+              ? t("shell.urlOverrideSuffix")
+              : t("shell.layoutPeriod")}
+            {t("shell.bookmarkHint")}
           </p>
           <label>
-            <span>Mobile up to (px)</span>
+            <span>{t("shell.mobileUpTo")}</span>
             <input
               key={preferences.mobileBreakpoint}
               type="number"
@@ -135,13 +144,24 @@ export function MobileLayoutDialog({
           </label>
           {(["mobile", "desktop"] as const).map((view) => (
             <label key={view}>
-              <span>{view === "mobile" ? "Mobile" : "Desktop"} sidebar</span>
+              <span>
+                {view === "mobile"
+                  ? t("shell.sidebarMobile")
+                  : t("shell.sidebarDesktop")}
+              </span>
               <ThemedSelect
-                aria-label={`${view === "mobile" ? "Mobile" : "Desktop"} sidebar`}
+                aria-label={
+                  view === "mobile"
+                    ? t("shell.sidebarMobile")
+                    : t("shell.sidebarDesktop")
+                }
                 value={preferences[`${view}SidebarOrder`]}
                 options={[
-                  { value: "agents-first", label: "Agents on top" },
-                  { value: "workspaces-first", label: "Workspaces on top" },
+                  { value: "agents-first", label: t("shell.agentsOnTop") },
+                  {
+                    value: "workspaces-first",
+                    label: t("shell.workspacesOnTop"),
+                  },
                 ]}
                 onChange={(order) =>
                   updateLayoutPreferences({
@@ -151,14 +171,12 @@ export function MobileLayoutDialog({
               />
             </label>
           ))}
-          <p className="muted">
-            Sidebar order applies when Agents is set to Separate.
-          </p>
+          <p className="muted">{t("shell.sidebarOrderHint")}</p>
         </div>
         <div className="modal-actions">
-          <span className="muted">Changes are saved in this browser.</span>
+          <span className="muted">{t("shell.changesSavedInBrowser")}</span>
           <button type="button" onClick={onClose}>
-            Done
+            {t("config.done")}
           </button>
         </div>
       </div>

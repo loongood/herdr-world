@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 import { passwordManagerIgnore } from "../passwordManagerIgnore";
 import { type PaneJumpEntry, paneJumpEntryKey } from "../paneJump";
+import { agentStateWord } from "../world/agentMarks";
 import { agentClass } from "../utils";
+import { useT } from "../i18n";
 import { AgentIcon } from "./AgentIcon";
 import "./PaneJumpOverlay.css";
 
@@ -29,6 +31,7 @@ export function PaneJumpOverlay({
 }) {
   const selectedItemRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const t = useT();
   const searching = search !== null;
   const selectedEntry = entries[selectedIndex];
   const selectedPaneId = selectedEntry
@@ -49,14 +52,14 @@ export function PaneJumpOverlay({
       <div
         className="pane-jump-popover"
         role="listbox"
-        aria-label="Recent panes"
+        aria-label={t("shell.recentPanes")}
       >
         <div className="pane-jump-head">
-          <strong>{searching ? "Find Pane" : "Switch Pane"}</strong>
+          <strong>
+            {searching ? t("shell.findPane") : t("shell.switchPane")}
+          </strong>
           <span>
-            {searching
-              ? "Filters every open pane. Use Up / Down and Enter"
-              : "K to search; Enter or release modifier to switch"}
+            {searching ? t("shell.paneSearchHint") : t("shell.paneJumpKHint")}
           </span>
         </div>
         {searching ? (
@@ -69,9 +72,9 @@ export function PaneJumpOverlay({
               spellCheck={false}
               autoComplete="off"
               {...passwordManagerIgnore}
-              placeholder="Workspace, tab, server, directory, or agent"
+              placeholder={t("shell.paneSearchPlaceholder")}
               role="combobox"
-              aria-label="Search panes"
+              aria-label={t("shell.searchPanes")}
               aria-expanded={true}
               aria-autocomplete="list"
               aria-controls={listId}
@@ -87,14 +90,16 @@ export function PaneJumpOverlay({
         ) : null}
         {entries.length === 0 ? (
           <p className="pane-jump-empty" role="status">
-            No panes match this search.
+            {t("shell.noMatchingPanes")}
           </p>
         ) : null}
         <div
           className="pane-jump-list"
           id={listId}
           role="listbox"
-          aria-label={searching ? "Matching panes" : "Recent panes"}
+          aria-label={
+            searching ? t("shell.matchingPanes") : t("shell.recentPanes")
+          }
         >
           {entries.map((entry, index) => (
             <button
@@ -129,13 +134,15 @@ export function PaneJumpOverlay({
                     </span>
                   ) : null}
                   {entry.current ? (
-                    <span className="pane-jump-current-badge">Current</span>
+                    <span className="pane-jump-current-badge">
+                      {t("shell.currentBadge")}
+                    </span>
                   ) : null}
                   {entry.agentStatus ? (
                     <span
                       className={`${agentClass(entry.agentStatus)} pane-jump-agent-status`}
                     >
-                      {entry.agentStatus}
+                      {agentStateWord(entry.agentStatus)}
                     </span>
                   ) : null}
                 </span>
