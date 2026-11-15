@@ -3,6 +3,7 @@ import {
   type FilePreviewContentProps,
 } from "./FilePreviewBoundary";
 import { shortcutMatches } from "../shortcutPreferences";
+import { getCurrentLocale, t, useT } from "../i18n";
 import {
   audioMimeForPath,
   AUDIO_INLINE_PREVIEW_MAX_BYTES,
@@ -196,6 +197,7 @@ function FilePreviewBody({
 }: FilePreviewContentProps) {
   const connectionClient = useConnectionClient();
   const workspaces = useStoreSelector((state) => state.workspaces);
+  const t = useT();
   const previewSectionRef = useRef<HTMLElement | null>(null);
   const previewContentRef = useRef<HTMLDivElement | null>(null);
   const editorViewRef = useRef<CodeMirrorEditorView | null>(null);
@@ -454,14 +456,14 @@ function FilePreviewBody({
       await copyTextFromUserGesture(previewText);
       store.notify({
         kind: "success",
-        message: "File content copied",
+        message: t("preview.copied"),
         detail: previewPath,
         autoDismissMs: 3000,
       });
     } catch (copyError) {
       store.notify({
         kind: "error",
-        message: "Failed to copy file content",
+        message: t("preview.copyFailed"),
         detail: (copyError as Error).message,
       });
     }
@@ -471,7 +473,7 @@ function FilePreviewBody({
     <section
       ref={previewSectionRef}
       className="file-preview"
-      aria-label="File preview"
+      aria-label={t("preview.ariaPreview")}
       tabIndex={-1}
       onKeyDownCapture={(e) => {
         if (shortcutMatches(e.nativeEvent, "preview.search")) {
@@ -496,15 +498,15 @@ function FilePreviewBody({
             </button>
           ) : null}
           <div className="file-preview-title" title={entry?.name}>
-            {entry?.name ?? "Preview"}
+            {entry?.name ?? t("preview.fallbackTitle")}
           </div>
           <div className="file-preview-head-actions">
             {!showingChanges && showDirectoryWorkspaceAction ? (
               <button
                 type="button"
                 className="file-preview-refresh"
-                title="New workspace with this directory as CWD"
-                aria-label="New workspace with this directory as CWD"
+                title={t("preview.newWorkspaceHere")}
+                aria-label={t("preview.newWorkspaceHere")}
                 onClick={() => setWorkspaceDialogOpen(true)}
               >
                 <FolderPlus size={13} aria-hidden="true" />
@@ -514,8 +516,8 @@ function FilePreviewBody({
               <button
                 type="button"
                 className="file-preview-refresh"
-                title="Refresh preview"
-                aria-label="Refresh preview"
+                title={t("preview.refresh")}
+                aria-label={t("preview.refresh")}
                 disabled={loading}
                 onClick={onRefresh}
               >
@@ -530,10 +532,10 @@ function FilePreviewBody({
               <button
                 type="button"
                 className="file-preview-copy"
-                title="Copy entire file content"
+                title={t("preview.copyAllTitle")}
                 onClick={() => void copyPreviewText()}
               >
-                Copy
+                {t("preview.copyAction")}
               </button>
             ) : null}
             {!showingChanges && hasRichPreview ? (
@@ -541,7 +543,7 @@ function FilePreviewBody({
                 type="button"
                 className="file-preview-mode-toggle"
                 role="switch"
-                aria-label="Source mode"
+                aria-label={t("preview.sourceMode")}
                 aria-checked={previewMode === "raw"}
                 onClick={() =>
                   setPreviewMode((mode) =>
@@ -550,7 +552,9 @@ function FilePreviewBody({
                 }
               >
                 <span className="file-preview-mode-label">
-                  {hasMermaidPreview ? "Diagram" : "Preview"}
+                  {hasMermaidPreview
+                    ? t("preview.modeDiagram")
+                    : t("preview.modeRendered")}
                 </span>
                 <span
                   className={
@@ -560,7 +564,9 @@ function FilePreviewBody({
                 >
                   <span />
                 </span>
-                <span className="file-preview-mode-label">Source</span>
+                <span className="file-preview-mode-label">
+                  {t("preview.labelSource")}
+                </span>
               </button>
             ) : null}
             {changesAvailable ? (
@@ -568,20 +574,24 @@ function FilePreviewBody({
                 type="button"
                 className="file-preview-changes-toggle"
                 aria-pressed={showingChanges}
-                title={showingChanges ? "Show file preview" : "Show changes"}
+                title={
+                  showingChanges
+                    ? t("preview.showFilePreview")
+                    : t("preview.showChanges")
+                }
                 onClick={() =>
                   setDetailTab(showingChanges ? "file" : "changes")
                 }
               >
-                Changes
+                {t("preview.changesAction")}
               </button>
             ) : null}
             {entry && onClosePreview ? (
               <button
                 type="button"
                 className="file-preview-refresh"
-                title="Close preview"
-                aria-label="Close file preview"
+                title={t("preview.closeTitle")}
+                aria-label={t("preview.closeAria")}
                 onClick={onClosePreview}
               >
                 <X size={13} aria-hidden="true" />
@@ -596,7 +606,9 @@ function FilePreviewBody({
         <div
           className="file-preview-changes"
           role="region"
-          aria-label={`Changes for ${entry?.name ?? "selected file"}`}
+          aria-label={t("preview.changesFor", {
+            name: entry?.name ?? t("preview.selectedFile"),
+          })}
         >
           {changesContent}
         </div>
@@ -605,17 +617,19 @@ function FilePreviewBody({
           ref={previewContentRef}
           className="file-preview-file-content"
           role="region"
-          aria-label={`Preview of ${entry?.name ?? "selected file"}`}
+          aria-label={t("preview.previewOf", {
+            name: entry?.name ?? t("preview.selectedFile"),
+          })}
         >
           {!entry ? (
             <div className="file-preview-state">
-              Select a text file to preview.
+              {t("preview.selectTextFile")}
             </div>
           ) : null}
           {loading ? (
             <div className="file-preview-state">
               <span className="file-loading-spinner" />
-              Loading preview
+              {t("preview.loading")}
             </div>
           ) : null}
           {error ? (
@@ -623,7 +637,7 @@ function FilePreviewBody({
           ) : null}
           {!loading && !error && directoryPath ? (
             <div className="file-preview-state">
-              Directories cannot be previewed.
+              {t("preview.directoriesUnsupported")}
             </div>
           ) : null}
           {!loading && !error && preview?.image_data_url ? (
@@ -665,7 +679,9 @@ function FilePreviewBody({
                 controls
                 preload="metadata"
                 src={inlinePreviewUrl}
-                aria-label={`Audio preview: ${entry?.name ?? previewPath}`}
+                aria-label={t("preview.audioOf", {
+                  name: entry?.name ?? previewPath,
+                })}
               />
             </div>
           ) : null}
@@ -675,20 +691,18 @@ function FilePreviewBody({
           !preview.image_data_url &&
           !hasMediaPreview ? (
             <div className="file-preview-state">
-              Binary file cannot be previewed.
+              {t("preview.binaryUnsupported")}
             </div>
           ) : null}
           {!loading && !error && hasHtmlPreview && renderRichPreview ? (
             htmlTooLarge ? (
               <div className="file-preview-state">
-                HTML is too large to render. Use Source or Download from the
-                file menu.
+                {t("preview.htmlTooLarge")}
               </div>
             ) : inlinePreviewUrl ? (
               <>
                 <div className="file-preview-banner">
-                  Static HTML preview. Scripts are blocked; HTTPS stylesheets
-                  can access the network.
+                  {t("preview.htmlSandbox")}
                 </div>
                 <iframe
                   key={inlinePreviewUrl}
@@ -696,7 +710,9 @@ function FilePreviewBody({
                   sandbox=""
                   referrerPolicy="no-referrer"
                   src={inlinePreviewUrl}
-                  aria-label={`HTML preview: ${entry?.name ?? previewPath}`}
+                  aria-label={t("preview.htmlOf", {
+                    name: entry?.name ?? previewPath,
+                  })}
                 />
               </>
             ) : null
@@ -706,14 +722,11 @@ function FilePreviewBody({
           preview?.truncated &&
           !hasMediaPreview &&
           !(hasHtmlPreview && renderRichPreview) ? (
-            <div className="file-preview-banner">
-              Preview truncated at 512 KB.
-            </div>
+            <div className="file-preview-banner">{t("preview.truncated")}</div>
           ) : null}
           {!loading && !error && lineBeyondPreview ? (
             <div className="file-preview-banner" role="status">
-              Match at line {line} is outside this preview. The beginning of the
-              file is shown below.
+              {t("preview.matchOutside", { line })}
               {snippet ? (
                 <code className="file-preview-search-snippet">{snippet}</code>
               ) : null}
@@ -876,7 +889,10 @@ function codeMirrorAnnotationExtensions(
         this.stale ? "is-stale" : ""
       }`;
       marker.textContent = String(this.count);
-      marker.title = `${this.count} review comment${this.count === 1 ? "" : "s"}`;
+      marker.title =
+        this.count === 1
+          ? t("preview.reviewCommentOne")
+          : t("preview.reviewCommentsMany", { count: this.count });
       return marker;
     }
   }
@@ -889,8 +905,10 @@ function codeMirrorAnnotationExtensions(
         () =>
           store.notify({
             kind: "info",
-            message: "Select fewer lines to annotate",
-            detail: `The selected text exceeds the ${MAX_QUOTE_LENGTH.toLocaleString("en-US")}-character annotation limit.`,
+            message: t("preview.annotateTooLong"),
+            detail: t("preview.annotateLimit", {
+              limit: MAX_QUOTE_LENGTH.toLocaleString(getCurrentLocale()),
+            }),
           }),
       ),
   );

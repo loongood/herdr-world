@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { t } from "../i18n";
 import type { FileExplorerEntry, FilePreview } from "../types";
 import type { NewReviewAnnotation, ReviewAnnotation } from "../annotations";
 
@@ -54,22 +55,19 @@ export class FilePreviewBoundary extends Component<
   render() {
     if (!this.state.failed) return this.props.children;
     return (
-      <section className="file-preview" aria-label="File preview">
-        <div className="file-preview-head">File preview unavailable</div>
+      <section className="file-preview" aria-label={t("preview.ariaPreview")}>
+        <div className="file-preview-head">{t("preview.unavailable")}</div>
         <div className="file-preview-state" role="alert">
-          <p>
-            This file is no longer available to preview. Refresh the worktree or
-            choose another file.
-          </p>
+          <p>{t("preview.unavailableDetail")}</p>
           <button
             type="button"
-            aria-label="Retry file preview"
+            aria-label={t("preview.retryAria")}
             onClick={() => {
               this.props.onRefresh?.();
               this.setState({ failed: false });
             }}
           >
-            Retry preview
+            {t("preview.retryAction")}
           </button>
           {this.props.backAction ? (
             <button type="button" onClick={this.props.backAction.onClick}>
@@ -79,10 +77,10 @@ export class FilePreviewBoundary extends Component<
           {this.props.onClosePreview ? (
             <button
               type="button"
-              aria-label="Close file preview"
+              aria-label={t("preview.closeAria")}
               onClick={this.props.onClosePreview}
             >
-              Close preview
+              {t("preview.closeTitle")}
             </button>
           ) : null}
         </div>

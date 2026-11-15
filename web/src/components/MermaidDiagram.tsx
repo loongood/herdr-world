@@ -5,6 +5,7 @@ import {
   renderMermaidDiagram,
 } from "../mermaidRender";
 
+import { useT } from "../i18n";
 import { ZoomablePreview } from "./ZoomablePreview";
 import "./MermaidDiagram.css";
 
@@ -23,6 +24,7 @@ export function MermaidDiagram({
   className?: string;
   fitToWidth?: boolean;
 }) {
+  const t = useT();
   const [state, setState] = useState<MermaidDiagramState>({ kind: "loading" });
 
   useEffect(() => {
@@ -77,23 +79,23 @@ export function MermaidDiagram({
         aria-live="polite"
       >
         <span className="file-loading-spinner" />
-        Rendering diagram
+        {t("preview.mermaidRendering")}
       </div>
     );
   }
   if (state.kind === "empty") {
     return (
       <div className={`mermaid-diagram is-empty ${className}`.trim()}>
-        Empty diagram
+        {t("preview.mermaidEmpty")}
       </div>
     );
   }
   if (state.kind === "error") {
     return (
       <div className={`mermaid-diagram-error ${className}`.trim()} role="alert">
-        Mermaid render failed: {state.error}
+        {t("preview.mermaidFailed", { error: state.error })}
         <details>
-          <summary>Show diagram source</summary>
+          <summary>{t("preview.mermaidShowSource")}</summary>
           <pre>
             <code>{code}</code>
           </pre>
@@ -105,14 +107,14 @@ export function MermaidDiagram({
     <ZoomablePreview
       key={code}
       dimensions={state}
-      label="Mermaid diagram"
+      label={t("preview.mermaidLabel")}
       fitToWidth={fitToWidth}
       className={`mermaid-diagram ${className}`.trim()}
     >
       <div
         className="mermaid-svg"
         role="img"
-        aria-label="Mermaid diagram"
+        aria-label={t("preview.mermaidLabel")}
         // Final renderer output is SVG-sanitized after style/ID preparation.
         dangerouslySetInnerHTML={{ __html: state.svg }}
       />

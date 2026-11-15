@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { lazyWithReload } from "../lazyWithReload";
+import { useT } from "../i18n";
 
 // PDF.js only loads when a PDF is shown by it.
 const PdfPages = lazyWithReload("pdf-pages", () => import("./PdfPages"));
@@ -17,15 +18,18 @@ function framesShowPdf() {
 
 /** A PDF in the browser's own viewer, or drawn with PDF.js where it has none. */
 export function PdfPreview({ url, name }: { url: string; name: string }) {
+  const t = useT();
   return framesShowPdf() ? (
     <iframe
       className="file-preview-pdf"
       src={url}
-      title={`PDF preview: ${name}`}
+      title={t("preview.pdfPreviewOf", { name })}
     />
   ) : (
     <Suspense
-      fallback={<div className="file-preview-state">Loading the PDF...</div>}
+      fallback={
+        <div className="file-preview-state">{t("preview.pdfLoading")}</div>
+      }
     >
       <PdfPages key={url} url={url} name={name} />
     </Suspense>

@@ -1,5 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { type ComponentProps, Suspense } from "react";
+import { useT } from "../i18n";
 import { lazyWithReload } from "../lazyWithReload";
 import "./FilePreviewFrame.css";
 
@@ -20,10 +21,11 @@ export function FilePreviewLoading({
   entry,
   backAction,
 }: Pick<PreviewProps, "entry" | "backAction">) {
+  const t = useT();
   return (
     <section
       className="file-preview"
-      aria-label="File preview"
+      aria-label={t("preview.ariaPreview")}
       aria-busy="true"
     >
       <div className="file-preview-head">
@@ -40,14 +42,14 @@ export function FilePreviewLoading({
             </button>
           ) : null}
           <div className="file-preview-title" title={entry?.name}>
-            {entry?.name ?? "Preview"}
+            {entry?.name ?? t("preview.fallbackTitle")}
           </div>
         </div>
         {entry ? <span>{entry.path}</span> : null}
       </div>
       <div className="file-preview-state" role="status">
         <span className="file-loading-spinner" />
-        Loading preview
+        {t("preview.loading")}
       </div>
     </section>
   );

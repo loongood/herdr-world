@@ -1,6 +1,7 @@
 import * as pdfjs from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "../i18n";
 import { PDF_PAGE_WINDOW, renderPdfPages } from "./pdfPageRenderer";
 import "./PdfPages.css";
 
@@ -14,6 +15,7 @@ type PdfState =
 /** Native-viewer fallback with a bounded number of canvases on mobile. */
 export default function PdfPages({ url, name }: { url: string; name: string }) {
   const pagesRef = useRef<HTMLDivElement>(null);
+  const t = useT();
   const [state, setState] = useState<PdfState>({ status: "loading" });
   const [width, setWidth] = useState(0);
   useEffect(() => {
@@ -73,29 +75,38 @@ export default function PdfPages({ url, name }: { url: string; name: string }) {
     pagesRef.current?.parentElement?.scrollTo(0, 0);
   };
   return (
-    <div className="pdf-pages" role="document" aria-label={`PDF: ${name}`}>
+    <div
+      className="pdf-pages"
+      role="document"
+      aria-label={t("preview.pdfOf", { name })}
+    >
       {state.status === "loading" ? (
-        <div className="file-preview-state">Loading the PDF...</div>
+        <div className="file-preview-state">{t("preview.pdfLoading")}</div>
       ) : null}
       {state.status === "error" ? (
         <div className="file-preview-state">
-          Cannot show this PDF: {state.message}
+          {t("preview.pdfCannotShow", { message: state.message })}
         </div>
       ) : null}
       {state.status === "ready" ? (
-        <nav className="pdf-pages-navigation" aria-label="PDF pages">
+        <nav
+          className="pdf-pages-navigation"
+          aria-label={t("preview.pdfPagesAria")}
+        >
           <button
             type="button"
             className="secondary-btn"
             disabled={first === 1}
             onClick={() => move(-PDF_PAGE_WINDOW)}
           >
-            Previous pages
+            {t("preview.pdfPrevious")}
           </button>
           <span>
-            Pages {first}-
-            {Math.min(document!.numPages, first + PDF_PAGE_WINDOW - 1)} of{" "}
-            {document!.numPages}
+            {t("preview.pdfRange", {
+              from: first,
+              to: Math.min(document!.numPages, first + PDF_PAGE_WINDOW - 1),
+              total: document!.numPages,
+            })}
           </span>
           <button
             type="button"
@@ -103,7 +114,7 @@ export default function PdfPages({ url, name }: { url: string; name: string }) {
             disabled={first + PDF_PAGE_WINDOW > document!.numPages}
             onClick={() => move(PDF_PAGE_WINDOW)}
           >
-            Next pages
+            {t("preview.pdfNext")}
           </button>
         </nav>
       ) : null}

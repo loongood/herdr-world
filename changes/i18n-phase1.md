@@ -97,7 +97,12 @@
   and drop states), the new-folder and delete confirmations, and its
   upload/download/move/delete notices, plus the read-only filesystem
   browser (path bar, loaded-file search, entry actions) and the shared
-  reveal helper. The built-in slash-command catalog
+  reveal helper. The file previews follow too: their headers (title,
+  source/rendered mode, copy, refresh, close and new-workspace actions),
+  media states (images, PDFs, audio, the static-HTML sandbox banner,
+  truncation and match banners), zoom controls, Mermaid diagrams and the
+  error boundary, including the annotation-limit notices. The built-in
+  slash-command catalog
   keeps its English descriptions: they document external CLIs, not World's
   own copy.
   Remaining surfaces keep English

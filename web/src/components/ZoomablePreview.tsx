@@ -9,6 +9,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { Expand, Maximize, Minus, Plus, Shrink } from "lucide-react";
+import { useT } from "../i18n";
 
 export type PreviewDimensions = { width: number; height: number };
 
@@ -41,6 +42,7 @@ export function ZoomablePreview({
   fitToWidth?: boolean;
   children: ReactNode;
 }) {
+  const t = useT();
   const previewRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const fullscreenButtonRef = useRef<HTMLButtonElement>(null);
@@ -161,26 +163,26 @@ export function ZoomablePreview({
       <div
         className="visual-preview-controls"
         role="toolbar"
-        aria-label={`${label} zoom controls`}
+        aria-label={t("preview.zoomControlsAria", { label })}
       >
         <button
           type="button"
           onClick={() => changeZoom(scale / 1.25)}
           disabled={scale <= 0.01}
-          aria-label="Zoom out"
-          title="Zoom out"
+          aria-label={t("preview.zoomOut")}
+          title={t("preview.zoomOut")}
         >
           <Minus size={14} />
         </button>
-        <output aria-live="polite" aria-label="Zoom level">
+        <output aria-live="polite" aria-label={t("preview.zoomLevel")}>
           {Math.round(scale * 100)}%
         </output>
         <button
           type="button"
           onClick={() => changeZoom(scale * 1.25)}
           disabled={scale >= 8}
-          aria-label="Zoom in"
-          title="Zoom in"
+          aria-label={t("preview.zoomIn")}
+          title={t("preview.zoomIn")}
         >
           <Plus size={14} />
         </button>
@@ -188,11 +190,15 @@ export function ZoomablePreview({
           type="button"
           onClick={() => changeZoom(null)}
           aria-pressed={zoom === null}
-          title="Fit preview"
+          title={t("preview.zoomFit")}
         >
-          <Maximize size={13} /> Fit
+          <Maximize size={13} /> {t("preview.fitAction")}
         </button>
-        <button type="button" onClick={() => changeZoom(1)} title="Actual size">
+        <button
+          type="button"
+          onClick={() => changeZoom(1)}
+          title={t("preview.actualSize")}
+        >
           100%
         </button>
         <button
@@ -202,8 +208,14 @@ export function ZoomablePreview({
             inlineHeightRef.current = previewRef.current?.offsetHeight ?? 0;
             setFullscreen(!fullscreen);
           }}
-          aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
-          title={fullscreen ? "Exit fullscreen (Esc)" : "Fullscreen"}
+          aria-label={
+            fullscreen ? t("preview.exitFullscreen") : t("preview.fullscreen")
+          }
+          title={
+            fullscreen
+              ? t("preview.exitFullscreenEsc")
+              : t("preview.fullscreen")
+          }
         >
           {fullscreen ? <Shrink size={14} /> : <Expand size={14} />}
         </button>
@@ -213,8 +225,8 @@ export function ZoomablePreview({
         ref={viewportRef}
         tabIndex={0}
         role="region"
-        aria-label={`${label} viewport`}
-        title="Scroll to pan. Ctrl/Cmd + wheel to zoom."
+        aria-label={t("preview.viewportAria", { label })}
+        title={t("preview.panHint")}
       >
         <div className="visual-preview-stage">
           <div
