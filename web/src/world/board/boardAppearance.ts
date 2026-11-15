@@ -8,12 +8,22 @@ export type BoardAppearance = {
   surface: BoardSurface;
   statusColors: Partial<Record<WorldAgentStatus, string>>;
 };
-export const BOARD_STATUS_LABELS: Record<WorldAgentStatus, string> = {
-  blocked: "Needs you",
-  working: "Working",
-  done: "Finished, not checked",
-  idle: "Idle",
-  unknown: "No signal",
+export type BoardStatusLabelKey =
+  | "marks.needs"
+  | "marks.working"
+  | "board.statusDoneAwait"
+  | "marks.idle"
+  | "marks.noSignal";
+
+export const BOARD_STATUS_LABEL_KEYS: Record<
+  WorldAgentStatus,
+  BoardStatusLabelKey
+> = {
+  blocked: "marks.needs",
+  working: "marks.working",
+  done: "board.statusDoneAwait",
+  idle: "marks.idle",
+  unknown: "marks.noSignal",
 };
 
 /** Status choices never enter the document's user-chosen card colours. */
@@ -26,7 +36,9 @@ export function boardAppearance(value: unknown): BoardAppearance {
     ? raw.surface!
     : "theme";
   const statusColors: BoardAppearance["statusColors"] = {};
-  for (const status of Object.keys(BOARD_STATUS_LABELS) as WorldAgentStatus[]) {
+  for (const status of Object.keys(
+    BOARD_STATUS_LABEL_KEYS,
+  ) as WorldAgentStatus[]) {
     const color = raw.statusColors?.[status];
     if (typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color))
       statusColors[status] = color;

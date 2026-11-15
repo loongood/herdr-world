@@ -149,5 +149,13 @@
   chime field) and the harness readiness notes shared with the launcher.
   Chime timbre names stay English: they are instrument names, not
   World's own copy.
+  The Board controls follow too: the dock buttons and their accessible
+  labels (Work, the lens chooser, next agent needing you, needs-a-home
+  counts with their plural forms, zoom, fit and tidy), the settings menu
+  (surface choices, status colours, pulses, event trace, help) and the
+  Board help and status-colour dialogs, plus the lens legend's
+  nothing-to-show reading; the status labels reuse the agent-marks words.
+  Store-level validation errors stay English: they are diagnostics, not
+  World's own copy.
   Remaining surfaces keep English
   until their phase lands.

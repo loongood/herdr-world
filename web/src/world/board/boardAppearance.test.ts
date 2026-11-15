@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
+import type { WorldAgentStatus } from "../worldObject";
 import {
-  BOARD_STATUS_LABELS,
+  BOARD_STATUS_LABEL_KEYS,
   boardAppearance,
   boardAppearanceStyle,
   defaultBoardStatusColor,
@@ -57,8 +58,8 @@ test("default status colours match the CSS palette for both themes and surface o
           ? light!
           : dark!;
       for (const status of Object.keys(
-        BOARD_STATUS_LABELS,
-      ) as (keyof typeof BOARD_STATUS_LABELS)[]) {
+        BOARD_STATUS_LABEL_KEYS,
+      ) as WorldAgentStatus[]) {
         const color = palette.match(
           new RegExp(`--s-${status}:\\s*(#[0-9a-f]{6})`),
         )?.[1];

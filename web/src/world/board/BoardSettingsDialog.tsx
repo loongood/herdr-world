@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { CloseButton } from "../../components/CloseButton";
 import { focusDialogElement } from "../../components/dialogFocus";
+import { useT } from "../../i18n";
 import { useLayer } from "../../layerStack";
 import type { WorldAgentStatus } from "../worldObject";
 import {
-  BOARD_STATUS_LABELS,
-  defaultBoardStatusColor,
+  BOARD_STATUS_LABEL_KEYS,
   type BoardAppearance,
+  type BoardStatusLabelKey,
+  defaultBoardStatusColor,
 } from "./boardAppearance";
 
 export function BoardSettingsDialog({
@@ -21,8 +23,10 @@ export function BoardSettingsDialog({
   onChange(next: BoardAppearance): void;
   onClose(): void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
-  const title = mode === "help" ? "Board help" : "Board status colours";
+  const title =
+    mode === "help" ? t("board.titleHelp") : t("board.titleColours");
   useLayer(true, onClose, { element: () => ref.current });
   useEffect(() => focusDialogElement(ref.current), []);
   return createPortal(
@@ -42,52 +46,36 @@ export function BoardSettingsDialog({
       >
         <div className="modal-head">
           <h2>{title}</h2>
-          <CloseButton label={`Close ${title}`} onClick={onClose} />
+          <CloseButton
+            label={
+              mode === "help" ? t("board.closeHelp") : t("board.closeColours")
+            }
+            onClick={onClose}
+          />
         </div>
         {mode === "help" ? (
           <>
-            <p>
-              Use Next to open the next agent who needs you. Shared questions
-              count too.
-            </p>
-            <p>
-              Drag the empty board to pan. Pinch or use the zoom buttons to
-              zoom, and Fit to see everything.
-            </p>
-            <p>
-              Drag a card to arrange it. Drag a pane row onto another tab to
-              move only that pane; moves stay on one host.
-            </p>
-            <p>
-              Double-click empty board for a note. Drag a note's handle to an
-              agent to connect it, then use Send when ready.
-            </p>
-            <p>
-              On a phone, hold a card or pane row to lift it; a quick swipe
-              pans. Cancel a drag without moving the pane.
-            </p>
-            <p>
-              Choose a Surface in the Board menu. Status colours are separate
-              from the colours you give cards.
-            </p>
+            <p>{t("board.helpNext")}</p>
+            <p>{t("board.helpPan")}</p>
+            <p>{t("board.helpArrange")}</p>
+            <p>{t("board.helpNote")}</p>
+            <p>{t("board.helpPhone")}</p>
+            <p>{t("board.helpSurface")}</p>
           </>
         ) : (
           <>
-            <p>
-              Change the status dots, rings and badges in this browser. Card
-              colours stay as you chose them.
-            </p>
+            <p>{t("board.coloursIntro")}</p>
             {(
-              Object.entries(BOARD_STATUS_LABELS) as [
+              Object.entries(BOARD_STATUS_LABEL_KEYS) as [
                 WorldAgentStatus,
-                string,
+                BoardStatusLabelKey,
               ][]
-            ).map(([status, label]) => (
+            ).map(([status, key]) => (
               <label key={status} className="form-field">
-                <span>{label}</span>
+                <span>{t(key)}</span>
                 <input
                   type="color"
-                  aria-label={`${label} status colour`}
+                  aria-label={t("board.statusColourAria", { label: t(key) })}
                   value={
                     appearance.statusColors[status] ??
                     defaultBoardStatusColor(
@@ -112,7 +100,7 @@ export function BoardSettingsDialog({
               type="button"
               onClick={() => onChange({ ...appearance, statusColors: {} })}
             >
-              Reset status colours
+              {t("board.resetColours")}
             </button>
           </>
         )}

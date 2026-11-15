@@ -3367,6 +3367,55 @@ export const en = {
     authUnsupported: "Installed; login check not supported",
     loginUnknown: "Login status unknown — Check again",
   },
+  board: {
+    work: "Work",
+    lenses: "Lenses",
+    lensLeave: "Lens: {lens}. Leave the lens",
+    lensesKey: "Lenses (L)",
+    next: "Next",
+    nextAria: "Next agent needing you",
+    homeLabel: "Needs a home · {count}",
+    homeMenu: "Needs a home ({count})",
+    homeAriaOne: "Needs a home: {count} string",
+    homeAriaMany: "Needs a home: {count} strings",
+    zoomOut: "Zoom out",
+    fit: "Fit everything",
+    zoomIn: "Zoom in",
+    tidy: "Tidy",
+    boardSettings: "Board settings",
+    controlsAria: "Board controls",
+    workAria: "Work: pull requests and tickets",
+    surface: "Surface",
+    followTheme: "Follow theme",
+    whiteboard: "Whiteboard",
+    blackboard: "Blackboard",
+    statusColours: "Status colours…",
+    help: "Help",
+    statusPulses: "Status pulses",
+    eventTrace: "Event trace",
+    nothingToShow: "nothing to show",
+    statusDoneAwait: "Finished, not checked",
+    titleHelp: "Board help",
+    titleColours: "Board status colours",
+    closeHelp: "Close Board help",
+    closeColours: "Close Board status colours",
+    helpNext:
+      "Use Next to open the next agent who needs you. Shared questions count too.",
+    helpPan:
+      "Drag the empty board to pan. Pinch or use the zoom buttons to zoom, and Fit to see everything.",
+    helpArrange:
+      "Drag a card to arrange it. Drag a pane row onto another tab to move only that pane; moves stay on one host.",
+    helpNote:
+      "Double-click empty board for a note. Drag a note's handle to an agent to connect it, then use Send when ready.",
+    helpPhone:
+      "On a phone, hold a card or pane row to lift it; a quick swipe pans. Cancel a drag without moving the pane.",
+    helpSurface:
+      "Choose a Surface in the Board menu. Status colours are separate from the colours you give cards.",
+    coloursIntro:
+      "Change the status dots, rings and badges in this browser. Card colours stay as you chose them.",
+    statusColourAria: "{label} status colour",
+    resetColours: "Reset status colours",
+  },
 } as const;
 
 // The translation contract: the English key structure with every leaf

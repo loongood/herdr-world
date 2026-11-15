@@ -11,6 +11,7 @@ import type {
   WorkItem,
   WorldSourcesSnapshot,
 } from "../../../../shared/worldSources";
+import { t } from "../../i18n";
 import { target } from "../officeAgent";
 import { officeDeskKey } from "../officeRoom";
 import { deskWork } from "../town/townBadges";
@@ -156,7 +157,7 @@ export function boardLensReadout(
     : (model.workspaceByKey.get(point.key)?.label ?? tab?.label);
   if (label === undefined) return null;
   const mark = boardLensMark(view, model, point.key, pane?.leaf.id);
-  return `${label}: ${mark?.words ?? "nothing to show"}`;
+  return `${label}: ${mark?.words ?? t("board.nothingToShow")}`;
 }
 
 /** The card (and pane row) of the selected workspace or pane. */

@@ -5,22 +5,23 @@ import {
   Maximize2,
   Minus,
   Plus,
-  Sparkles,
   SkipForward,
+  Sparkles,
 } from "lucide-react";
 import {
+  type RefObject,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
-  type RefObject,
 } from "react";
+import { useT } from "../../i18n";
 import { useLayer } from "../../layerStack";
 import { binDock, dockReserve, onBinDock } from "../bin/binDock";
 import {
-  boardControlsLayout,
   type BoardControl,
   type BoardControlsLayout,
+  boardControlsLayout,
 } from "./boardControlsLayout";
 import "./boardControls.css";
 import { BoardSettingsDialog } from "./BoardSettingsDialog";
@@ -88,6 +89,7 @@ export function BoardControls(props: {
   tracing: boolean;
   onTrace?(): void;
 }) {
+  const t = useT();
   const space = useRef<HTMLDivElement>(null);
   const row = useRef<HTMLDivElement>(null);
   const measurements = useRef(new Map<BoardControl, HTMLSpanElement>());
@@ -194,27 +196,29 @@ export function BoardControls(props: {
   }, [props.count]);
   const label = (control: BoardControl) =>
     ({
-      work: "Work",
-      lens: props.lens ?? "Lenses",
-      next: "Next",
-      home: `Needs a home · ${props.count}`,
-      zoomOut: "Zoom out",
-      fit: "Fit everything",
-      zoomIn: "Zoom in",
-      tidy: "Tidy",
-      menu: "Board settings",
+      work: t("board.work"),
+      lens: props.lens ?? t("board.lenses"),
+      next: t("board.next"),
+      home: t("board.homeLabel", { count: props.count }),
+      zoomOut: t("board.zoomOut"),
+      fit: t("board.fit"),
+      zoomIn: t("board.zoomIn"),
+      tidy: t("board.tidy"),
+      menu: t("board.boardSettings"),
     })[control];
   const accessible = (control: BoardControl) =>
     control === "work"
-      ? "Work: pull requests and tickets"
+      ? t("board.workAria")
       : control === "lens"
         ? props.lens
-          ? `Lens: ${props.lens}. Leave the lens`
-          : "Lenses (L)"
+          ? t("board.lensLeave", { lens: props.lens })
+          : t("board.lensesKey")
         : control === "next"
-          ? "Next agent needing you"
+          ? t("board.nextAria")
           : control === "home"
-            ? `Needs a home: ${props.count} string${props.count === 1 ? "" : "s"}`
+            ? props.count === 1
+              ? t("board.homeAriaOne", { count: props.count })
+              : t("board.homeAriaMany", { count: props.count })
             : control === "tidy"
               ? props.tidyLabel
               : label(control);
@@ -228,7 +232,7 @@ export function BoardControls(props: {
       inMenu ? (
         <span>
           {inMenu && control === "home"
-            ? `Needs a home (${props.count})`
+            ? t("board.homeMenu", { count: props.count })
             : label(control)}
         </span>
       ) : null}
@@ -253,7 +257,7 @@ export function BoardControls(props: {
         ref={row}
         className="board-controls"
         role="group"
-        aria-label="Board controls"
+        aria-label={t("board.controlsAria")}
       >
         {layout.inline.map((control) =>
           control === "menu" ? (
@@ -262,7 +266,7 @@ export function BoardControls(props: {
                 ref={trigger}
                 type="button"
                 className={className(control)}
-                aria-label="Board settings"
+                aria-label={t("board.boardSettings")}
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen(!open)}
@@ -316,7 +320,7 @@ export function BoardControls(props: {
                     </button>
                   ))}
                   <div role="presentation" className="board-menu-section">
-                    Surface
+                    {t("board.surface")}
                   </div>
                   {BOARD_SURFACES.map((surface) => (
                     <button
@@ -330,10 +334,10 @@ export function BoardControls(props: {
                       }}
                     >
                       {surface === "theme"
-                        ? "Follow theme"
+                        ? t("board.followTheme")
                         : surface === "whiteboard"
-                          ? "Whiteboard"
-                          : "Blackboard"}
+                          ? t("board.whiteboard")
+                          : t("board.blackboard")}
                     </button>
                   ))}
                   <button
@@ -344,7 +348,7 @@ export function BoardControls(props: {
                       setDialog("colors");
                     }}
                   >
-                    Status colours…
+                    {t("board.statusColours")}
                   </button>
                   <button
                     type="button"
@@ -354,7 +358,7 @@ export function BoardControls(props: {
                       setDialog("help");
                     }}
                   >
-                    Help
+                    {t("board.help")}
                   </button>
                   <button
                     type="button"
@@ -362,7 +366,7 @@ export function BoardControls(props: {
                     aria-checked={props.pulses}
                     onClick={props.onPulses}
                   >
-                    Status pulses <span className="board-switch" />
+                    {t("board.statusPulses")} <span className="board-switch" />
                   </button>
                   {props.onTrace && (
                     <button
@@ -371,7 +375,7 @@ export function BoardControls(props: {
                       aria-checked={props.tracing}
                       onClick={props.onTrace}
                     >
-                      Event trace <span className="board-switch" />
+                      {t("board.eventTrace")} <span className="board-switch" />
                     </button>
                   )}
                 </div>
