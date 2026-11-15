@@ -4335,6 +4335,10 @@ export const zhHans: Dictionary = {
     panesOmitted: "已省略 {count} 个已观测窗格",
     noHostsInFilter: "此筛选下没有主机。",
     selectedHosts: "已选 {count} 个主机",
+    chatWaitLabel: "聊天尚不可用：正在显示终端",
+    chatWaitLongerLabel: "仍在显示终端：聊天尚不可用",
+    chatWaitDetail: "当 {name} 的对话可以读取时，聊天将在此打开。",
+    chatWaitStay: "留在终端",
   },
   appearance: {
     tabAppearance: "标签页外观",

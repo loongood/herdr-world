@@ -4500,6 +4500,10 @@ export const en = {
     panesOmitted: "{count} observed panes omitted",
     noHostsInFilter: "No hosts in this filter.",
     selectedHosts: "{count} selected hosts",
+    chatWaitLabel: "Chat is not available yet: showing Terminal",
+    chatWaitLongerLabel: "Still showing Terminal: Chat is not available yet",
+    chatWaitDetail: "Chat opens here when {name}'s conversation can be read.",
+    chatWaitStay: "Stay on Terminal",
   },
   appearance: {
     tabAppearance: "Tab appearance",

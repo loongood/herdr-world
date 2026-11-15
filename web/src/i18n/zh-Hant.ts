@@ -4338,6 +4338,10 @@ export const zhHant: Dictionary = {
     panesOmitted: "已省略 {count} 個已觀測窗格",
     noHostsInFilter: "此篩選下沒有主機。",
     selectedHosts: "已選 {count} 個主機",
+    chatWaitLabel: "聊天尚不可用：正在顯示終端機",
+    chatWaitLongerLabel: "仍在顯示終端機：聊天尚不可用",
+    chatWaitDetail: "當 {name} 的對話可以讀取時，聊天將在此開啟。",
+    chatWaitStay: "留在終端機",
   },
   appearance: {
     tabAppearance: "分頁外觀",

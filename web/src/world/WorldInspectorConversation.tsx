@@ -26,6 +26,7 @@ import {
   type ReviewAnnotation,
 } from "../annotations";
 import { worldLocalStorage } from "../browserStorage";
+import { useT } from "../i18n";
 import { type ActiveDiffSelection } from "../components/DiffViewerPanel";
 import { requestFilePreview } from "../components/fileExplorerResources";
 import type { ActiveFilePreviewSelection } from "../components/FilePreviewContent";
@@ -171,6 +172,7 @@ function InspectorResources({
   /** Show another pane of this window's tab (World-only, from the title map). */
   onSelectPane?(paneId: string): void;
 }) {
+  const t = useT();
   const baseConnectionClient = useConnectionClient();
   const portalOwnerRef = useRef<HTMLDivElement | null>(null);
   if (!portalOwnerRef.current) {
@@ -255,7 +257,8 @@ function InspectorResources({
   if (awaitingChat && !awaitSince) setAwaitSince(Date.now());
   if (!awaitingChat && awaitSince) setAwaitSince(0);
   const waitingName =
-    harnessLabel(conversation.context.agent ?? "") || "The agent";
+    harnessLabel(conversation.context.agent ?? "") ||
+    t("chat.theAgentSentence");
   useLayoutEffect(() => {
     if (conversation.awaitChatSession && openingReplaced) {
       updateChatOpening({ awaitChatSession: false });
@@ -737,15 +740,17 @@ function InspectorResources({
                     <WorldLoader
                       className="world-inspector-chat-wait"
                       since={awaitSince}
-                      label="Chat is not available yet: showing Terminal"
-                      longerLabel="Still showing Terminal: Chat is not available yet"
-                      detail={`Chat opens here when ${waitingName}'s conversation can be read.`}
+                      label={t("world.chatWaitLabel")}
+                      longerLabel={t("world.chatWaitLongerLabel")}
+                      detail={t("world.chatWaitDetail", {
+                        name: waitingName,
+                      })}
                       actions={
                         <button
                           type="button"
                           onClick={() => onChange({ view: "terminal" })}
                         >
-                          Stay on Terminal
+                          {t("world.chatWaitStay")}
                         </button>
                       }
                     />

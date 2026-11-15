@@ -7,9 +7,9 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`7a538d59`(批次 31e 第 1 部分,已推送)
-- 词典规模:en / zh-Hans / zh-Hant 各 **3992** 键,0 占位符不匹配
-- 工作区:批次 31e 第 2 部分(town 目录)已改,待提交
+- 最新提交:`a14cdbee`(批次 31e 第 3 部分,待推送)
+- 词典规模:en / zh-Hans / zh-Hant 各 **4185** 键,0 占位符不匹配
+- 工作区:干净
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
 ## 项目与设计文档
@@ -145,7 +145,8 @@
 | 31c | `b7073d6a` | 新增 groups 域(140 键:kind/kindPlural/kindName/status/role/resolution/op/interest/errors 等);新增 groupLabels.ts(类型化标签 helper);groupActions、GroupDetail、GroupMembers、GroupsWindow、GroupsSummary、GroupInterestButton、GroupEditFeedback |
 | 31d | `32fc0e05` | web/src/components 残留文案:新增 aria / attachments 域,扩展 diff / preview / inspector / terminal / common;AttachmentChips、ConfigurationLoadingDialog、DiffContentView、DiffViewerPanel、FilePreviewTabs、InspectorLoadingShell、InspectorPaneMap、InspectorSplitResizer、PopupOverlay、ShortcutLookupDialog(菜单焦点选择器改用 data-menu-trigger)、ConfigMenu、WorkspaceInspectorHost、FileExplorerDialog、App、AssistantPanel |
 | 31e-1 | `7a538d59` | world 目录第 1 部分:AgentLauncherDialog、HarnessReadinessSummary、TerminalAppearanceEditor/Button、SpacesTerminalAppearance、WorldControlPlane(部分)、TraceOverlay、ConnectionRecoveryBanner、DeskView、DeskOtherHosts |
-| 31e-2 | (待提交) | town 目录:新增 town4(16 键)/town5(10 键)、town.counts 子域、dragMoveToDesk 占位符修正;23 个 town 文件 + BoardView/board/BoardLenses(最小修复);新增 townLensLabels.ts(透镜名/提示类型化映射) |
+| 31e-2 | `f1e8906c` | town 目录:新增 town4(16 键)/town5(10 键)、town.counts 子域、dragMoveToDesk 占位符修正;23 个 town 文件 + BoardView/board/BoardLenses(最小修复);新增 townLensLabels.ts(透镜名/提示类型化映射) |
+| 31e-3 | `a14cdbee` | board/windows 及 world 剩余:BoardFacts、BoardHub、BoardPeek、WorkLens、boardFactsText(新增 `Translate` 类型 + `tr` 参数)、workLensModel(新增 LANE_KEYS 映射)、WindowFrame、WindowSurface、WindowSwitcher、WorldPanel;world 顶层 10 个文件;新增 board.facts.summaryCounts 与 wordBusy/wordWaiting/wordDone/wordQuiet |
 
 ---
 
