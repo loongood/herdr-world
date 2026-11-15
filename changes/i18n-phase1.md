@@ -256,5 +256,17 @@
   diagram placeholder and the terminal's copy and paste failures.
   The "Unassigned" shortcut placeholder now follows the language, and the
   command palette matches its visual-selection heading in any language.
+  The World surfaces follow too: the Town scale scene (its tasks, its
+  questions and answers, its blocked and finished agents), the Town lens
+  (its quests and its synthetic changes), the step words and their bubbles,
+  the Inspector (its rows, its selection and its terminal notices), the
+  Board's facts and its economy lines, the host and agent rows, the command
+  box, the world routes, the pane and desk stores and the runtime stores.
   Remaining surfaces keep English
   until their phase lands.
+
+### Fixed
+
+- The Ranger panel no longer fails on an action whose field is named like a
+  built-in property; the field name is shown as it came. The task form keeps
+  its own name ("Create task" or "Edit task") beside its heading.

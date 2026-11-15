@@ -7,9 +7,9 @@
 ## 状态快照(更新于 2026-11-15)
 
 - 分支:`feat/i18n-phase1`(所有阶段共用此分支,逐批提交推送)
-- 最新提交:`7cc4d662`(批次 34 进度文档;批次 35 代码待提交)
-- 词典规模:en / zh-Hans / zh-Hant 各 **4649** 键,0 占位符不匹配
-- 工作区:批次 35 变更已格式化、类型检查通过、lint 39 warnings(与基线一致)
+- 最新提交:`30acd621`(批次 36 修复);批次 36 主体 `2adc5213`,Windows 路径修复 `95a861f2`
+- 词典规模:en / zh-Hans / zh-Hant 各 **4789** 键,0 占位符不匹配
+- 工作区:批次 36 变更已格式化、类型检查通过、lint 39 warnings(与基线一致)
 - 后台进程:dev:web(5174)、server(pid 31612,8788)仍在运行,用户要求时停止
 
 ## 项目与设计文档
@@ -84,9 +84,10 @@
   这种组件不能用 useT(),只能用模块级 t()
 - **check-en3 的 skip 正则里不能出现未转义的 `//`**(会提前结束正则字面量);
   URL 之类的字面量用单独的 `isUrl()` 判断跳过
-- 既有环境问题(不修):isolated DOM 测试本地 preload 失败(CI 跑);
-  townSceneBoundary.test.ts 在 Windows 上因路径分隔符失败(与改动无关);
-  `[queue] machine-wide check queue unavailable here` 警告无害
+- 既有环境问题(不修):`[queue] machine-wide check queue unavailable here` 警告无害;
+  本地 `bun run test web/src` 仍有 4 个与本次改动无关的失败(FileExplorerDialog
+  的 Windows 路径分隔符、TerminalView.inputMode 的超时、townLandscape 的并行
+  超时;单独跑均通过)
 - **浏览器 fixture 依赖英文文案**:浏览器用例按英文按钮文本点击(如 "Edit pod…"、
   "Roles…"、"Add…"、"Confirm"、"Pod · Chat"、"Group interest: Focused"、面板标题
   "Pod ·" / "Team · Review pair"),en 词典值必须**逐字保留**这些字符串;
@@ -200,19 +201,37 @@ assistant.ts(15 条)、terminalThemes.ts 已完成;browserInput.worker.ts **无�
 `reason` 只存细节文本。渲染结果与原来一致,但整句英文不再逐字存在于 en.ts
 (check-en3 会报这三条,属预期)。
 
-### 批次 36:`web/src/world/` 剩余(当前)
+### 批次 36:`web/src/world/` 剩余 —— **已完成**
 
-world 目录剩余英文(约 80 条)。已知文件与条数:
-`worldInspectorSelection.ts` 11、`officeObservability.ts` 11、`townSteps.ts` 8、
-`townScaleScene.ts` 11、`useWorldInspectorWindows.ts` 9、
-`useWorldCreatedTerminal.ts` 6、`useWorldInspectorController.ts` 6、
-`useDeskPins.ts` 6、`visualRouteActions.ts` 5、`herdrOrder.ts` 4、
-`useSpacesTabWindowArrangement.tsx` 4、`runtimeStore.ts` 3、
-`worldCommandBox.tsx` 1、`BoardView.tsx` 3 等。
-沿用扫描脚本:`node .agents/tmp/scan-*.js web/src/world` 找 JSX 文本与
-字符串字面量。
+提交:`2adc5213`(主体)、`95a861f2`(Windows 路径)、`30acd621`(原型链修复)。
 
-### 批次 37:`web/src/` 顶层(当前之后)
+world 目录剩余英文(约 80 条)已全部迁移:`worldInspectorSelection.ts`、
+`officeObservability.ts`、`townSteps.ts`、`townScaleScene.ts`、
+`useWorldInspectorWindows.ts`、`useWorldCreatedTerminal.ts`、
+`useWorldInspectorController.ts`、`useDeskPins.ts`、`visualRouteActions.ts`、
+`herdrOrder.ts`、`useSpacesTabWindowArrangement.tsx`、`runtimeStore.ts`、
+`worldCommandBox.tsx`、`BoardView.tsx` 等。
+
+**架构变更(重要)**:`web/src/i18n/core.ts` 新建——无 React、无 localStorage 的
+纯核心(词典、locale 状态、`t()`、`subscribe()`、`initializeLanguage()`、
+`setLanguage()`、`restoreActiveDictionary()`);`web/src/i18n/index.ts` 改为应用层
+(hooks + 存储 + `document.documentElement.lang`),并转出 core 的 `t`。
+**原因**:Town 场景模块图(`townSceneBoundary.test.ts` 契约)禁止引入 React /
+浏览器适配器;原先场景图内的模块改引 `../../i18n/core` 即会拖入 React。
+边界测试放宽为允许 `web/src/i18n/`(纯词典数据),但仍禁止 `.tsx` 与 node_modules。
+
+**顺带修好的既有缺陷**:
+- 22 个 DOM 测试在 Windows 上因 `import.meta.url).pathname` 得到 `/D:/...`
+  而全部 preload 失败 → 改用 `fileURLToPath`(`95a861f2`)。
+- `AssistantPanel` 的 `ACTION_FIELD_KEYS`/`ACTIVITY_LABEL_KEYS` 与 chat 的
+  `STATUS_KEYS` 用普通索引查表,字段名 `__proto__` 会命中原型链属性并崩溃
+  → 改用 `Object.prototype.hasOwnProperty.call`;`core.t()` 对非字符串键返回
+  空串而非崩溃(`30acd621`)。
+- 任务表单的 aria-label 与标题被合并成同一组键 → 拆出
+  `assistant.createTaskAria`/`assistant.editTaskAria`("Create task"/"Edit task"),
+  标题仍是 "New task"/"Edit task"。
+
+### 批次 37:`web/src/` 顶层(当前)
 
 `agentOrder.ts`、`agentWorktreeClient.ts`、`api.ts`、`assistantMentions.ts`、
 `assistantModels.ts`、`attachmentUploads.ts`、`browserChrome.ts`、
